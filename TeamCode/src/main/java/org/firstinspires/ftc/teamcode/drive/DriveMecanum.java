@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.drive;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
@@ -69,7 +69,7 @@ public class DriveMecanum extends LinearOpMode {
 
         double clawPower = 0;
         double duckSpinnerPower = 0;
-        double multiplier = 0.3;
+        double multiplier = 0.5;
         double globalpowerfactor = 1.0;
         double prevTime = 0;
         boolean isCollectorActive = false;

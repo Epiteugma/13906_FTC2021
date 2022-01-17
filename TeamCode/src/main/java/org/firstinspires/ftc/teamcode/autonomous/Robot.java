@@ -157,146 +157,155 @@ public class Robot {
                 }
                 this.STOP();
                 break;
-            default:
-                return;
         }
     }
     
     public void drive(Direction dir, double power, long time) {
         long timeMillis = 0;
+        // TODO: adjust gain.
+        double gain = 0.5;
         float targetAngle = this.getIMUAngle(Axis.Z);
         switch (dir){
             case FORWARD:
                 while(System.currentTimeMillis()+time > timeMillis) {
-                    float currentAngle = this.getIMUAngle(Axis.Z);
-                    if (currentAngle > targetAngle) {
-                        this.turn(Direction.LEFT, targetAngle - currentAngle , 1);
-                        return;
-                    }
-                    else if (currentAngle < targetAngle) {
-                        this.turn(Direction.RIGHT, currentAngle - targetAngle, 1);
-                        return;
-                    }
+                    float angle = this.getIMUAngle(Axis.Z);
+                    double correction = (angle-targetAngle)*gain;
                     timeMillis = System.currentTimeMillis();
                     frontLeft.setPower(-power);
-                    frontRight.setPower(power);
+                    frontRight.setPower(power-correction);
                     backLeft.setPower(-power);
-                    backRight.setPower(power);
+                    backRight.setPower(power-correction);
                     }
                 this.STOP();
                 break;
             case BACK:
                 while(System.currentTimeMillis()+time > timeMillis) {
-                    float currentAngle = this.getIMUAngle(Axis.Z);
-                    if (currentAngle > targetAngle) {
-                        this.turn(Direction.LEFT, targetAngle - currentAngle , 1);
-                        return;
-                    }
-                    else if (currentAngle < targetAngle) {
-                        this.turn(Direction.RIGHT, currentAngle - targetAngle, 1);
-                        return;
-                    }
+                    float angle = this.getIMUAngle(Axis.Z);
+                    double correction = (angle-targetAngle)*gain;
                     timeMillis = System.currentTimeMillis();
                     frontLeft.setPower(power);
-                    frontRight.setPower(-power);
+                    frontRight.setPower(-(power-correction));
                     backLeft.setPower(power);
-                    backRight.setPower(-power);
+                    backRight.setPower(-(power-correction));
                     }
                 this.STOP();
                 break;
-            default:
-                return;
         } 
     }
         
-    public void turn(Direction dir, float degrees, double power){
-        float targetAngle = this.getIMUAngle(Axis.Z)+degrees;
-            switch (dir){
-                case LEFT:
-                    while(this.getIMUAngle(Axis.Z) != targetAngle) {
-                        frontLeft.setPower(power);
-                        frontRight.setPower(power);
-                        backLeft.setPower(power);
-                        backRight.setPower(power);
-                        }
-                    this.STOP();
-                    break;
-                case RIGHT:
-                    while(this.getIMUAngle(Axis.Z) != targetAngle) {
-                        frontLeft.setPower(-power);
-                        frontRight.setPower(-power);
-                        backLeft.setPower(-power);
-                        backRight.setPower(-power);
-                        }
-                    this.STOP();
-                    break;
-                default:
-                    return;
+    public void turn(Direction dir, double power, float degrees) {
+        float targetAngle;
+        switch (dir){
+            case LEFT:
+                targetAngle = this.getIMUAngle(Axis.Z)+degrees;
+                while(this.getIMUAngle(Axis.Z) != targetAngle) {
+                    frontLeft.setPower(power);
+                    frontRight.setPower(power);
+                    backLeft.setPower(power);
+                    backRight.setPower(power);
+                }
+                this.STOP();
+                break;
+            case RIGHT:
+                targetAngle = this.getIMUAngle(Axis.Z)-degrees;
+                while(this.getIMUAngle(Axis.Z) != targetAngle) {
+                    frontLeft.setPower(-power);
+                    frontRight.setPower(-power);
+                    backLeft.setPower(-power);
+                    backRight.setPower(-power);
+                }
+                this.STOP();
+                break;
             } 
     }
 
     public void moveClaw(Position pos) {
         long timeMillis = 0;
         //TODO: Calibrate the time needed for each of the 3 levels
+        long lowTime = 0;
+        long midTime = 0;
+        long highTime = 0;
+        long newTime;
         switch(pos) {
             case LOW:
-                this.clawTime -= 300;
-                while(System.currentTimeMillis()+clawTime > timeMillis) {
-                    timeMillis = System.currentTimeMillis();
-                    armClaw.setPower(1);
+                newTime = lowTime-clawTime;
+                if(newTime > 0) {
+                    while(System.currentTimeMillis()+newTime > timeMillis) {
+                        timeMillis = System.currentTimeMillis();
+                        armClaw.setPower(1);
                     }
+                } else {
+                    newTime = clawTime-lowTime;
+                    while(System.currentTimeMillis()+newTime > timeMillis) {
+                        timeMillis = System.currentTimeMillis();
+                        armClaw.setPower(-1);
+                    }
+                }
+                this.clawTime = newTime;
                 armClaw.setPower(0);
                 break;
             case MID:
-                this.clawTime -= 600;
-                while(System.currentTimeMillis()+this.clawTime > timeMillis) {
-                    timeMillis = System.currentTimeMillis();
-                    armClaw.setPower(1);
+                newTime = midTime-clawTime;
+                if(newTime > 0) {
+                    while(System.currentTimeMillis()+newTime > timeMillis) {
+                        timeMillis = System.currentTimeMillis();
+                        armClaw.setPower(1);
                     }
+                } else {
+                    newTime = clawTime-midTime;
+                    while(System.currentTimeMillis()+newTime > timeMillis) {
+                        timeMillis = System.currentTimeMillis();
+                        armClaw.setPower(-1);
+                    }
+                }
+                this.clawTime = newTime;
                 armClaw.setPower(0);
                 break;
             case HIGH:
-                this.clawTime -= 900;
-                while(System.currentTimeMillis()+this.clawTime > timeMillis) {
-                    timeMillis = System.currentTimeMillis();
-                    armClaw.setPower(1);
+                newTime = highTime-clawTime;
+                if(newTime > 0) {
+                    while(System.currentTimeMillis()+newTime > timeMillis) {
+                        timeMillis = System.currentTimeMillis();
+                        armClaw.setPower(1);
                     }
+                } else {
+                    newTime = clawTime-highTime;
+                    while(System.currentTimeMillis()+newTime > timeMillis) {
+                        timeMillis = System.currentTimeMillis();
+                        armClaw.setPower(-1);
+                    }
+                }
+                this.clawTime = newTime;
                 armClaw.setPower(0);
                 break;
             case DOWN:
-                // time = 600; don't reset time and use the last time e.g last command was HIGH->900 so now it will be DOWN->900
-                while(System.currentTimeMillis()+this.clawTime > timeMillis) {
+                while(System.currentTimeMillis()+clawTime > timeMillis) {
                     timeMillis = System.currentTimeMillis();
                     armClaw.setPower(-1);
-                    }
-                armClaw.setPower(0);
+                }
+                this.clawTime = 0;
                 break;
-            default:
-                return;
         }
     }
 
     public void intake(Direction dir) {
-        // TODO: calibrate time to move.
         long timeToMove = 1000;
         long timeMillis = 0;
         switch(dir){
             case IN:
                 while(System.currentTimeMillis()+timeToMove > timeMillis) {
                     timeMillis = System.currentTimeMillis();
-                    collector.setPower(1);
+                    collector.setPower(0.6);
                 }
                 collector.setPower(0);
                 break;
             case OUT:
                 while(System.currentTimeMillis()+timeToMove > timeMillis) {
                     timeMillis = System.currentTimeMillis();
-                    collector.setPower(-1);
+                    collector.setPower(-0.6);
                     }
                 collector.setPower(0);
                 break;
-            default:
-                return;
             }
     }
 
