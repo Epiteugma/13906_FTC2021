@@ -18,6 +18,9 @@ import org.openftc.easyopencv.OpenCvWebcam;
 
 import java.util.List;
 
+import com.acmerobotics.dashboard.config.Config;
+
+@Config
 public class Robot {
     private long clawTime = 0;
 
