@@ -47,10 +47,11 @@ public class BlueAllianceRight extends LinearOpMode {
                 break;
             case CENTER:
                 robot.drive(Robot.Direction.FORWARDS, 0.5, 5);
-                //robot.turn(Robot.Direction.LEFT, 0.5, 500);
+                robot.turn(Robot.Direction.LEFT, 0.5, 90);
                 break;
             case RIGHT:
                 break;
         }
+        stop();
     }
 }

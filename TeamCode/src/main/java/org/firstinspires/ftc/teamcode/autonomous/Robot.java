@@ -73,7 +73,6 @@ public class Robot {
         DOWN
     }
 
-    // TODO: Place the three touch sensors accordingly
     public String inContact() {
         touchSensorSideLeft = hardwareMap.get(TouchSensor.class, "leftSideTouch");
         touchSensorSideRight = hardwareMap.get(TouchSensor.class, "rightSideTouch");
@@ -221,22 +220,22 @@ public class Robot {
         double ticksToTurn = degrees / 360 * turn_circumference;
         switch (dir){
             case LEFT:
-                while(ticksToTurn > frontRight.getCurrentPosition()) {
+                while(ticksToTurn > frontRight.getCurrentPosition() && linearOpMode.opModeIsActive()) {
                     frontLeft.setPower(power);
                     frontRight.setPower(power);
                     backLeft.setPower(power);
                     backRight.setPower(power);
                 }
-                this.STOP();
+                STOP();
                 break;
             case RIGHT:
-                while(ticksToTurn > frontRight.getCurrentPosition()) {
+                while(ticksToTurn > frontRight.getCurrentPosition() && linearOpMode.opModeIsActive()) {
                     frontLeft.setPower(-power);
                     frontRight.setPower(-power);
                     backLeft.setPower(-power);
                     backRight.setPower(-power);
                 }
-                this.STOP();
+                STOP();
                 break;
             } 
     }
@@ -252,13 +251,13 @@ public class Robot {
             case LOW:
                 newTime = lowTime-clawTime;
                 if(newTime > 0) {
-                    while(System.currentTimeMillis()+newTime > timeMillis) {
+                    while(System.currentTimeMillis()+newTime > timeMillis && linearOpMode.opModeIsActive()) {
                         timeMillis = System.currentTimeMillis();
                         armClaw.setPower(1);
                     }
                 } else {
                     newTime = clawTime-lowTime;
-                    while(System.currentTimeMillis()+newTime > timeMillis) {
+                    while(System.currentTimeMillis()+newTime > timeMillis && linearOpMode.opModeIsActive()) {
                         timeMillis = System.currentTimeMillis();
                         armClaw.setPower(-1);
                     }
@@ -269,13 +268,13 @@ public class Robot {
             case MID:
                 newTime = midTime-clawTime;
                 if(newTime > 0) {
-                    while(System.currentTimeMillis()+newTime > timeMillis) {
+                    while(System.currentTimeMillis()+newTime > timeMillis && linearOpMode.opModeIsActive()) {
                         timeMillis = System.currentTimeMillis();
                         armClaw.setPower(1);
                     }
                 } else {
                     newTime = clawTime-midTime;
-                    while(System.currentTimeMillis()+newTime > timeMillis) {
+                    while(System.currentTimeMillis()+newTime > timeMillis && linearOpMode.opModeIsActive()) {
                         timeMillis = System.currentTimeMillis();
                         armClaw.setPower(-1);
                     }
@@ -286,13 +285,13 @@ public class Robot {
             case HIGH:
                 newTime = highTime-clawTime;
                 if(newTime > 0) {
-                    while(System.currentTimeMillis()+newTime > timeMillis) {
+                    while(System.currentTimeMillis()+newTime > timeMillis && linearOpMode.opModeIsActive()) {
                         timeMillis = System.currentTimeMillis();
                         armClaw.setPower(1);
                     }
                 } else {
                     newTime = clawTime-highTime;
-                    while(System.currentTimeMillis()+newTime > timeMillis) {
+                    while(System.currentTimeMillis()+newTime > timeMillis && linearOpMode.opModeIsActive()) {
                         timeMillis = System.currentTimeMillis();
                         armClaw.setPower(-1);
                     }
@@ -301,7 +300,7 @@ public class Robot {
                 armClaw.setPower(0);
                 break;
             case DOWN:
-                while(System.currentTimeMillis()+clawTime > timeMillis) {
+                while(System.currentTimeMillis()+clawTime > timeMillis && linearOpMode.opModeIsActive()) {
                     timeMillis = System.currentTimeMillis();
                     armClaw.setPower(-1);
                 }
@@ -315,14 +314,14 @@ public class Robot {
         long timeMillis = 0;
         switch(dir){
             case IN:
-                while(System.currentTimeMillis()+timeToMove > timeMillis) {
+                while(System.currentTimeMillis()+timeToMove > timeMillis && linearOpMode.opModeIsActive()) {
                     timeMillis = System.currentTimeMillis();
                     collector.setPower(0.6);
                 }
                 collector.setPower(0);
                 break;
             case OUT:
-                while(System.currentTimeMillis()+timeToMove > timeMillis) {
+                while(System.currentTimeMillis()+timeToMove > timeMillis && linearOpMode.opModeIsActive()) {
                     timeMillis = System.currentTimeMillis();
                     collector.setPower(-0.6);
                     }
@@ -335,7 +334,7 @@ public class Robot {
         // TODO: calibrate time to spin.
         long timeToSpin = 1000;
         long timeMillis = 0;
-        while(System.currentTimeMillis()+timeToSpin > timeMillis) {
+        while(System.currentTimeMillis()+timeToSpin > timeMillis && linearOpMode.opModeIsActive()) {
             timeMillis = System.currentTimeMillis();
             duckSpinner1.setPower(1);
             duckSpinner2.setPower(1);
@@ -344,7 +343,7 @@ public class Robot {
         duckSpinner2.setPower(0);
     }
 
-    // Class constructor. -
+    // Class constructor.
     // Important init code. Modify only if needed.
     public Robot(List<DcMotor> motors, LinearOpMode linearOpMode) {
         this.hardwareMap = linearOpMode.hardwareMap;
