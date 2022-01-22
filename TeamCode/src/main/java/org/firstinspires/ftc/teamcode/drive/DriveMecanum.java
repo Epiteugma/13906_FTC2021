@@ -69,7 +69,7 @@ public class DriveMecanum extends LinearOpMode {
 
         double clawPower = 0;
         double duckSpinnerPower = 0;
-        double multiplier = 0.5;
+        double multiplier = 0.7;
         double globalpowerfactor = 1.0;
         double prevTime = 0;
         boolean isCollectorActive = false;
@@ -128,13 +128,13 @@ public class DriveMecanum extends LinearOpMode {
 
             if(gamepad1.square && System.currentTimeMillis() > prevTime+200) {
                 prevTime = System.currentTimeMillis();
-                duckSpinnerPower = duckSpinnerPower == multiplier ? 0 : multiplier;
+                duckSpinnerPower = duckSpinnerPower == multiplier-0.25 ? 0 : multiplier-0.25;
             }
             duckSpinner1.setPower(duckSpinnerPower);
             duckSpinner2.setPower(duckSpinnerPower);
 
             if(isCollectorActive) {
-                collector.setPower(collectorDirection ? 3*multiplier : -multiplier-0.25);
+                collector.setPower(collectorDirection ? 1 : -multiplier);
             } else collector.setPower(0);
 
             telemetry.addData("GlobalPowerFactor: ", globalpowerfactor);
