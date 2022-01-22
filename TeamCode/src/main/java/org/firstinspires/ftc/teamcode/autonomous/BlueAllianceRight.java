@@ -7,13 +7,10 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.vision.DuckDetector;
 import org.firstinspires.ftc.teamcode.vision.TseDetector;
 
-import org.openftc.easyopencv.OpenCvCamera;
-
 import java.util.Arrays;
 
 @Autonomous(name="Blue Alliance Right", group="FTC22")
 public class BlueAllianceRight extends LinearOpMode {
-    OpenCvCamera webcam;
     DcMotor backLeft;
     DcMotor backRight;
     DcMotor frontLeft;
@@ -38,25 +35,21 @@ public class BlueAllianceRight extends LinearOpMode {
     @Override
     public void runOpMode(){
         initMotors();
-        robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, armClaw, collector, duckSpinner1, duckSpinner2), hardwareMap);
+        robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, armClaw, collector, duckSpinner1, duckSpinner2), this);
 
-        waitForStart();
         DuckDetector.Location duckPos = robot.getDuckPos();
+        waitForStart();
+
+        telemetry.addData("duck", duckPos);
+        telemetry.update();
         switch (duckPos) {
             case LEFT:
-                while(opModeIsActive()) {
-                    robot.drive(Robot.Direction.LEFT, 0.5, 5000);
-                }
-                break;
-            case RIGHT:
-                while(opModeIsActive()) {
-                    robot.strafe(Robot.Direction.LEFT, 0.5, 5000);
-                }
                 break;
             case CENTER:
-                while(opModeIsActive()) {
-                    robot.turn(Robot.Direction.LEFT, 90, 5000);
-                }
+                robot.drive(Robot.Direction.FORWARDS, 0.5, 5);
+                //robot.turn(Robot.Direction.LEFT, 0.5, 500);
+                break;
+            case RIGHT:
                 break;
         }
     }

@@ -38,10 +38,10 @@ public class BlueAllianceLeft extends LinearOpMode {
     @Override
     public void runOpMode(){
         initMotors();
-        robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, armClaw, collector, duckSpinner1, duckSpinner2), hardwareMap);
+        robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, armClaw, collector, duckSpinner1, duckSpinner2), this);
 
-        waitForStart();
         DuckDetector.Location duckPos = robot.getDuckPos();
+        waitForStart();
         switch (duckPos) {
             case LEFT:
                 while(opModeIsActive()) {

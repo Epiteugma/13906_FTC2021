@@ -1,10 +1,15 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.linearOpMode;
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -23,7 +28,13 @@ import com.acmerobotics.dashboard.config.Config;
 @Config
 public class Robot {
     private long clawTime = 0;
+    private final int ticks_per_rev = 1120;
+    private final double radius_of_wheels = 75/2;
+    private final double wheels_circumference = Math.PI * Math.pow(radius_of_wheels, 2);
+    private final double center_to_wheel = 21;
+    private final double turn_circumference = Math.PI * Math.pow(center_to_wheel, 2);
 
+    LinearOpMode linearOpMode;
     HardwareMap hardwareMap;
     DcMotor frontLeft;
     DcMotor backLeft;
@@ -38,7 +49,7 @@ public class Robot {
     TouchSensor touchSensorSideRight;
     TouchSensor touchSensorFrontRight;
     
-    private enum Axis {
+    public enum Axis {
         X,
         Y,
         Z
@@ -47,8 +58,8 @@ public class Robot {
     public enum Direction {
         LEFT,
         RIGHT,
-        FORWARD,
-        BACK,
+        FORWARDS,
+        BACKWARDS,
         UP,
         DOWN,
         IN,
@@ -62,9 +73,9 @@ public class Robot {
         DOWN
     }
 
-    //TODO: Place the three touch sensors accordingly
+    // TODO: Place the three touch sensors accordingly
     public String inContact() {
-        touchSensorSideLeft = hardwareMap.get(TouchSensor.class, "rightSideTouch");
+        touchSensorSideLeft = hardwareMap.get(TouchSensor.class, "leftSideTouch");
         touchSensorSideRight = hardwareMap.get(TouchSensor.class, "rightSideTouch");
         touchSensorFrontRight = hardwareMap.get(TouchSensor.class, "frontRightTouch");
 
@@ -87,7 +98,7 @@ public class Robot {
         imu.initialize(params);
     }
 
-    private float getIMUAngle(Axis axis) {
+    public float getIMUAngle(Axis axis) {
         Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         switch(axis) {
             case X:
@@ -110,8 +121,6 @@ public class Robot {
         webcam.setPipeline(detector);
         webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
         DuckDetector.Location location = detector.getLocation();
-        webcam.stopStreaming();
-        webcam.closeCameraDevice();
         return location;
     }
 
@@ -124,17 +133,24 @@ public class Robot {
         webcam.setPipeline(detector);
         webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
         TseDetector.Location location = detector.getLocation();
-        webcam.stopStreaming();
-        webcam.closeCameraDevice();
         return location;
     }
     
 
-    public void STOP() {
+    private void STOP() {
         frontLeft.setPower(0);
         backLeft.setPower(0);
         frontRight.setPower(0);
         backRight.setPower(0);
+    }
+
+    public boolean isMoving(){
+        if (frontLeft.isBusy() || backLeft.isBusy() || frontLeft.isBusy() || backRight.isBusy()){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
 
     public void strafe(Direction dir, double power, long time) {
@@ -162,46 +178,50 @@ public class Robot {
                 break;
         }
     }
-    
-    public void drive(Direction dir, double power, long time) {
-        long timeMillis = 0;
-        // TODO: adjust gain.
-        double gain = 0.5;
-        float targetAngle = this.getIMUAngle(Axis.Z);
-        switch (dir){
-            case FORWARD:
-                while(System.currentTimeMillis()+time > timeMillis) {
-                    float angle = this.getIMUAngle(Axis.Z);
-                    double correction = (angle-targetAngle)*gain;
-                    timeMillis = System.currentTimeMillis();
-                    frontLeft.setPower(-power);
-                    frontRight.setPower(power-correction);
-                    backLeft.setPower(-power);
-                    backRight.setPower(power-correction);
+
+    public void drive(Direction dir, double power, double targetDistance) {
+            // TODO: adjust gain (almost done)
+            double gain = 0.125;
+            double currentDistance = 0;
+            double prevTicks = frontRight.getCurrentPosition();
+            float targetAngle = getIMUAngle(Axis.Z);
+            switch (dir) {
+                case BACKWARDS:
+                    while (targetDistance > currentDistance && linearOpMode.opModeIsActive()) {
+                        currentDistance = (frontRight.getCurrentPosition() - prevTicks) / ticks_per_rev * wheels_circumference;
+                        linearOpMode.telemetry.addData("kkk",frontRight.getCurrentPosition());
+                        linearOpMode.telemetry.addData("current distance", currentDistance);
+                        linearOpMode.telemetry.update();
+                        float currentAngle = getIMUAngle(Axis.Z);
+                        double correction = (currentAngle - targetAngle) * gain;
+                        frontLeft.setPower(-power);
+                        frontRight.setPower(power - correction);
+                        backLeft.setPower(-power);
+                        backRight.setPower(power - correction);
                     }
-                this.STOP();
-                break;
-            case BACK:
-                while(System.currentTimeMillis()+time > timeMillis) {
-                    float angle = this.getIMUAngle(Axis.Z);
-                    double correction = (angle-targetAngle)*gain;
-                    timeMillis = System.currentTimeMillis();
-                    frontLeft.setPower(power);
-                    frontRight.setPower(-(power-correction));
-                    backLeft.setPower(power);
-                    backRight.setPower(-(power-correction));
+                case FORWARDS:
+                    while (targetDistance > currentDistance && linearOpMode.opModeIsActive()) {
+                        currentDistance = (frontRight.getCurrentPosition() - prevTicks) / ticks_per_rev * wheels_circumference;
+                        linearOpMode.telemetry.addData("kkk",frontRight.getCurrentPosition());
+                        linearOpMode.telemetry.addData("current distance", currentDistance);
+                        linearOpMode.telemetry.update();
+                        float currentAngle = getIMUAngle(Axis.Z);
+                        double correction = (currentAngle - targetAngle) * gain;
+                        frontLeft.setPower(power);
+                        frontRight.setPower(-(power - correction));
+                        backLeft.setPower(power);
+                        backRight.setPower(-(power - correction));
                     }
-                this.STOP();
-                break;
-        } 
+            }
+            STOP();
+
     }
         
-    public void turn(Direction dir, double power, float degrees) {
-        float targetAngle;
+    public void turn(Direction dir, double power, double degrees) {
+        double ticksToTurn = degrees / 360 * turn_circumference;
         switch (dir){
             case LEFT:
-                targetAngle = this.getIMUAngle(Axis.Z)+degrees;
-                while(this.getIMUAngle(Axis.Z) != targetAngle) {
+                while(ticksToTurn > frontRight.getCurrentPosition()) {
                     frontLeft.setPower(power);
                     frontRight.setPower(power);
                     backLeft.setPower(power);
@@ -210,8 +230,7 @@ public class Robot {
                 this.STOP();
                 break;
             case RIGHT:
-                targetAngle = this.getIMUAngle(Axis.Z)-degrees;
-                while(this.getIMUAngle(Axis.Z) != targetAngle) {
+                while(ticksToTurn > frontRight.getCurrentPosition()) {
                     frontLeft.setPower(-power);
                     frontRight.setPower(-power);
                     backLeft.setPower(-power);
@@ -225,9 +244,9 @@ public class Robot {
     public void moveClaw(Position pos) {
         long timeMillis = 0;
         //TODO: Calibrate the time needed for each of the 3 levels
-        long lowTime = 0;
-        long midTime = 0;
-        long highTime = 0;
+        long lowTime = 100;
+        long midTime = 200;
+        long highTime = 300;
         long newTime;
         switch(pos) {
             case LOW:
@@ -327,17 +346,23 @@ public class Robot {
 
     // Class constructor. -
     // Important init code. Modify only if needed.
-    public Robot(List<DcMotor> motors, HardwareMap hardwareMap) {
-        this.hardwareMap = hardwareMap;
+    public Robot(List<DcMotor> motors, LinearOpMode linearOpMode) {
+        this.hardwareMap = linearOpMode.hardwareMap;
+        this.linearOpMode = linearOpMode;
         backLeft = motors.get(0);
         frontLeft = motors.get(1);
         backRight = motors.get(2);
-        frontRight = motors.get(4);
-        armClaw = motors.get(5);
-        collector = motors.get(6);
-        duckSpinner1 = motors.get(7);
-        duckSpinner2 = motors.get(8);
+        frontRight = motors.get(3);
+        armClaw = motors.get(4);
+        collector = motors.get(5);
+        duckSpinner1 = motors.get(6);
+        duckSpinner2 = motors.get(7);
         initIMU();
+
+        backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
 }

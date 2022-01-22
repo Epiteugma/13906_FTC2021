@@ -39,10 +39,10 @@ public class RedAllianceRight extends LinearOpMode {
     @Override
     public void runOpMode(){
         initMotors();
-        robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, armClaw, collector, duckSpinner1, duckSpinner2), hardwareMap);
+        robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, armClaw, collector, duckSpinner1, duckSpinner2), this);
 
-        waitForStart();
         DuckDetector.Location duckPos = robot.getDuckPos();
+        waitForStart();
 
         // Move claw down.
         robot.moveClaw(Robot.Position.DOWN);
@@ -50,7 +50,7 @@ public class RedAllianceRight extends LinearOpMode {
         // TODO: calibrate time
         robot.strafe(Robot.Direction.LEFT, 0.5, 1000);
         // Move towards the shipping hub.
-        robot.drive(Robot.Direction.FORWARD, 0.5, 1000);
+        robot.drive(Robot.Direction.FORWARDS, 0.5, 1000);
         // Lift the claw to the right level.
         switch(duckPos) {
             case LEFT:
@@ -66,7 +66,7 @@ public class RedAllianceRight extends LinearOpMode {
         // Release ball/cube onto the level.
         robot.intake(Robot.Direction.OUT);
         // Move back close to wall.
-        robot.drive(Robot.Direction.BACK, 0.5, 1000);
+        robot.drive(Robot.Direction.BACKWARDS, 0.5, 1000);
         // Move towards the carousel. -
         // TODO: calibrate time
         robot.strafe(Robot.Direction.LEFT, 0.5, 1000);
@@ -76,6 +76,6 @@ public class RedAllianceRight extends LinearOpMode {
         // robot.turn(Robot.Direction.RIGHT);
         // Drive the robot into the parking area. -
         // TODO: calibrate time
-        robot.drive(Robot.Direction.FORWARD, 0.5, 1000);
+        robot.drive(Robot.Direction.FORWARDS, 0.5, 1000);
     }
 }

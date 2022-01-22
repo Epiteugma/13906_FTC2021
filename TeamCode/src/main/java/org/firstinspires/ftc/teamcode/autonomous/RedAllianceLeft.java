@@ -38,25 +38,19 @@ public class RedAllianceLeft extends LinearOpMode {
     @Override
     public void runOpMode(){
         initMotors();
-        robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, armClaw, collector, duckSpinner1, duckSpinner2), hardwareMap);
+        robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, armClaw, collector, duckSpinner1, duckSpinner2), this);
 
-        waitForStart();
         DuckDetector.Location duckPos = robot.getDuckPos();
+        waitForStart();
         switch (duckPos) {
             case LEFT:
-                while(opModeIsActive()) {
-                    robot.drive(Robot.Direction.LEFT, 0.5, 5000);
-                }
+                robot.moveClaw(Robot.Position.LOW);
                 break;
             case RIGHT:
-                while(opModeIsActive()) {
-                    robot.strafe(Robot.Direction.LEFT, 0.5, 5000);
-                }
+                robot.moveClaw(Robot.Position.HIGH);
                 break;
             case CENTER:
-                while(opModeIsActive()) {
-                    robot.turn(Robot.Direction.LEFT, 90, 5000);
-                }
+                robot.moveClaw(Robot.Position.MID);
                 break;
         }
     }
