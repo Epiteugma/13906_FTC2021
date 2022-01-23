@@ -178,10 +178,10 @@ public class Robot {
     }
 
     public void setAllPower(double frpower, double flpower, double brpower, double blpower) {
-        frontLeft.setPower(flpower);
-        backLeft.setPower(blpower);
         frontRight.setPower(frpower);
+        frontLeft.setPower(flpower);
         backRight.setPower(brpower);
+        backLeft.setPower(blpower);
     }
 
     public void strafe(Direction dir, double power, long time) {
@@ -211,48 +211,50 @@ public class Robot {
     }
 
     public void drive(Direction dir, double power, double targetDistance) {
-            // TODO: adjust gain (almost done)
-            double gain = 0.125;
-            double currentDistance = 0;
-            float targetAngle = getIMUAngle(Axis.Z);
-            double rotationsNeeded = targetDistance / wheel_circumference;
-            int targetTicks = (int) (rotationsNeeded * ticks_per_revolution);
-            setTargetPos(targetTicks);
+        // TODO: adjust gain (almost done)
+        double gain = 0.125;
+        double currentDistance = 0;
+        float targetAngle = getIMUAngle(Axis.Z);
+        double rotationsNeeded = targetDistance / wheel_circumference;
+        int targetTicks = (int) (rotationsNeeded * ticks_per_revolution);
+        setTargetPos(targetTicks);
+
+        runToPosition(); //is this the right placement???
+
+
+        setAllPower(power, -power, power, -power);
+        while (isMoving()) {
+            linearOpMode.telemetry.addData("Robot is moving", dir, power, targetDistance);
+            linearOpMode.telemetry.update();
+
             switch (dir) {
                 case BACKWARDS:
-                    while (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
+                    if (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
                         currentDistance = frontRight.getCurrentPosition();
                         linearOpMode.telemetry.addData("current distance", currentDistance);
                         linearOpMode.telemetry.update();
                         float currentAngle = getIMUAngle(Axis.Z);
                         double correction = (currentAngle - targetAngle) * gain;
-                        frontLeft.setPower(-power);
-                        frontRight.setPower(power - correction);
-                        backLeft.setPower(-power);
-                        backRight.setPower(power - correction);
+                        setAllPower(power - correction, -power, power - correction, -power);
+                    } else {
+                        setAllPower(power, -power, power, -power);
                     }
                 case FORWARDS:
-                    while (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
+                    if (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
                         currentDistance = (frontRight.getCurrentPosition() - prevTicks) / ticks_per_rev * wheels_circumference;
                         linearOpMode.telemetry.addData("current distance", currentDistance);
                         linearOpMode.telemetry.update();
                         float currentAngle = getIMUAngle(Axis.Z);
                         double correction = (currentAngle - targetAngle) * gain;
-                        frontLeft.setPower(power);
-                        frontRight.setPower(-(power - correction));
-                        backLeft.setPower(power);
-                        backRight.setPower(-(power - correction));
+                        setAllPower(-(power - correction), power, -(power - correction), power);
+                    } else {
+                        setAllPower(power, -power, power, -power);
                     }
             }
-            runToPosition(); //is this the right placement???
-            while (isMoving()) {
-                linearOpMode.telemetry.addData("Robot is moving", dir, power, targetDistance);
-                linearOpMode.telemetry.update();
-            }
-            linearOpMode.telemetry.addData("Robot has moved", targetDistance, "successfuly!");
-            linearOpMode.telemetry.update();
-            resetEncoders();
-    }
+        }
+        resetEncoders();
+        linearOpMode.telemetry.addData("Robot has moved", targetDistance, "successfuly!");
+        linearOpMode.telemetry.update();
         
     public void turn(Direction dir, double power, double degrees) {
         double ticksToTurn = degrees / 360 * turn_circumference;
