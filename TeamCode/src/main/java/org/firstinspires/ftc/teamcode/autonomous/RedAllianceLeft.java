@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 // Import Location enums. (Detector.Location)
 import org.firstinspires.ftc.teamcode.vision.DuckDetector;
 import org.firstinspires.ftc.teamcode.vision.TseDetector;
@@ -14,25 +14,25 @@ import java.util.Arrays;
 @Autonomous(name="Red Alliance Left", group="FTC22")
 public class RedAllianceLeft extends LinearOpMode {
     OpenCvCamera webcam;
-    DcMotor backLeft;
-    DcMotor backRight;
-    DcMotor frontLeft;
-    DcMotor frontRight;
-    DcMotor armClaw;
-    DcMotor collector;
-    DcMotor duckSpinner1;
-    DcMotor duckSpinner2;
+    DcMotorEx backLeft;
+    DcMotorEx backRight;
+    DcMotorEx frontLeft;
+    DcMotorEx frontRight;
+    DcMotorEx armClaw;
+    DcMotorEx collector;
+    DcMotorEx duckSpinner1;
+    DcMotorEx duckSpinner2;
     Robot robot;
 
     private void initMotors() {
-        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
-        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
-        backRight = hardwareMap.get(DcMotor.class, "backRight");
-        frontRight = hardwareMap.get(DcMotor.class, "frontRight");
-        armClaw = hardwareMap.get(DcMotor.class, "armClaw");
-        collector = hardwareMap.get(DcMotor.class, "collector");
-        duckSpinner1 = hardwareMap.get(DcMotor.class, "duckSpinner1");
-        duckSpinner2 = hardwareMap.get(DcMotor.class, "duckSpinner2");
+        backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
+        frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
+        backRight = hardwareMap.get(DcMotorEx.class, "backRight");
+        frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
+        armClaw = hardwareMap.get(DcMotorEx.class, "armClaw");
+        collector = hardwareMap.get(DcMotorEx.class, "collector");
+        duckSpinner1 = hardwareMap.get(DcMotorEx.class, "duckSpinner1");
+        duckSpinner2 = hardwareMap.get(DcMotorEx.class, "duckSpinner2");
     }
 
     @Override

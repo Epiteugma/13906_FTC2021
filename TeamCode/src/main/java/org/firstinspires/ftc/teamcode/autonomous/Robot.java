@@ -5,7 +5,7 @@ import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.tel
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
@@ -36,14 +36,14 @@ public class Robot {
 
     LinearOpMode linearOpMode;
     HardwareMap hardwareMap;
-    DcMotor frontLeft;
-    DcMotor backLeft;
-    DcMotor frontRight;
-    DcMotor backRight;
-    DcMotor collector;
-    DcMotor armClaw;
-    DcMotor duckSpinner1;
-    DcMotor duckSpinner2;
+    DcMotorEx frontLeft;
+    DcMotorEx backLeft;
+    DcMotorEx frontRight;
+    DcMotorEx backRight;
+    DcMotorEx collector;
+    DcMotorEx armClaw;
+    DcMotorEx duckSpinner1;
+    DcMotorEx duckSpinner2;
     BNO055IMU imu;
     TouchSensor touchSensorSideLeft;
     TouchSensor touchSensorSideRight;
@@ -93,19 +93,23 @@ public class Robot {
         BNO055IMU.Parameters params = new BNO055IMU.Parameters();
         params.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         params.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        params.calibrationDataFile = "BNO055IMUCalibration.json";
+        params.loggingEnabled = true;
+        params.loggingTag = "IMU";
+        params.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(params);
     }
 
     public float getIMUAngle(Axis axis) {
-        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        Orientation lastAngles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         switch(axis) {
             case X:
-                return angles.thirdAngle;
+                return lastAngles.thirdAngle;
             case Y:
-                return angles.secondAngle;
+                return lastAngles.secondAngle;
             case Z:
-                return angles.firstAngle;
+                return lastAngles.firstAngle;
                 
         }
         return 0;
@@ -153,10 +157,10 @@ public class Robot {
     }
 
     public void resetEncoders() {
-        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        backLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        frontRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        backRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
     }
 
     public void setTargetPos(int position) {
@@ -167,13 +171,13 @@ public class Robot {
     }
 
     public void runToPosition() {
-        frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontLeft.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        backLeft.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        frontRight.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        backRight.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
     }
 
-    public void givePower(double frpower, double flpower, double brpower, double blpower) {
+    public void setAllPower(double frpower, double flpower, double brpower, double blpower) {
         frontLeft.setPower(flpower);
         backLeft.setPower(blpower);
         frontRight.setPower(frpower);
@@ -191,7 +195,7 @@ public class Robot {
                     backLeft.setPower(-power);
                     backRight.setPower(power);
                 }
-                this.STOP();
+                STOP();
                 break;
             case RIGHT:
                 while(System.currentTimeMillis()+time > timeMillis) {
@@ -201,7 +205,7 @@ public class Robot {
                     backLeft.setPower(power);
                     backRight.setPower(-power);
                 }
-                this.STOP();
+                STOP();
                 break;
         }
     }
@@ -248,7 +252,6 @@ public class Robot {
             linearOpMode.telemetry.addData("Robot has moved", targetDistance, "successfuly!");
             linearOpMode.telemetry.update();
             resetEncoders();
-
     }
         
     public void turn(Direction dir, double power, double degrees) {
@@ -256,10 +259,10 @@ public class Robot {
         setTargetPos((int)ticksToTurn);
         switch (dir){
             case LEFT:
-                givePower(power, power, power, power);
+                setAllPower(power, power, power, power);
                 break;
             case RIGHT:
-                givePower(-power, -power, -power, -power);
+                setAllPower(-power, -power, -power, -power);
                 break;
             }
         runtoPosition();
@@ -295,7 +298,7 @@ public class Robot {
                         armClaw.setPower(-1);
                     }
                 }
-                this.clawTime = newTime;
+                clawTime = newTime;
                 armClaw.setPower(0);
                 break;
             case MID:
@@ -312,7 +315,7 @@ public class Robot {
                         armClaw.setPower(-1);
                     }
                 }
-                this.clawTime = newTime;
+                clawTime = newTime;
                 armClaw.setPower(0);
                 break;
             case HIGH:
@@ -329,7 +332,7 @@ public class Robot {
                         armClaw.setPower(-1);
                     }
                 }
-                this.clawTime = newTime;
+                clawTime = newTime;
                 armClaw.setPower(0);
                 break;
             case DOWN:
@@ -337,7 +340,7 @@ public class Robot {
                     timeMillis = System.currentTimeMillis();
                     armClaw.setPower(-1);
                 }
-                this.clawTime = 0;
+                clawTime = 0;
                 break;
         }
     }
@@ -378,9 +381,9 @@ public class Robot {
 
     // Class constructor.
     // Important init code. Modify only if needed.
-    public Robot(List<DcMotor> motors, LinearOpMode linearOpMode) {
-        this.hardwareMap = linearOpMode.hardwareMap;
-        this.linearOpMode = linearOpMode;
+    public Robot(List<DcMotorEx> motors, LinearOpMode linearOpMode) {
+        hardwareMap = linearOpMode.hardwareMap;
+        linearOpMode = linearOpMode;
         backLeft = motors.get(0);
         frontLeft = motors.get(1);
         backRight = motors.get(2);
@@ -391,10 +394,10 @@ public class Robot {
         duckSpinner2 = motors.get(7);
         initIMU();
 
-        backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        backRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        frontLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
     }
 
 }
