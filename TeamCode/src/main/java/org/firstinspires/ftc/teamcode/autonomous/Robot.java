@@ -28,7 +28,7 @@ import com.acmerobotics.dashboard.config.Config;
 @Config
 public class Robot {
     private long clawTime = 0;
-    private final int ticks_per_rev = 1120;
+    private final int ticks_per_revolution = 1120;
     private final double radius_of_wheels = 75/2;
     private final double wheels_circumference = Math.PI * Math.pow(radius_of_wheels, 2);
     private final double center_to_wheel = 21;
@@ -152,6 +152,27 @@ public class Robot {
         }
     }
 
+    public void resetEncoders() {
+        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    }
+
+    public void setTargetPos(int position) {
+        frontLeft.setTargetPosition(position);
+        backLeft.setTargetPosition(position);
+        frontRight.setTargetPosition(position);
+        backRight.setTargetPosition(position);
+    }
+
+    public void runToPosition() {
+        frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+
     public void strafe(Direction dir, double power, long time) {
         long timeMillis = 0;
         switch(dir) {
@@ -182,13 +203,14 @@ public class Robot {
             // TODO: adjust gain (almost done)
             double gain = 0.125;
             double currentDistance = 0;
-            double prevTicks = frontRight.getCurrentPosition();
             float targetAngle = getIMUAngle(Axis.Z);
+            double rotationsNeeded = targetDistance / wheel_circumference;
+            int targetTicks = (int) (rotationsNeeded * ticks_per_revolution);
+            setTargetPos(targetTicks);
             switch (dir) {
                 case BACKWARDS:
-                    while (targetDistance > currentDistance && linearOpMode.opModeIsActive()) {
-                        currentDistance = (frontRight.getCurrentPosition() - prevTicks) / ticks_per_rev * wheels_circumference;
-                        linearOpMode.telemetry.addData("kkk",frontRight.getCurrentPosition());
+                    while (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
+                        currentDistance = frontRight.getCurrentPosition();
                         linearOpMode.telemetry.addData("current distance", currentDistance);
                         linearOpMode.telemetry.update();
                         float currentAngle = getIMUAngle(Axis.Z);
@@ -199,9 +221,8 @@ public class Robot {
                         backRight.setPower(power - correction);
                     }
                 case FORWARDS:
-                    while (targetDistance > currentDistance && linearOpMode.opModeIsActive()) {
+                    while (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
                         currentDistance = (frontRight.getCurrentPosition() - prevTicks) / ticks_per_rev * wheels_circumference;
-                        linearOpMode.telemetry.addData("kkk",frontRight.getCurrentPosition());
                         linearOpMode.telemetry.addData("current distance", currentDistance);
                         linearOpMode.telemetry.update();
                         float currentAngle = getIMUAngle(Axis.Z);
@@ -212,7 +233,14 @@ public class Robot {
                         backRight.setPower(-(power - correction));
                     }
             }
-            STOP();
+            runToPosition(); //is this the right placement???
+            while (isMoving()) {
+                linearOpMode.telemetry.addData("Robot is moving", dir, power, targetDistance);
+                linearOpMode.telemetry.update();
+            }
+            linearOpMode.telemetry.addData("Robot has moved", targetDistance, "successfuly");
+            linearOpMode.telemetry.update();
+            resetEncoders();
 
     }
         
@@ -358,10 +386,10 @@ public class Robot {
         duckSpinner2 = motors.get(7);
         initIMU();
 
-        backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 
 }
