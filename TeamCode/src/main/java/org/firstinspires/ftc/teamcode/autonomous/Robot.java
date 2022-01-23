@@ -173,6 +173,13 @@ public class Robot {
         backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
+    public void givePower(double frpower, double flpower, double brpower, double blpower) {
+        frontLeft.setPower(flpower);
+        backLeft.setPower(blpower);
+        frontRight.setPower(frpower);
+        backRight.setPower(brpower);
+    }
+
     public void strafe(Direction dir, double power, long time) {
         long timeMillis = 0;
         switch(dir) {
@@ -238,7 +245,7 @@ public class Robot {
                 linearOpMode.telemetry.addData("Robot is moving", dir, power, targetDistance);
                 linearOpMode.telemetry.update();
             }
-            linearOpMode.telemetry.addData("Robot has moved", targetDistance, "successfuly");
+            linearOpMode.telemetry.addData("Robot has moved", targetDistance, "successfuly!");
             linearOpMode.telemetry.update();
             resetEncoders();
 
@@ -246,26 +253,24 @@ public class Robot {
         
     public void turn(Direction dir, double power, double degrees) {
         double ticksToTurn = degrees / 360 * turn_circumference;
+        setTargetPos((int)ticksToTurn);
         switch (dir){
             case LEFT:
-                while(ticksToTurn > frontRight.getCurrentPosition() && linearOpMode.opModeIsActive()) {
-                    frontLeft.setPower(power);
-                    frontRight.setPower(power);
-                    backLeft.setPower(power);
-                    backRight.setPower(power);
-                }
-                STOP();
+                givePower(power, power, power, power);
                 break;
             case RIGHT:
-                while(ticksToTurn > frontRight.getCurrentPosition() && linearOpMode.opModeIsActive()) {
-                    frontLeft.setPower(-power);
-                    frontRight.setPower(-power);
-                    backLeft.setPower(-power);
-                    backRight.setPower(-power);
-                }
-                STOP();
+                givePower(-power, -power, -power, -power);
                 break;
-            } 
+            }
+        runtoPosition();
+        while (isMoving()) {
+            linearOpMode.telemetry.addData("Robot is moving", dir, power, targetDistance);
+            linearOpMode.telemetry.update();
+        }
+        linearOpMode.telemetry.addData("Robot has moved", targetDistance, "successfuly!");
+        linearOpMode.telemetry.update();
+        resetEncoders();
+
     }
 
     public void moveClaw(Position pos) {
