@@ -47,7 +47,7 @@ public class Robot {
     BNO055IMU imu;
     TouchSensor touchSensorSideLeft;
     TouchSensor touchSensorSideRight;
-    TouchSensor touchSensorFrontRight;
+    TouchSensor touchSensorFrontLeft;
     
     public enum Axis {
         X,
@@ -76,16 +76,16 @@ public class Robot {
     public String inContact() {
         touchSensorSideLeft = hardwareMap.get(TouchSensor.class, "leftSideTouch");
         touchSensorSideRight = hardwareMap.get(TouchSensor.class, "rightSideTouch");
-        touchSensorFrontRight = hardwareMap.get(TouchSensor.class, "frontRightTouch");
+        touchSensorFrontLeft = hardwareMap.get(TouchSensor.class, "frontLeftTouch");
 
         if (touchSensorSideLeft.isPressed()) {
-            return "Left";
+            return "Left side";
         } else if (touchSensorSideRight.isPressed()) {
-            return "Right";
-        } else if (touchSensorFrontRight.isPressed()){
-            return "Center";
+            return "Right side";
+        } else if (touchSensorFronLeft.isPressed()){
+            return "Front side";
         } else {
-            return null;
+            return "Not In Contact";
         }
     }
 
@@ -141,40 +141,40 @@ public class Robot {
     
 
     private void STOP() {
-        frontLeft.setPower(0);
-        backLeft.setPower(0);
         frontRight.setPower(0);
         backRight.setPower(0);
+        fronLeft.setPower(0);
+        backLeft.setPower(0);
     }
 
     public boolean isMoving(){
-        if (frontLeft.isBusy() || backLeft.isBusy() || frontLeft.isBusy() || backRight.isBusy()){
+        if (frontRight.isBusy() || backRight.isBusy() || frontLeft.isBusy() || backLeft.isBusy()){
             return true;
         }
-        else{
+        else {
             return false;
         }
     }
 
     public void resetEncoders() {
-        frontLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        backLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         frontRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        frontLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         backRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        backLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
     }
 
-    public void setTargetPos(int position) {
-        frontLeft.setTargetPosition(position);
-        backLeft.setTargetPosition(position);
-        frontRight.setTargetPosition(position);
-        backRight.setTargetPosition(position);
+    public void setTargetPos(int frpos, int flpos, int brpos, int blpos) {
+        frontRight.setTargetPosition(frpos);
+        frontLeft.setTargetPosition(flpos);
+        backRight.setTargetPosition(brpos);
+        backLeft.setTargetPosition(blpos);
     }
 
-    public void runToPosition() {
-        frontLeft.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-        backLeft.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+    public void runToPo() {
         frontRight.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        frontLeft.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
         backRight.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        backLeft.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
     }
 
     public void setAllPower(double frpower, double flpower, double brpower, double blpower) {
@@ -190,20 +190,14 @@ public class Robot {
             case LEFT:
                 while(System.currentTimeMillis()+time > timeMillis) {
                     timeMillis = System.currentTimeMillis();
-                    frontLeft.setPower(power);
-                    frontRight.setPower(-power);
-                    backLeft.setPower(-power);
-                    backRight.setPower(power);
+                    setAllPower(power, -power, -power, power);
                 }
                 STOP();
                 break;
             case RIGHT:
                 while(System.currentTimeMillis()+time > timeMillis) {
                     timeMillis = System.currentTimeMillis();
-                    frontLeft.setPower(-power);
-                    frontRight.setPower(power);
-                    backLeft.setPower(power);
-                    backRight.setPower(-power);
+                    setAllPower(-power, power, power, -power);
                 }
                 STOP();
                 break;
@@ -217,17 +211,26 @@ public class Robot {
         float targetAngle = getIMUAngle(Axis.Z);
         double rotationsNeeded = targetDistance / wheel_circumference;
         int targetTicks = (int) (rotationsNeeded * ticks_per_revolution);
-        setTargetPos(targetTicks);
+        
+        runToPos(); //is this the right placement???
 
-        runToPosition(); //is this the right placement???
-
-
-        setAllPower(power, -power, power, -power);
         while (isMoving()) {
             linearOpMode.telemetry.addData("Robot is moving", dir, power, targetDistance);
             linearOpMode.telemetry.update();
 
             switch (dir) {
+                case FORWARDS:
+                    setTargetPos(targetTicks, targetTicks, targetTicks, targetTicks);
+                    if (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
+                        currentDistance = (frontRight.getCurrentPosition() - prevTicks) / ticks_per_rev * wheels_circumference;
+                        linearOpMode.telemetry.addData("current distance", currentDistance);
+                        linearOpMode.telemetry.update();
+                        float currentAngle = getIMUAngle(Axis.Z);
+                        double correction = (currentAngle - targetAngle) * gain;
+                        setAllPower(power - correction, -power, power - correction, -power);
+                    } else {
+                        setAllPower(power, power, power, power);
+                    }
                 case BACKWARDS:
                     if (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
                         currentDistance = frontRight.getCurrentPosition();
@@ -235,20 +238,9 @@ public class Robot {
                         linearOpMode.telemetry.update();
                         float currentAngle = getIMUAngle(Axis.Z);
                         double correction = (currentAngle - targetAngle) * gain;
-                        setAllPower(power - correction, -power, power - correction, -power);
-                    } else {
-                        setAllPower(power, -power, power, -power);
-                    }
-                case FORWARDS:
-                    if (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
-                        currentDistance = (frontRight.getCurrentPosition() - prevTicks) / ticks_per_rev * wheels_circumference;
-                        linearOpMode.telemetry.addData("current distance", currentDistance);
-                        linearOpMode.telemetry.update();
-                        float currentAngle = getIMUAngle(Axis.Z);
-                        double correction = (currentAngle - targetAngle) * gain;
                         setAllPower(-(power - correction), power, -(power - correction), power);
                     } else {
-                        setAllPower(power, -power, power, -power);
+                        setAllPower(-power, -power, -power, -power);
                     }
             }
         }
@@ -257,25 +249,24 @@ public class Robot {
         linearOpMode.telemetry.update();
         
     public void turn(Direction dir, double power, double degrees) {
-        double ticksToTurn = degrees / 360 * turn_circumference;
-        setTargetPos((int)ticksToTurn);
+        int ticksToTurn = degrees / 360 * turn_circumference;
+        setAllPower(power, power, power, power); // Doesn't matter on direction run to pos will sort it out!
         switch (dir){
             case LEFT:
-                setAllPower(power, power, power, power);
+                setTargetPos(-ticksToTurn, -ticksToTurn, ticksToTurn, ticksToTurn);
                 break;
             case RIGHT:
-                setAllPower(-power, -power, -power, -power);
+                setTargetPos(ticksToTurn, ticksToTurn, -ticksToTurn, -ticksToTurn);
                 break;
             }
-        runtoPosition();
+        runtoPos();
         while (isMoving()) {
-            linearOpMode.telemetry.addData("Robot is moving", dir, power, targetDistance);
+            linearOpMode.telemetry.addData("Robot is turning", dir, power, degrees);
             linearOpMode.telemetry.update();
         }
-        linearOpMode.telemetry.addData("Robot has moved", targetDistance, "successfuly!");
+        linearOpMode.telemetry.addData("Robot has turned", degrees, "successfuly!");
         linearOpMode.telemetry.update();
         resetEncoders();
-
     }
 
     public void moveClaw(Position pos) {
@@ -354,23 +345,22 @@ public class Robot {
             case IN:
                 while(System.currentTimeMillis()+timeToMove > timeMillis && linearOpMode.opModeIsActive()) {
                     timeMillis = System.currentTimeMillis();
-                    collector.setPower(0.6);
+                    collector.setPower(0.75);
                 }
                 collector.setPower(0);
                 break;
             case OUT:
                 while(System.currentTimeMillis()+timeToMove > timeMillis && linearOpMode.opModeIsActive()) {
                     timeMillis = System.currentTimeMillis();
-                    collector.setPower(-0.6);
+                    collector.setPower(-0.75);
                     }
                 collector.setPower(0);
                 break;
             }
     }
 
-    public void duckSpin() {
+    public void duckSpin(long timeToSpin) {
         // TODO: calibrate time to spin.
-        long timeToSpin = 1000;
         long timeMillis = 0;
         while(System.currentTimeMillis()+timeToSpin > timeMillis && linearOpMode.opModeIsActive()) {
             timeMillis = System.currentTimeMillis();
@@ -395,6 +385,10 @@ public class Robot {
         duckSpinner1 = motors.get(6);
         duckSpinner2 = motors.get(7);
         initIMU();
+
+        // Fix all the directions of the motors.
+        fronRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         backLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         backRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
