@@ -82,7 +82,7 @@ public class Robot {
             return "Left side";
         } else if (touchSensorSideRight.isPressed()) {
             return "Right side";
-        } else if (touchSensorFronLeft.isPressed()){
+        } else if (touchSensorFrontLeft.isPressed()){
             return "Front side";
         } else {
             return "Not In Contact";
@@ -143,7 +143,7 @@ public class Robot {
     private void STOP() {
         frontRight.setPower(0);
         backRight.setPower(0);
-        fronLeft.setPower(0);
+        frontLeft.setPower(0);
         backLeft.setPower(0);
     }
 
