@@ -29,8 +29,8 @@ import com.acmerobotics.dashboard.config.Config;
 public class Robot {
     private long clawTime = 0;
     private final int ticks_per_revolution = 1120;
-    private final double radius_of_wheels = 75/2;
-    private final double wheels_circumference = Math.PI * Math.pow(radius_of_wheels, 2);
+    private final double wheel_radius = 75/2;
+    private final double wheel_circumference = Math.PI * Math.pow(wheel_radius, 2);
     private final double center_to_wheel = 21;
     private final double turn_circumference = Math.PI * Math.pow(center_to_wheel, 2);
 
@@ -184,22 +184,16 @@ public class Robot {
         backLeft.setPower(blpower);
     }
 
-    public void strafe(Direction dir, double power, long time) {
+    public void strafe(Direction dir, double power, double targetDistance) {
         long timeMillis = 0;
+        int targetTicks = (ticks_per_revolution / wheel_circumference) * targetDistance;
+        setAllPower(power, power, power, power); // Doesn't matter on direction run to pos will sort it out!
         switch(dir) {
             case LEFT:
-                while(System.currentTimeMillis()+time > timeMillis) {
-                    timeMillis = System.currentTimeMillis();
-                    setAllPower(power, -power, -power, power);
-                }
-                STOP();
+                setTargetPos(targetTicks, -targetTicks, -targetTicks, targetTicks);
                 break;
             case RIGHT:
-                while(System.currentTimeMillis()+time > timeMillis) {
-                    timeMillis = System.currentTimeMillis();
-                    setAllPower(-power, power, power, -power);
-                }
-                STOP();
+                setTargetPos(-targetTicks, targetTicks, targetTicks, -targetTicks);
                 break;
         }
     }
@@ -222,7 +216,7 @@ public class Robot {
                 case FORWARDS:
                     setTargetPos(targetTicks, targetTicks, targetTicks, targetTicks);
                     if (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
-                        currentDistance = (frontRight.getCurrentPosition() - prevTicks) / ticks_per_rev * wheels_circumference;
+                        currentDistance = (frontRight.getCurrentPosition() - prevTicks) / ticks_per_rev * wheel_circumference;
                         linearOpMode.telemetry.addData("current distance", currentDistance);
                         linearOpMode.telemetry.update();
                         float currentAngle = getIMUAngle(Axis.Z);
