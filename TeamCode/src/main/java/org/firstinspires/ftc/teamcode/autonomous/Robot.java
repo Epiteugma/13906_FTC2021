@@ -170,7 +170,7 @@ public class Robot {
         backLeft.setTargetPosition(blpos);
     }
 
-    public void runToPo() {
+    public void runToPos() {
         frontRight.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
         frontLeft.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
         backRight.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
@@ -196,6 +196,7 @@ public class Robot {
                 setTargetPos(-targetTicks, targetTicks, targetTicks, -targetTicks);
                 break;
         }
+        runToPos();
     }
 
     public void drive(Direction dir, double power, double targetDistance) {
