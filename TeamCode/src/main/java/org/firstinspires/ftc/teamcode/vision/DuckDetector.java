@@ -23,7 +23,7 @@ public class DuckDetector extends OpenCvPipeline {
 
 //    Telemetry telemetry;
     Mat mat = new Mat();
-    private Location location;
+    private Location location = Location.CENTER;
 
     static final Rect LEFT_ROI = new Rect(
             new Point(87, 100),
@@ -35,7 +35,9 @@ public class DuckDetector extends OpenCvPipeline {
             new Point(247, 100),
             new Point(262, 127));
 
-//    public DuckDetector(Telemetry t) { telemetry = t; }
+//    public DuckDetector() {
+//
+//    }
 
     @Override
     public Mat processFrame(Mat input) {

@@ -1,15 +1,12 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.linearOpMode;
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
-
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -43,14 +40,16 @@ public class Robot {
     TouchSensor touchSensorFrontLeft;
     
     // Tunable variables to tune from the dashboard, must be public and static so the dashboard can access them.
-    public static int ticksPerRevolution = 1120;
+    public int ticksPerRevolution = 1120;
     public static double wheelRadius = 75/2;
-    public static double wheelCircumference = Math.PI * Math.pow(wheelRadius, 2);
+    public static double wheelCircumference = Math.PI * Math.pow(wheelRadius, 2) / 100;
     public static double centerToWheel = 21;
     public static double turnCircumference = Math.PI * Math.pow(centerToWheel, 2);
 
     public static double gain = 0.125;
     public static int lastClawPosition = 0;
+    public static int targetTicks =0;
+    public static int ticksToTurn = 0;
 
     public enum Axis {
         X,
@@ -150,12 +149,7 @@ public class Robot {
     }
 
     public boolean isMoving(){
-        if (frontRight.isBusy() || frontLeft.isBusy() || backRight.isBusy() || backLeft.isBusy()){
-            return true;
-        }
-        else {
-            return false;
-        }
+        return frontRight.isBusy() || frontLeft.isBusy() || backRight.isBusy() || backLeft.isBusy();
     }
 
     public void resetEncoders() {
@@ -187,7 +181,8 @@ public class Robot {
     }
 
     public void strafe(Direction dir, double power, double targetDistance) {
-        int targetTicks = (ticksPerRevolution / wheelCircumference) * targetDistance;
+        targetTicks = (int) ((ticksPerRevolution / wheelCircumference) * targetDistance);
+
         setAllPower(power, power, power, power); // Doesn't matter on direction run to pos will sort it out!
         switch(dir) {
             case LEFT:
@@ -199,57 +194,67 @@ public class Robot {
         }
         runToPos();
         while (isMoving()) {
-            linearOpMode.telemetry.addData("Robot is strafing ", dir, " " power, " ", targetDistance);
+            linearOpMode.telemetry.addData("Robot is strafing ", String.valueOf(dir), " ", power, " ", targetDistance);
+            linearOpMode.telemetry.addData("Target Ticks: ", targetTicks);
             linearOpMode.telemetry.update();
-        linearOpMode.telemetry.addData("Robot has strafed ", targetDistance, " to the " dir);
+        }
+        linearOpMode.telemetry.addData("Robot has strafed ", String.valueOf(targetDistance), " to the ", dir);
         linearOpMode.telemetry.update();
     }
 
-    public void drive(Direction dir, double power, double targetDistance) {
-        // TODO: adjust gain (almost done)
-        double currentDistance = 0;
-        float targetAngle = getIMUAngle(Axis.Z);
-        double rotationsNeeded = targetDistance / wheelCircumference;
-        int targetTicks = (int) (rotationsNeeded * ticksPerRevolution);
-        
-        runToPos(); //is this the right placement???
-
-        while (isMoving()) {
-            linearOpMode.telemetry.addData("Robot is moving to the", dir, " with a power of " power, " for ", targetDistance);
+    public void drive(Direction dir, double power, double targetDistance){
+            // TODO: adjust gain (almost done)
+            double currentDistance = 0;
+            float targetAngle = getIMUAngle(Axis.Z);
+            double rotationsNeeded = targetDistance / wheelCircumference;
+            targetTicks = (int) (rotationsNeeded * ticksPerRevolution);
+            linearOpMode.telemetry.addData("Target Ticks: ", targetTicks);
             linearOpMode.telemetry.update();
 
-            switch (dir) {
-                case FORWARDS:
-                    setTargetPos(targetTicks, targetTicks, targetTicks, targetTicks);
-                    if (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
-                        currentDistance = (frontRight.getCurrentPosition() - prevTicks) / ticks_per_rev * wheelCircumference;
-                        linearOpMode.telemetry.addData("current distance", currentDistance);
-                        linearOpMode.telemetry.update();
-                        float currentAngle = getIMUAngle(Axis.Z);
-                        double correction = (currentAngle - targetAngle) * gain;
-                        setAllPower(power - correction, -power, power - correction, -power);
-                    } else {
-                        setAllPower(power, power, power, power);
-                    }
-                case BACKWARDS:
-                    if (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
-                        currentDistance = frontRight.getCurrentPosition();
-                        linearOpMode.telemetry.addData("current distance", currentDistance);
-                        linearOpMode.telemetry.update();
-                        float currentAngle = getIMUAngle(Axis.Z);
-                        double correction = (currentAngle - targetAngle) * gain;
-                        setAllPower(-(power - correction), power, -(power - correction), power);
-                    } else {
-                        setAllPower(-power, -power, -power, -power);
-                    }
+            setAllPower(power,power,power,power); // Temp power
+
+            boolean firstRun = true;
+
+            while (isMoving() || firstRun) {
+                firstRun = false;
+                linearOpMode.telemetry.addData("Robot is moving to the", String.valueOf(dir), " with a power of ", power, " for ", targetDistance);
+                linearOpMode.telemetry.update();
+
+                switch (dir) {
+                    case FORWARDS:
+                        setTargetPos(targetTicks, targetTicks, targetTicks, targetTicks);
+                        if (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
+                            currentDistance = (frontRight.getCurrentPosition()) / ticksPerRevolution * wheelCircumference;
+                            linearOpMode.telemetry.addData("current distance", currentDistance);
+                            linearOpMode.telemetry.update();
+                            float currentAngle = getIMUAngle(Axis.Z);
+                            double correction = (currentAngle - targetAngle) * gain;
+                            setAllPower(power - correction, -power, power - correction, -power);
+                        } else {
+                            setAllPower(power, power, power, power);
+                        }
+                    case BACKWARDS:
+                        setTargetPos(-targetTicks, -targetTicks, -targetTicks, -targetTicks);
+                        if (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
+                            currentDistance = frontRight.getCurrentPosition();
+                            linearOpMode.telemetry.addData("current distance", currentDistance);
+                            linearOpMode.telemetry.update();
+                            float currentAngle = getIMUAngle(Axis.Z);
+                            double correction = (currentAngle - targetAngle) * gain;
+                            setAllPower(-(power - correction), power, -(power - correction), power);
+                        } else {
+                            setAllPower(-power, -power, -power, -power);
+                        }
+                }
+                runToPos(); //is this the right placement???
             }
+            resetEncoders();
+            linearOpMode.telemetry.addData("Robot has moved", String.valueOf(targetDistance), " ", dir);
+            linearOpMode.telemetry.update();
         }
-        resetEncoders();
-        linearOpMode.telemetry.addData("Robot has moved", targetDistance, " ", dir);
-        linearOpMode.telemetry.update();
         
     public void turn(Direction dir, double power, double degrees) {
-        int ticksToTurn = (int) (degrees / 360 * turn_circumference);
+        ticksToTurn = (int) (degrees / 360 * turnCircumference);
         setAllPower(power, power, power, power); // Doesn't matter on direction run to pos will sort it out!
         switch (dir){
             case LEFT:
@@ -259,25 +264,28 @@ public class Robot {
                 setTargetPos(ticksToTurn, ticksToTurn, -ticksToTurn, -ticksToTurn);
                 break;
             }
-        runtoPos();
+        runToPos();
         while (isMoving()) {
-            linearOpMode.telemetry.addData("Robot is turning ", degrees, "to the ", dir, "with a power of " power);
+            linearOpMode.telemetry.addData("Robot is turning ", String.valueOf(degrees), "to the ", dir, "with a power of ", power);
+            linearOpMode.telemetry.addData("Target Ticks to turn: ", ticksToTurn);
             linearOpMode.telemetry.update();
         }
-        linearOpMode.telemetry.addData("Robot has turned", degrees, "to the", dir);
+        linearOpMode.telemetry.addData("Robot has turned", String.valueOf(degrees), "to the", dir);
         linearOpMode.telemetry.update();
         resetEncoders();
     }
 
-    public void moveClaw(Position pos) {
+    public void moveClaw(Position pos, double power) {
         //TODO: Calibrate the ticks needed for each of the 3 levels
         int lowPosition = 100;
         int midPosition = 200;
         int highPosition = 300;
+        collector.setPower(power);
         switch(pos) {
             case LOW:
-                if (pos > lastClawPosition) {
+                if (lowPosition > lastClawPosition) {
                     lowPosition = lowPosition + lastClawPosition;
+                }
                 else {
                     lowPosition = lowPosition - lastClawPosition;
                 }
@@ -285,8 +293,9 @@ public class Robot {
                 lastClawPosition = lowPosition;
                 break;
             case MID:
-                if (pos > lastClawPosition) {
+                if (midPosition > lastClawPosition) {
                     midPosition = midPosition + lastClawPosition;
+                }
                 else {
                     midPosition = midPosition - lastClawPosition;
                 }
@@ -305,7 +314,7 @@ public class Robot {
         }
         collector.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
         while (collector.isBusy()) {
-            linearOpMode.telemetry.addData("The arm is moving ", "to the ", pos, " from ", lastClawPosition, " with a power of " power);
+            linearOpMode.telemetry.addData("The arm is moving ", "to the ", pos, " from ", lastClawPosition, " with a power of ", power);
             linearOpMode.telemetry.update();
         }
         linearOpMode.telemetry.addData("The arm has moved ", "to the ", pos, " from ", lastClawPosition);
@@ -349,7 +358,7 @@ public class Robot {
     // Important initialization code. Modify only if needed.
     public Robot(List<DcMotorEx> motors, LinearOpMode linearOpMode) {
         hardwareMap = linearOpMode.hardwareMap;
-        linearOpMode = linearOpMode;
+        this.linearOpMode = linearOpMode;
         backLeft = motors.get(0);
         frontLeft = motors.get(1);
         backRight = motors.get(2);
@@ -361,8 +370,8 @@ public class Robot {
         initIMU();
 
         // Fix all the directions of the motors.
-        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontRight.setDirection(DcMotorEx.Direction.REVERSE);
+        backRight.setDirection(DcMotorEx.Direction.REVERSE);
 
         // Run using encoders!!!
         frontRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
@@ -372,9 +381,9 @@ public class Robot {
 
         // Set the zero power behavior of the motors.
         // We don't want them to slide after every trajectory or else we will lose accuracy.
-        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
     }
 }

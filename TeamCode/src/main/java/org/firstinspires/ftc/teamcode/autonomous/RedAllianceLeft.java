@@ -44,13 +44,13 @@ public class RedAllianceLeft extends LinearOpMode {
         waitForStart();
         switch (duckPos) {
             case LEFT:
-                robot.moveClaw(Robot.Position.LOW);
+                //robot.moveClaw(Robot.Position.LOW,1);
                 break;
             case RIGHT:
-                robot.moveClaw(Robot.Position.HIGH);
+                //robot.moveClaw(Robot.Position.HIGH,1);
                 break;
             case CENTER:
-                robot.moveClaw(Robot.Position.MID);
+                //robot.moveClaw(Robot.Position.MID,1);
                 break;
         }
     }
