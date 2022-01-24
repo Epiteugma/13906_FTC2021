@@ -36,10 +36,10 @@ public class Robot {
 
     LinearOpMode linearOpMode;
     HardwareMap hardwareMap;
-    DcMotorEx frontLeft;
-    DcMotorEx backLeft;
     DcMotorEx frontRight;
+    DcMotorEx frontLeft;
     DcMotorEx backRight;
+    DcMotorEx backLeft;
     DcMotorEx collector;
     DcMotorEx armClaw;
     DcMotorEx duckSpinner1;
@@ -148,7 +148,7 @@ public class Robot {
     }
 
     public boolean isMoving(){
-        if (frontRight.isBusy() || backRight.isBusy() || frontLeft.isBusy() || backLeft.isBusy()){
+        if (frontRight.isBusy() || frontLeft.isBusy() || backRight.isBusy() || backLeft.isBusy()){
             return true;
         }
         else {
@@ -382,13 +382,21 @@ public class Robot {
         initIMU();
 
         // Fix all the directions of the motors.
-        fronRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        backLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        backRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        frontLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        // Run using encoders!!!
         frontRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        frontLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        backRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        backLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
+        // Set the zero power behavior of the motors.
+        // We don't want them to slide after every trajectory or else we will lose accuracy.
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
 }
