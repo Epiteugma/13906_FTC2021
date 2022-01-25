@@ -40,11 +40,12 @@ public class Robot {
     TouchSensor touchSensorFrontLeft;
     
     // Tunable variables to tune from the dashboard, must be public and static so the dashboard can access them.
+    // Always have to be in cm!!!
     public int ticksPerRevolution = 1120;
-    public static double wheelRadius = 75/2;
-    public static double wheelCircumference = Math.PI * Math.pow(wheelRadius, 2) / 100;
+    public static double wheelRadius = 7.5/2;
+    public static double wheelCircumference = 2 * Math.PI * wheelRadius;
     public static double centerToWheel = 21;
-    public static double turnCircumference = Math.PI * Math.pow(centerToWheel, 2);
+    public static double turnCircumference = 2 * Math.PI * centerToWheel;
 
     public static double gain = 0.125;
     public static int lastClawPosition = 0;
