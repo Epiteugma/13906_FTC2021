@@ -14,6 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.vision.DuckDetector;
 import org.firstinspires.ftc.teamcode.vision.TseDetector;
+import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
@@ -41,16 +42,19 @@ public class Robot {
     
     // Tunable variables to tune from the dashboard, must be public and static so the dashboard can access them.
     // Always have to be in cm!!!
-    public int ticksPerRevolution = 1120;
+    public static double driveTicksPerRev = 1120.0;
+    public static double armTickPerRev = 1120.0;
     public static double wheelRadius = 7.5/2;
     public static double wheelCircumference = 2 * Math.PI * wheelRadius;
     public static double centerToWheel = 21;
     public static double turnCircumference = 2 * Math.PI * centerToWheel;
 
-    public static double gain = 0.125;
-    public static int lastClawPosition = 0;
-    public static int targetTicks =0;
-    public static int ticksToTurn = 0;
+    public static double driveGain = 0.125;
+    public static double turnGain = 0.125;
+    public static double lastClawPosition = 0;
+    public static double targetRotations = 0;
+    public static double targetTicks =0;
+    public static double ticksToTurn = 0;
 
     public enum Axis {
         X,
@@ -122,9 +126,18 @@ public class Robot {
         detector = new DuckDetector();
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         OpenCvWebcam webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
-        webcam.openCameraDevice();
         webcam.setPipeline(detector);
-        webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            @Override
+            public void onOpened() {
+                webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+            }
+
+            @Override
+            public void onError(int errorCode) {
+
+            }
+        });
         DuckDetector.Location location = detector.getLocation();
         return location;
     }
@@ -134,9 +147,18 @@ public class Robot {
         detector = new TseDetector();
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         OpenCvWebcam webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
-        webcam.openCameraDevice();
         webcam.setPipeline(detector);
-        webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            @Override
+            public void onOpened() {
+                webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+            }
+
+            @Override
+            public void onError(int errorCode) {
+
+            }
+        });
         TseDetector.Location location = detector.getLocation();
         return location;
     }
@@ -160,11 +182,11 @@ public class Robot {
         backLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
     }
 
-    public void setTargetPos(int frpos, int flpos, int brpos, int blpos) {
-        frontRight.setTargetPosition(frpos);
-        frontLeft.setTargetPosition(flpos);
-        backRight.setTargetPosition(brpos);
-        backLeft.setTargetPosition(blpos);
+    public void setTargetPos(double frpos, double flpos, double brpos, double blpos) {
+        frontRight.setTargetPosition((int) frpos);
+        frontLeft.setTargetPosition((int) flpos);
+        backRight.setTargetPosition((int) brpos);
+        backLeft.setTargetPosition((int) blpos);
     }
 
     public void runToPos() {
@@ -182,7 +204,8 @@ public class Robot {
     }
 
     public void strafe(Direction dir, double power, double targetDistance) {
-        targetTicks = (int) ((ticksPerRevolution / wheelCircumference) * targetDistance);
+        double targetAngle = getIMUAngle(Axis.Z);
+        targetTicks = (driveTicksPerRev / wheelCircumference) * targetDistance;
 
         setAllPower(power, power, power, power); // Doesn't matter on direction run to pos will sort it out!
         switch(dir) {
@@ -195,6 +218,15 @@ public class Robot {
         }
         runToPos();
         while (isMoving()) {
+            double currentAngle = getIMUAngle(Axis.Z);
+            if(currentAngle > targetAngle){
+                double correction = (currentAngle - targetAngle) * turnGain;
+                setAllPower(power - correction, power , power -correction, power);
+            }
+            else {
+                double correction = (targetAngle - currentAngle) * turnGain;
+                setAllPower(power, power - correction , power, power - correction);
+            }
             linearOpMode.telemetry.addData("Robot is strafing ", String.valueOf(dir), " ", power, " ", targetDistance);
             linearOpMode.telemetry.addData("Target Ticks: ", targetTicks);
             linearOpMode.telemetry.update();
@@ -208,7 +240,7 @@ public class Robot {
             double currentDistance = 0;
             float targetAngle = getIMUAngle(Axis.Z);
             double rotationsNeeded = targetDistance / wheelCircumference;
-            targetTicks = (int) (rotationsNeeded * ticksPerRevolution);
+            targetTicks = rotationsNeeded * driveTicksPerRev;
             linearOpMode.telemetry.addData("Target Ticks: ", targetTicks);
             linearOpMode.telemetry.update();
 
@@ -225,11 +257,11 @@ public class Robot {
                     case FORWARDS:
                         setTargetPos(targetTicks, targetTicks, targetTicks, targetTicks);
                         if (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
-                            currentDistance = (frontRight.getCurrentPosition()) / ticksPerRevolution * wheelCircumference;
+                            currentDistance = (frontRight.getCurrentPosition()) / driveTicksPerRev * wheelCircumference;
                             linearOpMode.telemetry.addData("current distance", currentDistance);
                             linearOpMode.telemetry.update();
                             float currentAngle = getIMUAngle(Axis.Z);
-                            double correction = (currentAngle - targetAngle) * gain;
+                            double correction = (currentAngle - targetAngle) * driveGain;
                             setAllPower(power - correction, -power, power - correction, -power);
                         } else {
                             setAllPower(power, power, power, power);
@@ -241,7 +273,7 @@ public class Robot {
                             linearOpMode.telemetry.addData("current distance", currentDistance);
                             linearOpMode.telemetry.update();
                             float currentAngle = getIMUAngle(Axis.Z);
-                            double correction = (currentAngle - targetAngle) * gain;
+                            double correction = (currentAngle - targetAngle) * driveGain;
                             setAllPower(-(power - correction), power, -(power - correction), power);
                         } else {
                             setAllPower(-power, -power, -power, -power);
@@ -255,7 +287,8 @@ public class Robot {
         }
         
     public void turn(Direction dir, double power, double degrees) {
-        ticksToTurn = (int) (degrees / 360 * turnCircumference);
+        targetRotations = degrees / 360 * turnCircumference;
+        ticksToTurn = targetRotations * driveTicksPerRev;
         setAllPower(power, power, power, power); // Doesn't matter on direction run to pos will sort it out!
         switch (dir){
             case LEFT:
@@ -278,9 +311,9 @@ public class Robot {
 
     public void moveClaw(Position pos, double power) {
         //TODO: Calibrate the ticks needed for each of the 3 levels
-        int lowPosition = 100;
-        int midPosition = 200;
-        int highPosition = 300;
+        double lowPosition = 100;
+        double midPosition = 200;
+        double highPosition = 300;
         collector.setPower(power);
         switch(pos) {
             case LOW:
@@ -290,7 +323,7 @@ public class Robot {
                 else {
                     lowPosition = lowPosition - lastClawPosition;
                 }
-                collector.setTargetPosition(lowPosition * ticksPerRevolution);
+                collector.setTargetPosition((int) (lowPosition * driveTicksPerRev));
                 lastClawPosition = lowPosition;
                 break;
             case MID:
@@ -300,17 +333,17 @@ public class Robot {
                 else {
                     midPosition = midPosition - lastClawPosition;
                 }
-                collector.setTargetPosition(midPosition);
+                collector.setTargetPosition((int) (midPosition * armTickPerRev));
                 lastClawPosition = midPosition;
                 break;
             case HIGH:
                 // No need to check if above it will never be above the highest possible position
                 highPosition = highPosition - lastClawPosition;
-                collector.setTargetPosition(highPosition * ticksPerRevolution);
+                collector.setTargetPosition((int) (highPosition * armTickPerRev));
                 lastClawPosition = highPosition;
                 break;
             case DOWN:
-                collector.setTargetPosition(-lastClawPosition * ticksPerRevolution);
+                collector.setTargetPosition((int) (-lastClawPosition * armTickPerRev));
                 break;
         }
         collector.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
