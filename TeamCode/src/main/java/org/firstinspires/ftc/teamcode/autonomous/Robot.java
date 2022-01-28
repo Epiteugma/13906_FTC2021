@@ -53,8 +53,11 @@ public class Robot {
     public static double turnGain = 0.125;
     public static double lastClawPosition = 0;
     public static double targetRotations = 0;
-    public static double targetTicks =0;
+    public static double targetTicks = 0;
     public static double ticksToTurn = 0;
+    public static float targetAngle = 0;
+    public static float currentAngle = 0;
+
 
     public enum Axis {
         X,
@@ -235,56 +238,53 @@ public class Robot {
         linearOpMode.telemetry.update();
     }
 
-    public void drive(Direction dir, double power, double targetDistance){
-            // TODO: adjust gain (almost done)
-            double currentDistance = 0;
-            float targetAngle = getIMUAngle(Axis.Z);
-            double rotationsNeeded = targetDistance / wheelCircumference;
-            targetTicks = rotationsNeeded * driveTicksPerRev;
-            linearOpMode.telemetry.addData("Target Ticks: ", targetTicks);
+    public void drive(Direction dir, double power, double targetDistance) {
+        // TODO: adjust gain (almost done)
+        double currentDistance = 0;
+        targetAngle = getIMUAngle(Axis.Z);
+        targetRotations = targetDistance / wheelCircumference;
+        targetTicks = targetRotations * driveTicksPerRev;
+        linearOpMode.telemetry.addData("Target Ticks: ", targetTicks);
+        linearOpMode.telemetry.update();
+
+        setAllPower(power, power, power, power); // Temp power
+
+        boolean firstRun = true;
+
+        while (isMoving() || firstRun) {
+            firstRun = false;
+            linearOpMode.telemetry.addData("Robot is moving to the", String.valueOf(dir), " with a power of ", power, " for ", targetDistance);
             linearOpMode.telemetry.update();
-
-            setAllPower(power,power,power,power); // Temp power
-
-            boolean firstRun = true;
-
-            while (isMoving() || firstRun) {
-                firstRun = false;
-                linearOpMode.telemetry.addData("Robot is moving to the", String.valueOf(dir), " with a power of ", power, " for ", targetDistance);
-                linearOpMode.telemetry.update();
-
-                switch (dir) {
-                    case FORWARDS:
-                        setTargetPos(targetTicks, targetTicks, targetTicks, targetTicks);
-                        if (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
-                            currentDistance = (frontRight.getCurrentPosition()) / driveTicksPerRev * wheelCircumference;
-                            linearOpMode.telemetry.addData("current distance", currentDistance);
-                            linearOpMode.telemetry.update();
-                            float currentAngle = getIMUAngle(Axis.Z);
-                            double correction = (currentAngle - targetAngle) * driveGain;
-                            setAllPower(power - correction, -power, power - correction, -power);
-                        } else {
-                            setAllPower(power, power, power, power);
-                        }
-                    case BACKWARDS:
-                        setTargetPos(-targetTicks, -targetTicks, -targetTicks, -targetTicks);
-                        if (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
-                            currentDistance = frontRight.getCurrentPosition();
-                            linearOpMode.telemetry.addData("current distance", currentDistance);
-                            linearOpMode.telemetry.update();
-                            float currentAngle = getIMUAngle(Axis.Z);
-                            double correction = (currentAngle - targetAngle) * driveGain;
-                            setAllPower(-(power - correction), power, -(power - correction), power);
-                        } else {
-                            setAllPower(-power, -power, -power, -power);
-                        }
-                }
-                runToPos(); //is this the right placement???
+            switch (dir) {
+                case FORWARDS:
+                    setTargetPos(-targetTicks, -targetTicks, -targetTicks, -targetTicks);
+                    while (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
+                        currentDistance = frontRight.getCurrentPosition() / driveTicksPerRev * wheelCircumference;
+                        linearOpMode.telemetry.addData("current distance", currentDistance);
+                        linearOpMode.telemetry.update();
+                        currentAngle = getIMUAngle(Axis.Z);
+                        double correction = (currentAngle - targetAngle) * driveGain;
+                        setAllPower(power - correction, -power, power - correction, -power);
+                    }
+                case BACKWARDS:
+                    setTargetPos(targetTicks, targetTicks, targetTicks, targetTicks);
+                    while (targetTicks > currentDistance && linearOpMode.opModeIsActive()) {
+                        currentDistance = frontRight.getCurrentPosition() / driveTicksPerRev * wheelCircumference;
+                        linearOpMode.telemetry.addData("current distance", currentDistance);
+                        linearOpMode.telemetry.update();
+                        float currentAngle = getIMUAngle(Axis.Z);
+                        double correction = (currentAngle - targetAngle) * driveGain;
+                        setAllPower(-(power - correction), power, -(power - correction), power);
+                    }
+            }
+            runToPos(); //is this the right placement???
+            while (isMoving()) {
             }
             resetEncoders();
             linearOpMode.telemetry.addData("Robot has moved", String.valueOf(targetDistance), " ", dir);
             linearOpMode.telemetry.update();
         }
+    }
         
     public void turn(Direction dir, double power, double degrees) {
         targetRotations = degrees / 360 * turnCircumference;
@@ -412,6 +412,8 @@ public class Robot {
         frontLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         backRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         backLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
+        resetEncoders();
 
         // Set the zero power behavior of the motors.
         // We don't want them to slide after every trajectory or else we will lose accuracy.

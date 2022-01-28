@@ -44,13 +44,14 @@ public class BlueAllianceRight extends LinearOpMode {
         telemetry.update();
         switch (duckPos) {
             case LEFT:
+                robot.strafe(Robot.Direction.LEFT, 0.5, 10);
                 break;
             case CENTER:
-                robot.turn(Robot.Direction.LEFT, 0.5, 10);
+                robot.drive(Robot.Direction.FORWARDS, 0.5, 10);
                 //robot.turn(Robot.Direction.LEFT, 0.5, 90);
                 break;
             case RIGHT:
-                robot.drive(Robot.Direction.FORWARDS, 0.5, 4);
+                robot.turn(Robot.Direction.RIGHT, 0.5, 90);
                 // robot.turn(Robot.Direction.LEFT, 0.5, 180);
                 break;
         }
