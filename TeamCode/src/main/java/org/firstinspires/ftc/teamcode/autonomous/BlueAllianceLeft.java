@@ -44,19 +44,13 @@ public class BlueAllianceLeft extends LinearOpMode {
         waitForStart();
         switch (duckPos) {
             case LEFT:
-                while(opModeIsActive()) {
-                    robot.drive(Robot.Direction.LEFT, 0.5, 5000);
-                }
+                robot.drive(Robot.Direction.LEFT, 0.5, 5000);
                 break;
             case RIGHT:
-                while(opModeIsActive()) {
-                    robot.strafe(Robot.Direction.LEFT, 0.5, 5000);
-                }
+                robot.strafe(Robot.Direction.LEFT, 0.5, 5000);
                 break;
             case CENTER:
-                while(opModeIsActive()) {
-                    robot.turn(Robot.Direction.LEFT, 90, 5000);
-                }
+                robot.turn(Robot.Direction.LEFT, 1, 90);
                 break;
         }
     }

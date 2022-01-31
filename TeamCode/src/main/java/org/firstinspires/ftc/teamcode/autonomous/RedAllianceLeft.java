@@ -50,7 +50,7 @@ public class RedAllianceLeft extends LinearOpMode {
                 //robot.moveClaw(Robot.Position.HIGH,1);
                 break;
             case CENTER:
-                //robot.moveClaw(Robot.Position.MID,1);
+                robot.strafe(Robot.Direction.LEFT,1,90);
                 break;
         }
     }

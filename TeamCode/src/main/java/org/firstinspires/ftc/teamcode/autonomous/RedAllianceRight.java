@@ -48,34 +48,35 @@ public class RedAllianceRight extends LinearOpMode {
         //robot.moveClaw(Robot.Position.DOWN,1);
         // Strafe to the side to stand in front of the shipping hub. -
         // TODO: calibrate time
-        robot.strafe(Robot.Direction.LEFT, 0.5, 1000);
+        //robot.strafe(Robot.Direction.LEFT, 0.5, 1000);
         // Move towards the shipping hub.
-        robot.drive(Robot.Direction.FORWARDS, 0.5, 1000);
+        //robot.drive(Robot.Direction.FORWARDS, 0.5, 1000);
         // Lift the claw to the right level.
         switch(duckPos) {
             case LEFT:
                 //robot.moveClaw(Robot.Position.HIGH, 1);
                 break;
             case RIGHT:
-                //robot.moveClaw(Robot.Position.LOW,1 );
+                robot.drive(Robot.Direction.FORWARDS,1,100);
                 break;
             case CENTER:
+                robot.drive(Robot.Direction.FORWARDS,1,100);
                 //robot.moveClaw(Robot.Position.MID,1);
                 break;
         }
         // Release ball/cube onto the level.
-        robot.intake(Robot.Direction.OUT, 1);
-        // Move back close to wall.
-        robot.drive(Robot.Direction.BACKWARDS, 0.5, 1000);
-        // Move towards the carousel. -
-        // TODO: calibrate time
-        robot.strafe(Robot.Direction.LEFT, 0.5, 1000);
-        // Spin the carousel.
-        robot.duckSpin(1000, 1);
-        // Turn 90 degrees towards the parking area.
-        // robot.turn(Robot.Direction.RIGHT);
-        // Drive the robot into the parking area. -
-        // TODO: calibrate time
-        robot.drive(Robot.Direction.FORWARDS, 0.5, 1000);
+//        robot.intake(Robot.Direction.OUT, 1);
+//        // Move back close to wall.
+//        robot.drive(Robot.Direction.BACKWARDS, 0.5, 1000);
+//        // Move towards the carousel. -
+//        // TODO: calibrate time
+//        robot.strafe(Robot.Direction.LEFT, 0.5, 1000);
+//        // Spin the carousel.
+//        robot.duckSpin(1000, 1);
+//        // Turn 90 degrees towards the parking area.
+//        // robot.turn(Robot.Direction.RIGHT);
+//        // Drive the robot into the parking area. -
+//        // TODO: calibrate time
+//        robot.drive(Robot.Direction.FORWARDS, 0.5, 1000);
     }
 }

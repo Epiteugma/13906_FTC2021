@@ -8,7 +8,9 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -42,6 +44,8 @@ public class DriveMecanum extends LinearOpMode {
         DcMotor duckSpinner2 = hardwareMap.get(DcMotor.class, "duckSpinner2");
         DcMotor claw = hardwareMap.get(DcMotor.class, "armClaw");
         DcMotor collector = hardwareMap.get(DcMotor.class, "collector");
+        CRServo capper = hardwareMap.get(CRServo.class, "capper");
+
 
         BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -90,24 +94,36 @@ public class DriveMecanum extends LinearOpMode {
             double sidepower = Math.sin(-gamepad1.left_stick_x * Math.PI / 2) * globalpowerfactor;
             double turnpower = Math.sin(-gamepad1.right_stick_x * Math.PI / 2) * globalpowerfactor/3;
 
+            double capperPower = 0;
+
             // Calculate DC Motor Power.
             FL.setPower(-(forwardpower + sidepower + turnpower));
             BL.setPower(-(forwardpower - sidepower + turnpower));
             FR.setPower((forwardpower - sidepower - turnpower));
             BR.setPower((forwardpower + sidepower - turnpower));
 
-            if(gamepad2.dpad_up && System.currentTimeMillis() > prevTime+200) {
+            if(gamepad2.left_trigger == 0 && gamepad2.dpad_up && System.currentTimeMillis() > prevTime+200) {
                 prevTime = System.currentTimeMillis();
                 clawPower = multiplier;
             }
-            else if(gamepad2.dpad_down && System.currentTimeMillis() > prevTime+200) {
+            else if(gamepad2.left_trigger == 0 && gamepad2.dpad_down && System.currentTimeMillis() > prevTime+200) {
                 prevTime = System.currentTimeMillis();
                 clawPower = -multiplier;
+            }
+            else if(gamepad2.left_trigger != 0 && gamepad2.dpad_up) {
+                capperPower = 1;
+            }
+            else if(gamepad2.left_trigger != 0 && gamepad2.dpad_down) {
+                capperPower = -1;
             }
             else if(gamepad2.dpad_left && System.currentTimeMillis() > prevTime+200) {
                 prevTime = System.currentTimeMillis();
                 clawPower = 0;
             }
+            else {
+                capperPower = 0;
+            }
+            capper.setPower(capperPower);
             claw.setPower(clawPower);
 
             if(gamepad2.cross && System.currentTimeMillis() > prevTime+200) {
@@ -145,6 +161,7 @@ public class DriveMecanum extends LinearOpMode {
             telemetry.addData("BR: ", -(forwardpower - sidepower - turnpower));
             telemetry.addData("Claw :", clawPower);
             telemetry.addData("Collector: ", collector.getPower());
+            telemetry.addData("Left trigger: ", gamepad2.left_trigger);
             telemetry.update();
         }
     }
