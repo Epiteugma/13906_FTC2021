@@ -68,6 +68,11 @@ public class Robot {
     public double correctedCappedPower = 0;
     public double cappedPower = 0;
 
+    // Ticks completion booleans
+    public boolean frCompleted = false;
+    public boolean flCompleted = false;
+    public boolean brCompleted = false;
+    public boolean blCompleted = false;
 
     public enum Axis {
         X,
