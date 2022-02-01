@@ -106,7 +106,7 @@ public class Robot {
         if (touchSensorSideLeft.isPressed()) {
             return "Left side";
         } else if (touchSensorSideRight.isPressed()) {
-            return "Right side";
+            return "Right side";cd
         } else if (touchSensorFrontLeft.isPressed()){
             return "Front side";
         } else {

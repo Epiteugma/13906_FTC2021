@@ -34,7 +34,7 @@ public class DriveMecanum extends LinearOpMode {
     public void runOpMode() {
         // INIT CODE START HERE
 
-        // Motors
+        // Motors and servos
         BNO055IMU IMU = hardwareMap.get(BNO055IMU.class, "imu");
         DcMotor BL = hardwareMap.get(DcMotor.class, "backLeft");
         DcMotor BR = hardwareMap.get(DcMotor.class, "backRight");
@@ -47,6 +47,10 @@ public class DriveMecanum extends LinearOpMode {
         CRServo capper = hardwareMap.get(CRServo.class, "capper");
 
 
+        // Fix all the directions of the motors.
+        frontRight.setDirection(DcMotorEx.Direction.REVERSE);
+        backRight.setDirection(DcMotorEx.Direction.REVERSE);
+
         BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -58,50 +62,67 @@ public class DriveMecanum extends LinearOpMode {
         FR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // IMU init.
-        BNO055IMU.Parameters imuParams = new BNO055IMU.Parameters();
-        imuParams.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        imuParams.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        IMU.initialize(imuParams);
+        BNO055IMU.Parameters params = new BNO055IMU.Parameters();
+        params.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        params.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        params.calibrationDataFile = "BNO055IMUCalibration.json";
+        params.loggingEnabled = true;
+        params.loggingTag = "IMU";
+        params.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(params);
 
-        double RA = 0;
+        // power constants
+        double clawPower = 0;
+        double duckSpinnerPower = 0;
+        double capperPower = 0;
+        // timers
+        double prevTime = 0;
+        // Collector
+        boolean isCollectorActive = false;
+        boolean collectorDirection = false;
+        // power factors
+        double multiplier = 0.65;
+        double globalpowerfactor = 1.0;
         //END INIT CODE
 
-        // wait for start
+        // wait for user to press start
         waitForStart();
 
         // AFTER START CODE HERE
 
-        double clawPower = 0;
-        double duckSpinnerPower = 0;
-        double multiplier = 0.7;
-        double globalpowerfactor = 1.0;
-        double prevTime = 0;
-        boolean isCollectorActive = false;
-        boolean collectorDirection = false;
-
         while (opModeIsActive()) {
             Orientation angles = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-            // Read controller variables.
+
+            double forwardpower = gamepad1.left_stick_y * globalpowerfactor;
+            double sidepower = gamepad1.left_stick_x * globalpowerfactor;
+            double turnpower = gamepad1.right_stick_x * globalpowerfactor;
+
             if(gamepad1.right_bumper && System.currentTimeMillis() > prevTime+200) {
                 prevTime = System.currentTimeMillis();
                 globalpowerfactor = 0.8;
             }
-            else if(gamepad1.left_bumper && System.currentTimeMillis() > prevTime+200) {
+            else if(gamepad1.left_bumper && System.currentTimeMillis() > prevTime+200 || reducedPower == true) {
                 prevTime = System.currentTimeMillis();
-                globalpowerfactor = 0.25;
+                globalpowerfactor = 0.3;
             }
-            double forwardpower = Math.sin(gamepad1.left_stick_y * Math.PI / 2) * globalpowerfactor;
-            double sidepower = Math.sin(-gamepad1.left_stick_x * Math.PI / 2) * globalpowerfactor;
-            double turnpower = Math.sin(-gamepad1.right_stick_x * Math.PI / 2) * globalpowerfactor/3;
 
-            double capperPower = 0;
+            // Smooth out the power. Max is 1 if power is more than 1 it will confuse itself and like this we keep the ratio, the same without wasting power.
+            double denominator = Math.max(Math.abs(forwardpower), Math.max(Math.abs(sidepower), Math.abs(turnpower)));
 
-            // Calculate DC Motor Power.
-            FL.setPower(-(forwardpower + sidepower + turnpower));
-            BL.setPower(-(forwardpower - sidepower + turnpower));
-            FR.setPower((forwardpower - sidepower - turnpower));
-            BR.setPower((forwardpower + sidepower - turnpower));
+            // Calculate DC Motor Powers
+            frPower = (forwardpower - sidepower - turnpower) / denominator;
+            flPower = (forwardpower + sidepower + turnpower) / denominator;
+            brPower = (forwardpower + sidepower - turnpower) / denominator;
+            blPower = (forwardpower - sidepower + turnpower) / denominator;
 
+            FR.setPower(frPower);
+            FL.setPower(flPower);
+            BR.setPower(brPower);
+            BL.setPower(brPower);
+
+
+            // CAPPER AND ARMCLAW CODE
             if(gamepad2.left_trigger == 0 && gamepad2.dpad_up && System.currentTimeMillis() > prevTime+200) {
                 prevTime = System.currentTimeMillis();
                 clawPower = multiplier;
@@ -126,6 +147,8 @@ public class DriveMecanum extends LinearOpMode {
             capper.setPower(capperPower);
             claw.setPower(clawPower);
 
+
+            // INTAKE CODE
             if(gamepad2.cross && System.currentTimeMillis() > prevTime+200) {
                 prevTime = System.currentTimeMillis();
                 if(isCollectorActive && collectorDirection) { isCollectorActive = false; }
@@ -142,6 +165,7 @@ public class DriveMecanum extends LinearOpMode {
                 }
             }
 
+            // DUCK SPINNER CODE
             if(gamepad1.square && System.currentTimeMillis() > prevTime+200) {
                 prevTime = System.currentTimeMillis();
                 duckSpinnerPower = duckSpinnerPower == multiplier-0.25 ? 0 : multiplier-0.25;
@@ -153,6 +177,7 @@ public class DriveMecanum extends LinearOpMode {
                 collector.setPower(collectorDirection ? 1 : -multiplier);
             } else collector.setPower(0);
 
+            // Telemetry
             telemetry.addData("GlobalPowerFactor: ", globalpowerfactor);
             telemetry.addData("Turn amount: ", calculateAngle360(angles.firstAngle));
             telemetry.addData("FL: ", (forwardpower - sidepower + turnpower));
@@ -161,7 +186,6 @@ public class DriveMecanum extends LinearOpMode {
             telemetry.addData("BR: ", -(forwardpower - sidepower - turnpower));
             telemetry.addData("Claw :", clawPower);
             telemetry.addData("Collector: ", collector.getPower());
-            telemetry.addData("Left trigger: ", gamepad2.left_trigger);
             telemetry.update();
         }
     }
