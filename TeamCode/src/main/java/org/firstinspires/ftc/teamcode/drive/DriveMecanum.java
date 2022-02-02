@@ -42,6 +42,7 @@ public class DriveMecanum extends LinearOpMode {
         DcMotor FR = hardwareMap.get(DcMotor.class, "frontRight");
         DcMotor duckSpinner1 = hardwareMap.get(DcMotor.class, "duckSpinner1");
         DcMotor duckSpinner2 = hardwareMap.get(DcMotor.class, "duckSpinner2");
+        MotorGroup duckSpinners = new MotorGroup(duckSpinner1, duckSpinner2);
         DcMotor claw = hardwareMap.get(DcMotor.class, "armClaw");
         DcMotor collector = hardwareMap.get(DcMotor.class, "collector");
         CRServo capper = hardwareMap.get(CRServo.class, "capper");
@@ -74,7 +75,7 @@ public class DriveMecanum extends LinearOpMode {
 
         // power constants
         double clawPower = 0;
-        double duckSpinnerPower = 0;
+        double duckSpinnersPower = 0;
         double capperPower = 0;
         // timers
         double prevTime = 0;
@@ -82,8 +83,14 @@ public class DriveMecanum extends LinearOpMode {
         boolean isCollectorActive = false;
         boolean collectorDirection = false;
         // power factors
-        double multiplier = 0.65;
+        double multiplier = 0.6;
         double globalpowerfactor = 1.0;
+        // Gamepads init
+        GamepadEx gamepad1 = new Gamepad(gamepad1);
+        GamepadEx gamepad2 = new Gamepad(gamepad2);
+        // Meccanum drivebase
+        MecanumDrive meccanumDrive = new MecanumDrive(FL, FR, BL, BR);
+
         //END INIT CODE
 
         // wait for user to press start
@@ -94,16 +101,14 @@ public class DriveMecanum extends LinearOpMode {
         while (opModeIsActive()) {
             Orientation angles = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
-            double forwardpower = gamepad1.left_stick_y * globalpowerfactor;
-            double sidepower = gamepad1.left_stick_x * globalpowerfactor;
-            double turnpower = gamepad1.right_stick_x * globalpowerfactor;
+            double forwardpower = gamepad1.getLeftY() * globalpowerfactor;
+            double sidepower = gamepad1.getLeftX() * globalpowerfactor;
+            double turnpower = gamepad1.getRightX() * globalpowerfactor;
 
-            if(gamepad1.right_bumper && System.currentTimeMillis() > prevTime+200) {
-                prevTime = System.currentTimeMillis();
+            if(gamepad1.wasJustPressed(GamepadKeys.RIGHT_BUMPER)) {
                 globalpowerfactor = 0.8;
             }
-            else if(gamepad1.left_bumper && System.currentTimeMillis() > prevTime+200 || reducedPower == true) {
-                prevTime = System.currentTimeMillis();
+            else if(gamepad1.wasJustPressed(GamepadKeys.LEFT_BUMPER)) {
                 globalpowerfactor = 0.3;
             }
 
@@ -111,36 +116,39 @@ public class DriveMecanum extends LinearOpMode {
             double denominator = Math.max(Math.abs(forwardpower), Math.max(Math.abs(sidepower), Math.abs(turnpower)));
 
             // Calculate DC Motor Powers
-            frPower = (forwardpower - sidepower - turnpower) / denominator;
-            flPower = (forwardpower + sidepower + turnpower) / denominator;
-            brPower = (forwardpower + sidepower - turnpower) / denominator;
-            blPower = (forwardpower - sidepower + turnpower) / denominator;
+            // frPower = (forwardpower - sidepower - turnpower) / denominator;
+            // flPower = (forwardpower + sidepower + turnpower) / denominator;
+            // brPower = (forwardpower + sidepower - turnpower) / denominator;
+            // blPower = (forwardpower - sidepower + turnpower) / denominator;
 
+            mecanumDrive,driveRobotCentric(sidepower, forwardpower, turnpower);
             FR.setPower(frPower);
             FL.setPower(flPower);
             BR.setPower(brPower);
             BL.setPower(brPower);
 
 
-            // CAPPER AND ARMCLAW CODE
-            if(gamepad2.left_trigger == 0 && gamepad2.dpad_up && System.currentTimeMillis() > prevTime+200) {
-                prevTime = System.currentTimeMillis();
+            // ArmClaw up DPAD_UP
+            if(gamepad2.wasJustPressed(GamepadKeys.LEFT_TRIGGER) != true && gamepad2.wasJustPressed(GamepadKeys.DPAD_UP)) {
                 clawPower = multiplier;
             }
-            else if(gamepad2.left_trigger == 0 && gamepad2.dpad_down && System.currentTimeMillis() > prevTime+200) {
-                prevTime = System.currentTimeMillis();
+            // ArmClaw down DPAD_DOWN
+            else if(gamepad2.wasJustPressed(GamepadKeys.LEFT_TRIGGER) != true && gamepad2.wasJustPressed(GamepadKeys.DPAD_DOWN)) {
                 clawPower = -multiplier;
             }
-            else if(gamepad2.left_trigger != 0 && gamepad2.dpad_up) {
+            // Capper up LEFT_TRIGGER AND DPAD_UP
+            else if(gamepad2.wasJustPressed(GamepadKeys.LEFT_TRIGGER) && gamepad2.wasJustPressed(GamepadKeys.DPAD_UP)) {
                 capperPower = 1;
             }
-            else if(gamepad2.left_trigger != 0 && gamepad2.dpad_down) {
+            // Capper down LEFT_TRIGGER AND DPAD_DOWN
+            else if(gamepad2.wasJustPressed(GamepadKeys.LEFT_TRIGGER) && gamepad2.wasJustPressed(GamepadKeys.DPAD_DOWN)) {
                 capperPower = -1;
             }
-            else if(gamepad2.dpad_left && System.currentTimeMillis() > prevTime+200) {
-                prevTime = System.currentTimeMillis();
+            // Stop armClaw DPAD_LEFT
+            else if(gamepad2.wasJustPressed(GamepadKeys.DPAD_LEFT)) {
                 clawPower = 0;
             }
+            // Stop Capper
             else {
                 capperPower = 0;
             }
@@ -149,15 +157,14 @@ public class DriveMecanum extends LinearOpMode {
 
 
             // INTAKE CODE
-            if(gamepad2.cross && System.currentTimeMillis() > prevTime+200) {
-                prevTime = System.currentTimeMillis();
+          
+            if(gamepad2.wasJustPressed(GamepadKeys.cross)) {
                 if(isCollectorActive && collectorDirection) { isCollectorActive = false; }
                 else {
                     isCollectorActive = true;
                     collectorDirection = true;
                 }
-            } else if(gamepad2.triangle && System.currentTimeMillis() > prevTime+200) {
-                prevTime = System.currentTimeMillis();
+            } else if(gamepad2.wasJustPressed(GamepadKeys.triangle)) {
                 if(isCollectorActive && !collectorDirection) { isCollectorActive = false; }
                 else {
                     isCollectorActive = true;
@@ -166,12 +173,10 @@ public class DriveMecanum extends LinearOpMode {
             }
 
             // DUCK SPINNER CODE
-            if(gamepad1.square && System.currentTimeMillis() > prevTime+200) {
-                prevTime = System.currentTimeMillis();
-                duckSpinnerPower = duckSpinnerPower == multiplier-0.25 ? 0 : multiplier-0.25;
+            if(gamepad1.wasJustPressed(GamepadKeys.square)) {
+                duckSpinnersPower = duckSpinnersPower == multiplier-0.25 ? 0 : multiplier-0.25;
             }
-            duckSpinner1.setPower(duckSpinnerPower);
-            duckSpinner2.setPower(duckSpinnerPower);
+            duckSpinners.setPower(duckSpinnersPower);
 
             if(isCollectorActive) {
                 collector.setPower(collectorDirection ? 1 : -multiplier);

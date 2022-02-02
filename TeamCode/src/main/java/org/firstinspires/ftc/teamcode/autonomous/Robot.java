@@ -12,8 +12,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.teamcode.vision.DuckDetector;
-import org.firstinspires.ftc.teamcode.vision.TseDetector;
+import org.firstinspires.ftc.teamcode.autonomous.vision.DuckDetector;
+import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
@@ -46,7 +46,10 @@ public class Robot {
     //Constants
     public static double driveTicksPerRev = 1120.0;
     public static double armTickPerRev = 1120.0;
-    public static double wheelRadius = 7/2;
+    // Old Wheels
+    // public static double wheelRadius = 7/2;
+    // New wheels
+    public static double wheelRadius = 15/2;
     public static double wheelCircumference = 2 * Math.PI * wheelRadius;
     public static double centerToWheel = 21;
     public static double turnCircumference = 2 * Math.PI * centerToWheel;
