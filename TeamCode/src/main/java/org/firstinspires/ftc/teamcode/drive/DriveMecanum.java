@@ -121,7 +121,7 @@ public class DriveMecanum extends LinearOpMode {
             // brPower = (forwardpower + sidepower - turnpower) / denominator;
             // blPower = (forwardpower - sidepower + turnpower) / denominator;
 
-            mecanumDrive,driveRobotCentric(sidepower, forwardpower, turnpower);
+            mecanumDrive.driveRobotCentric(sidepower, forwardpower, turnpower);
             FR.setPower(frPower);
             FL.setPower(flPower);
             BR.setPower(brPower);

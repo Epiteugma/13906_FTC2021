@@ -76,6 +76,17 @@ public class Robot {
     public boolean flCompleted = false;
     public boolean brCompleted = false;
     public boolean blCompleted = false;
+    public int frCurrentTicks;
+    public int flCurrentTicks;
+    public int brCurrentTicks;
+    public int blCurrentTicks;
+    public double frPower;
+    public double flPower;
+    public double brPower;
+    public double blPower;
+
+
+
 
     public enum Axis {
         X,
@@ -109,7 +120,7 @@ public class Robot {
         if (touchSensorSideLeft.isPressed()) {
             return "Left side";
         } else if (touchSensorSideRight.isPressed()) {
-            return "Right side";cd
+            return "Right side";
         } else if (touchSensorFrontLeft.isPressed()){
             return "Front side";
         } else {
@@ -280,7 +291,7 @@ public class Robot {
             case FORWARDS:
                 while (!frCompleted && !flCompleted && !brCompleted && !blCompleted && linearOpMode.opModeIsActive()) {
                     currentAngle = getIMUAngle(Axis.Z);
-                    if (abs(targetAngle - currentAngle) > 3) {
+                    if (Math.abs(targetAngle - currentAngle) > 3) {
                         correction = (targetAngle - currentAngle) * driveGain;
                     }
                     else {
@@ -482,7 +493,7 @@ public class Robot {
         initIMU();
 
         // Run using encoders!!!
-        armClaw.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        armClaw.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         resetEncoders();
 
         // Fix all the directions of the motors.
