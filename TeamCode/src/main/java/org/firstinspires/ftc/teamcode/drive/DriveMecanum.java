@@ -34,17 +34,13 @@ public class DriveMecanum extends LinearOpMode {
     public void runOpMode() {
         // INIT CODE START HERE
 
-        // Motors and servos
-        // BNO055IMU IMU = hardwareMap.get(BNO055IMU.class, "imu");
-        // DcMotor BL = hardwareMap.get(DcMotor.class, "backLeft");
-        // DcMotor backRight = hardwareMap.get(DcMotor.class, "backRight");
-        // DcMotor frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
-        // DcMotor frontRight = hardwareMap.get(DcMotor.class, "frontRight");
-        // DcMotor duckSpinner1 = hardwareMap.get(DcMotor.class, "duckSpinner1");
-        // DcMotor duckSpinner2 = hardwareMap.get(DcMotor.class, "duckSpinner2");
-        // MotorGroup duckSpinners = new MotorGroup(duckSpinner1, duckSpinner2);
-        // DcMotor claw = hardwareMap.get(DcMotor.class, "armClaw");
-        // DcMotor collector = hardwareMap.get(DcMotor.class, "collector");
+        // Motors, servos and IMU
+        BNO055IMU IMU = hardwareMap.get(BNO055IMU.class, "imu");
+        Motor duckSpinner1 = new Motor( hardwareMap, "duckSpinner1");
+        Motor duckSpinner2 = new Motor( hardwareMap, "duckSpinner2");
+        MotorGroup duckSpinners = new MotorGroup(duckSpinner1, duckSpinner2);
+        Motor m_armClaw = new Motor(hardwareMap, "armClaw");
+        Motor m_collector = new Motor(hardwareMap, "collector");
         // CRServo capper = hardwareMap.get(CRServo.class, "capper");
         Motor m_frontRight = new Motor(hardwareMap, "frontRight");
         Motor m_frontLeft = new Motor(hardwareMap, "frontLeft");
@@ -56,7 +52,8 @@ public class DriveMecanum extends LinearOpMode {
         DcMotor frontLeft = frontLeft.motor;
         DcMotor backRight = m_backRight.motor;
         DcMotor backLeft = m_backLeft.motor;
-
+        DcMotor armClaw = m_armClaw.motor;
+        DcMotor collector = m_collector.motor;
 
         // Fix all the directions of the motors.
         frontRight.setDirection(DcMotorEx.Direction.REVERSE);
