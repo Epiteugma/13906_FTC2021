@@ -11,17 +11,21 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 // Sensors , Motors and Opmode
+import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 
 //FTCLib
-import com.arcrobotics.ftclib.gamepad;
-import com.arcrobotics.ftclib.hardware;
-import com.arcrobotics.ftclib.hardware.motors;
+import com.arcrobotics.ftclib.gamepad.*;
+import com.arcrobotics.ftclib.hardware.*;
+import com.arcrobotics.ftclib.hardware.motors.*;
+import com.qualcomm.robotcore.hardware.ServoImpl;
 
 // Misc utils
 import java.util.ArrayList;
@@ -34,30 +38,34 @@ public class DriveMecanum extends LinearOpMode {
     public void runOpMode() {
         // INIT CODE START HERE
 
+        // Temp
+        CRServo capper = hardwareMap.get(CRServo.class,"capper");
+
         // Motors, servos and IMU
         BNO055IMU IMU = hardwareMap.get(BNO055IMU.class, "imu");
         Motor duckSpinner1 = new Motor( hardwareMap, "duckSpinner1");
         Motor duckSpinner2 = new Motor( hardwareMap, "duckSpinner2");
         MotorGroup duckSpinners = new MotorGroup(duckSpinner1, duckSpinner2);
-        Motor m_armClaw = new Motor(hardwareMap, "armClaw");
+        Motor m_arm = new Motor(hardwareMap, "arm");
         Motor m_collector = new Motor(hardwareMap, "collector");
-        // CRServo capper = hardwareMap.get(CRServo.class, "capper");
+        //ServoEx m_capper= new SimpleServo(hardwareMap, "capper",0,90);
         Motor m_frontRight = new Motor(hardwareMap, "frontRight");
         Motor m_frontLeft = new Motor(hardwareMap, "frontLeft");
         Motor m_backRight = new Motor(hardwareMap, "backRight");
         Motor m_backLeft = new Motor(hardwareMap, "backLeft");
 
-        // grab the internal DcMotor object
-        DcMotor frontRight = frontRight.motor;
-        DcMotor frontLeft = frontLeft.motor;
+        // grab the internal DcMotor or servo object
+        DcMotor frontRight = m_frontRight.motor;
+        DcMotor frontLeft = m_frontLeft.motor;
         DcMotor backRight = m_backRight.motor;
         DcMotor backLeft = m_backLeft.motor;
-        DcMotor armClaw = m_armClaw.motor;
+        DcMotor arm = m_arm.motor;
         DcMotor collector = m_collector.motor;
+        //Servo capper = m_capper.;
 
         // Fix all the directions of the motors.
-        frontRight.setDirection(DcMotorEx.Direction.REVERSE);
-        backRight.setDirection(DcMotorEx.Direction.REVERSE);
+        m_frontRight.motor.setDirection(DcMotor.Direction.REVERSE);
+        m_backRight.motor.setDirection(DcMotor.Direction.REVERSE);
 
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -73,17 +81,17 @@ public class DriveMecanum extends LinearOpMode {
         BNO055IMU.Parameters params = new BNO055IMU.Parameters();
         params.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         params.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        params.calibackRightationDataFile = "BNO055IMUCalibackRightation.json";
+        params.calibrationDataFile = "BNO055IMUCalibackRightation.json";
         params.loggingEnabled = true;
         params.loggingTag = "IMU";
         params.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        BNO055IMU imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(params);
         // IMU remaping axis
-        BNO055IMUUtil.remapAxes(imu, AxesOrder.ZYX, AxesSigns.NPN);
+        //BNO055IMUUtil.remapAxes(imu, AxesOrder.ZYX, AxesSigns.NPN);
 
         // power constants
-        double clawPower = 0;
+        double armPower = 0;
         double duckSpinnersPower = 0;
         double capperPower = 0;
         // timers
@@ -95,10 +103,15 @@ public class DriveMecanum extends LinearOpMode {
         double multiplier = 0.6;
         double globalpowerfactor = 1.0;
         // Gamepads init
-        GamepadEx gamepad1 = new Gamepad(gamepad1);
-        GamepadEx gamepad2 = new Gamepad(gamepad2);
+        GamepadEx gamepad1 = new GamepadEx(this.gamepad1);
+        GamepadEx gamepad2 = new GamepadEx(this.gamepad2);
         // Meccanum drivebase; Pass the motor objects not the DcMotor objects
         MecanumDrive drivetrain = new MecanumDrive(m_frontLeft, m_frontRight, m_backLeft, m_backRight);
+
+        GamepadKeys.Button CROSS = GamepadKeys.Button.A;
+        GamepadKeys.Button CIRCLE = GamepadKeys.Button.B;
+        GamepadKeys.Button TRIANGLE = GamepadKeys.Button.Y;
+        GamepadKeys.Button SQUARE = GamepadKeys.Button.X;
 
         //END INIT CODE
 
@@ -112,12 +125,12 @@ public class DriveMecanum extends LinearOpMode {
 
             double sidepower = gamepad1.getLeftX() * globalpowerfactor;
             double forwardpower = gamepad1.getLeftY() * globalpowerfactor;
-            double turnpower = gamepad1.getRightY() * globalpowerfactor;
+            double turnpower = gamepad1.getRightX() * globalpowerfactor;
 
-            if(gamepad1.wasJustPressed(GamepadKeys.RIGHT_BUMPER)) {
+            if(gamepad1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
                 globalpowerfactor += 0.1;
             }
-            else if(gamepad1.wasJustPressed(GamepadKeys.LEFT_BUMPER)) {
+            else if(gamepad1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) {
                 globalpowerfactor -= 0.1;
             }
 
@@ -131,45 +144,45 @@ public class DriveMecanum extends LinearOpMode {
             // backLeftPower = (forwardpower - sidepower + turnpower) / denominator;
 
             // Calculate Mecanum Powers
-            drivetrain.driveFieldCentric(sidepower, forwardpower, turnpower, angles.thirdAngle);
+            drivetrain.driveFieldCentric(-sidepower, -forwardpower, -turnpower, angles.thirdAngle);
 
-            // ArmClaw up DPAD_UP
-            if(gamepad2.wasJustPressed(GamepadKeys.LEFT_TRIGGER) != true && gamepad2.wasJustPressed(GamepadKeys.DPAD_UP)) {
-                clawPower = multiplier;
+            // Arm up DPAD_UP
+            if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 0 && gamepad2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
+                armPower = multiplier;
             }
-            // ArmClaw down DPAD_DOWN
-            else if(gamepad2.wasJustPressed(GamepadKeys.LEFT_TRIGGER) != true && gamepad2.wasJustPressed(GamepadKeys.DPAD_DOWN)) {
-                clawPower = -multiplier;
+            // Arm down DPAD_DOWN
+            else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 0 && gamepad2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
+                armPower = -multiplier;
             }
             // Capper up LEFT_TRIGGER AND DPAD_UP
-            else if(gamepad2.wasJustPressed(GamepadKeys.LEFT_TRIGGER) && gamepad2.wasJustPressed(GamepadKeys.DPAD_UP)) {
+            else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 1 && gamepad2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
                 capperPower = 1;
             }
             // Capper down LEFT_TRIGGER AND DPAD_DOWN
-            else if(gamepad2.wasJustPressed(GamepadKeys.LEFT_TRIGGER) && gamepad2.wasJustPressed(GamepadKeys.DPAD_DOWN)) {
+            else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0 && gamepad2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
                 capperPower = -1;
             }
-            // Stop armClaw DPAD_LEFT
-            else if(gamepad2.wasJustPressed(GamepadKeys.DPAD_LEFT)) {
-                clawPower = 0;
+            // Stop arm DPAD_LEFT
+            else if(gamepad2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
+                armPower = 0;
             }
             // Stop Capper
             else {
                 capperPower = 0;
             }
-            // Set the accordinate powers to armClaw and capper
+            // Set the accordinate powers to arm and capper
             capper.setPower(capperPower);
-            claw.setPower(clawPower);
+            arm.setPower(armPower);
 
 
             // INTAKE CODE
-            if(gamepad2.wasJustPressed(GamepadKeys.cross)) {
+            if(gamepad2.wasJustPressed(GamepadKeys.Button.A)) {
                 if(isCollectorActive && collectorDirection) { isCollectorActive = false; }
                 else {
                     isCollectorActive = true;
                     collectorDirection = true;
                 }
-            } else if(gamepad2.wasJustPressed(GamepadKeys.triangle)) {
+            } else if(gamepad2.wasJustPressed(TRIANGLE)) {
                 if(isCollectorActive && !collectorDirection) { isCollectorActive = false; }
                 else {
                     isCollectorActive = true;
@@ -178,10 +191,10 @@ public class DriveMecanum extends LinearOpMode {
             }
 
             // DUCK SPINNER CODE
-            if(gamepad1.wasJustPressed(GamepadKeys.square)) {
+            if(gamepad1.wasJustPressed(SQUARE)) {
                 duckSpinnersPower = duckSpinnersPower == multiplier-0.25 ? 0 : multiplier-0.25;
             }
-            duckSpinners.setPower(duckSpinnersPower);
+            duckSpinners.set(duckSpinnersPower);
 
             if(isCollectorActive) {
                 collector.setPower(collectorDirection ? 1 : -multiplier);
@@ -194,7 +207,7 @@ public class DriveMecanum extends LinearOpMode {
             telemetry.addData("frontLeft: ", (forwardpower - sidepower + turnpower));
             telemetry.addData("backRight: ", -(forwardpower - sidepower - turnpower));
             telemetry.addData("backLeft: ", (forwardpower + sidepower + turnpower));
-            telemetry.addData("Claw :", armClaw.getPower());
+            telemetry.addData("Arm :", arm.getPower());
             telemetry.addData("Collector: ", collector.getPower());
             telemetry.update();
         }

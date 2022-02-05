@@ -5,8 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 // Import Location enums. (Detector.Location)
-import org.firstinspires.ftc.teamcode.vision.DuckDetector;
-import org.firstinspires.ftc.teamcode.vision.TseDetector;
+import org.firstinspires.ftc.teamcode.autonomous.vision.DuckDetector;
+import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
 
 import org.openftc.easyopencv.OpenCvCamera;
 
