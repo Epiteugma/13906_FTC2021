@@ -508,6 +508,6 @@ public class Robot {
         backLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
         // IMU remaping axis
-        BNO055IMUUtil.remapAxes(imu, AxesOrder.XYZ, AxesSigns.NPN);
+        BNO055IMUUtil.remapAxes(imu, AxesOrder.ZYX, AxesSigns.NPN);
     }
 }

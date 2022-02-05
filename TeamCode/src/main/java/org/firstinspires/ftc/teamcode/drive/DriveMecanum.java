@@ -1,10 +1,16 @@
 package org.firstinspires.ftc.teamcode.drive;
 
+// Navigation and IMU
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
+// Sensors , Motors and Opmode
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -12,21 +18,15 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
-import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+//FTCLib
+import com.arcrobotics.ftclib.gamepad;
+import com.arcrobotics.ftclib.hardware;
+import com.arcrobotics.ftclib.hardware.motors;
 
+// Misc utils
 import java.util.ArrayList;
 import java.util.List;
+
 @TeleOp(name = "FTC 2022 Drive (Mecanum)", group = "FTC22")
 public class DriveMecanum extends LinearOpMode {
 
@@ -35,43 +35,55 @@ public class DriveMecanum extends LinearOpMode {
         // INIT CODE START HERE
 
         // Motors and servos
-        BNO055IMU IMU = hardwareMap.get(BNO055IMU.class, "imu");
-        DcMotor BL = hardwareMap.get(DcMotor.class, "backLeft");
-        DcMotor BR = hardwareMap.get(DcMotor.class, "backRight");
-        DcMotor FL = hardwareMap.get(DcMotor.class, "frontLeft");
-        DcMotor FR = hardwareMap.get(DcMotor.class, "frontRight");
-        DcMotor duckSpinner1 = hardwareMap.get(DcMotor.class, "duckSpinner1");
-        DcMotor duckSpinner2 = hardwareMap.get(DcMotor.class, "duckSpinner2");
-        MotorGroup duckSpinners = new MotorGroup(duckSpinner1, duckSpinner2);
-        DcMotor claw = hardwareMap.get(DcMotor.class, "armClaw");
-        DcMotor collector = hardwareMap.get(DcMotor.class, "collector");
-        CRServo capper = hardwareMap.get(CRServo.class, "capper");
+        // BNO055IMU IMU = hardwareMap.get(BNO055IMU.class, "imu");
+        // DcMotor BL = hardwareMap.get(DcMotor.class, "backLeft");
+        // DcMotor backRight = hardwareMap.get(DcMotor.class, "backRight");
+        // DcMotor frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
+        // DcMotor frontRight = hardwareMap.get(DcMotor.class, "frontRight");
+        // DcMotor duckSpinner1 = hardwareMap.get(DcMotor.class, "duckSpinner1");
+        // DcMotor duckSpinner2 = hardwareMap.get(DcMotor.class, "duckSpinner2");
+        // MotorGroup duckSpinners = new MotorGroup(duckSpinner1, duckSpinner2);
+        // DcMotor claw = hardwareMap.get(DcMotor.class, "armClaw");
+        // DcMotor collector = hardwareMap.get(DcMotor.class, "collector");
+        // CRServo capper = hardwareMap.get(CRServo.class, "capper");
+        Motor m_frontRight = new Motor(hardwareMap, "frontRight");
+        Motor m_frontLeft = new Motor(hardwareMap, "frontLeft");
+        Motor m_backRight = new Motor(hardwareMap, "backRight");
+        Motor m_backLeft = new Motor(hardwareMap, "backLeft");
+
+        // grab the internal DcMotor object
+        DcMotor frontRight = frontRight.motor;
+        DcMotor frontLeft = frontLeft.motor;
+        DcMotor backRight = m_backRight.motor;
+        DcMotor backLeft = m_backLeft.motor;
 
 
         // Fix all the directions of the motors.
         frontRight.setDirection(DcMotorEx.Direction.REVERSE);
         backRight.setDirection(DcMotorEx.Direction.REVERSE);
 
-        BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        BL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        BR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        FL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        FR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // IMU init.
         BNO055IMU.Parameters params = new BNO055IMU.Parameters();
         params.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         params.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        params.calibrationDataFile = "BNO055IMUCalibration.json";
+        params.calibackRightationDataFile = "BNO055IMUCalibackRightation.json";
         params.loggingEnabled = true;
         params.loggingTag = "IMU";
         params.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(params);
+        // IMU remaping axis
+        BNO055IMUUtil.remapAxes(imu, AxesOrder.ZYX, AxesSigns.NPN);
 
         // power constants
         double clawPower = 0;
@@ -88,8 +100,8 @@ public class DriveMecanum extends LinearOpMode {
         // Gamepads init
         GamepadEx gamepad1 = new Gamepad(gamepad1);
         GamepadEx gamepad2 = new Gamepad(gamepad2);
-        // Meccanum drivebase
-        MecanumDrive meccanumDrive = new MecanumDrive(FL, FR, BL, BR);
+        // Meccanum drivebase; Pass the motor objects not the DcMotor objects
+        MecanumDrive drivetrain = new MecanumDrive(m_frontLeft, m_frontRight, m_backLeft, m_backRight);
 
         //END INIT CODE
 
@@ -101,32 +113,28 @@ public class DriveMecanum extends LinearOpMode {
         while (opModeIsActive()) {
             Orientation angles = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
-            double forwardpower = gamepad1.getLeftY() * globalpowerfactor;
             double sidepower = gamepad1.getLeftX() * globalpowerfactor;
-            double turnpower = gamepad1.getRightX() * globalpowerfactor;
+            double forwardpower = gamepad1.getLeftY() * globalpowerfactor;
+            double turnpower = gamepad1.getRightY() * globalpowerfactor;
 
             if(gamepad1.wasJustPressed(GamepadKeys.RIGHT_BUMPER)) {
-                globalpowerfactor = 0.8;
+                globalpowerfactor += 0.1;
             }
             else if(gamepad1.wasJustPressed(GamepadKeys.LEFT_BUMPER)) {
-                globalpowerfactor = 0.3;
+                globalpowerfactor -= 0.1;
             }
 
             // Smooth out the power. Max is 1 if power is more than 1 it will confuse itself and like this we keep the ratio, the same without wasting power.
-            double denominator = Math.max(Math.abs(forwardpower), Math.max(Math.abs(sidepower), Math.abs(turnpower)));
+            // double denominator = Math.max(Math.abs(forwardpower), Math.max(Math.abs(sidepower), Math.abs(turnpower)));
 
             // Calculate DC Motor Powers
-            // frPower = (forwardpower - sidepower - turnpower) / denominator;
-            // flPower = (forwardpower + sidepower + turnpower) / denominator;
-            // brPower = (forwardpower + sidepower - turnpower) / denominator;
-            // blPower = (forwardpower - sidepower + turnpower) / denominator;
+            // frontRightPower = (forwardpower - sidepower - turnpower) / denominator;
+            // frontLeftPower = (forwardpower + sidepower + turnpower) / denominator;
+            // backRightPower = (forwardpower + sidepower - turnpower) / denominator;
+            // backLeftPower = (forwardpower - sidepower + turnpower) / denominator;
 
-            mecanumDrive.driveRobotCentric(sidepower, forwardpower, turnpower);
-            FR.setPower(frPower);
-            FL.setPower(flPower);
-            BR.setPower(brPower);
-            BL.setPower(brPower);
-
+            // Calculate Mecanum Powers
+            drivetrain.driveFieldCentric(sidepower, forwardpower, turnpower, angles.thirdAngle);
 
             // ArmClaw up DPAD_UP
             if(gamepad2.wasJustPressed(GamepadKeys.LEFT_TRIGGER) != true && gamepad2.wasJustPressed(GamepadKeys.DPAD_UP)) {
@@ -152,12 +160,12 @@ public class DriveMecanum extends LinearOpMode {
             else {
                 capperPower = 0;
             }
+            // Set the accordinate powers to armClaw and capper
             capper.setPower(capperPower);
             claw.setPower(clawPower);
 
 
             // INTAKE CODE
-          
             if(gamepad2.wasJustPressed(GamepadKeys.cross)) {
                 if(isCollectorActive && collectorDirection) { isCollectorActive = false; }
                 else {
@@ -185,11 +193,11 @@ public class DriveMecanum extends LinearOpMode {
             // Telemetry
             telemetry.addData("GlobalPowerFactor: ", globalpowerfactor);
             telemetry.addData("Turn amount: ", calculateAngle360(angles.firstAngle));
-            telemetry.addData("FL: ", (forwardpower - sidepower + turnpower));
-            telemetry.addData("BL: ", (forwardpower + sidepower + turnpower));
-            telemetry.addData("FR: ", -(forwardpower + sidepower - turnpower));
-            telemetry.addData("BR: ", -(forwardpower - sidepower - turnpower));
-            telemetry.addData("Claw :", clawPower);
+            telemetry.addData("frontRight: ", -(forwardpower + sidepower - turnpower));
+            telemetry.addData("frontLeft: ", (forwardpower - sidepower + turnpower));
+            telemetry.addData("backRight: ", -(forwardpower - sidepower - turnpower));
+            telemetry.addData("backLeft: ", (forwardpower + sidepower + turnpower));
+            telemetry.addData("Claw :", armClaw.getPower());
             telemetry.addData("Collector: ", collector.getPower());
             telemetry.update();
         }
