@@ -38,6 +38,7 @@ public class BlueAllianceRight extends LinearOpMode {
         robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, armClaw, collector, duckSpinner1, duckSpinner2), this);
 
         DuckDetector.Location duckPos = robot.getDuckPos();
+        telemetry.addData("Detected Cargo : ", robot.cargoDetection());
         waitForStart();
 
         telemetry.addData("duck", duckPos);

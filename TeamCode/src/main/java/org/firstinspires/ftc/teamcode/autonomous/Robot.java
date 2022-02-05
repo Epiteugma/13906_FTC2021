@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
+import com.arcrobotics.ftclib.hardware.SensorRevTOFDistance;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -11,6 +12,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.autonomous.vision.DuckDetector;
 import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
@@ -33,10 +35,11 @@ public class Robot {
     DcMotorEx backRight;
     DcMotorEx backLeft;
     DcMotorEx collector;
-    DcMotorEx armClaw;
+    DcMotorEx arm;
     DcMotorEx duckSpinner1;
     DcMotorEx duckSpinner2;
     BNO055IMU imu;
+    SensorRevTOFDistance cargoDetector;
     TouchSensor touchSensorSideRight;
     TouchSensor touchSensorSideLeft;
     TouchSensor touchSensorFrontLeft;
@@ -85,7 +88,13 @@ public class Robot {
     public double brPower;
     public double blPower;
 
-
+    // cargoDetector
+    public String detectedCargo = "None";
+    public double cubeHeight= 5.08;
+    public double ballHeight = 6.99;
+    public double duckHeight = 5.4;
+    public double currentDistance = 0;
+    public double collectorBoxHeight = 0;
 
 
     public enum Axis {
@@ -138,6 +147,10 @@ public class Robot {
         params.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(params);
+    }
+
+    private void initDistanceSensor(){
+        cargoDetector = new SensorRevTOFDistance(hardwareMap, "cargoDetector");
     }
 
     public float getIMUAngle(Axis axis) {
@@ -254,7 +267,7 @@ public class Robot {
                     currentTicks = frontRight.getCurrentPosition();
                     linearOpMode.telemetry.addData("Correction: ", correction);
                     linearOpMode.telemetry.addData("Current Angle: ", currentAngle);
-                    linearOpMode.telemetry.addData("Current Power: ", String.valueOf(-correctedCappedPower) + " " + String.valueOf(-cappedPower) + " " + String.valueOf(correctedCappedPower) + " " + String.valueOf(cappedPower));
+                    linearOpMode.telemetry.addData("Current Power: ", -correctedCappedPower + " " + -cappedPower + " " + correctedCappedPower + " " + cappedPower);
                     linearOpMode.telemetry.addData("Current Ticks: ", currentTicks);
                     linearOpMode.telemetry.addData("Target Ticks: ", targetTicks);
                     linearOpMode.telemetry.addData("Robot is moving: ", String.valueOf(dir), " with a power of ", power, " for ", targetDistance);
@@ -270,7 +283,7 @@ public class Robot {
                     currentTicks = frontRight.getCurrentPosition();
                     linearOpMode.telemetry.addData("Correction: ", correction);
                     linearOpMode.telemetry.addData("Current Angle: ", currentAngle);
-                    linearOpMode.telemetry.addData("Current Power: ", String.valueOf(correctedCappedPower) + " " + String.valueOf(cappedPower) + " " + String.valueOf(-correctedCappedPower) + " " + String.valueOf(-cappedPower));
+                    linearOpMode.telemetry.addData("Current Power: ", correctedCappedPower + " " + cappedPower + " " + -correctedCappedPower + " " + -cappedPower);
                     linearOpMode.telemetry.addData("Current Ticks: ", currentTicks);
                     linearOpMode.telemetry.addData("Target Ticks: ", targetTicks);
                     linearOpMode.telemetry.addData("Robot is moving: ", String.valueOf(dir), " with a power of ", power, " for ", targetDistance);
@@ -326,7 +339,7 @@ public class Robot {
                     setAllPower(frPower, flPower, brPower, blPower);
                     linearOpMode.telemetry.addData("Correction: ", correction);
                     linearOpMode.telemetry.addData("Current Angle: ", currentAngle);
-                    linearOpMode.telemetry.addData("Current Power: ", String.valueOf(correctedCappedPower) + " " + String.valueOf(cappedPower) + " " + String.valueOf(correctedCappedPower) + " " + String.valueOf(cappedPower));
+                    linearOpMode.telemetry.addData("Current Power: ", correctedCappedPower + " " + cappedPower + " " + correctedCappedPower + " " + cappedPower);
                     linearOpMode.telemetry.addData("Target Ticks: ", targetTicks);
                     linearOpMode.telemetry.addData("Robot is moving: ", String.valueOf(dir), " with a power of ", power, " for ", targetDistance);
                     linearOpMode.telemetry.update();
@@ -364,7 +377,7 @@ public class Robot {
                     setAllPower(frPower, flPower, brPower, blPower);
                     linearOpMode.telemetry.addData("Correction: ", correction);
                     linearOpMode.telemetry.addData("Current Angle: ", currentAngle);
-                    linearOpMode.telemetry.addData("Current Power: ", String.valueOf(correctedCappedPower) + " " + String.valueOf(cappedPower) + " " + String.valueOf(correctedCappedPower) + " " + String.valueOf(cappedPower));
+                    linearOpMode.telemetry.addData("Current Power: ", correctedCappedPower + " " + cappedPower + " " + correctedCappedPower + " " + cappedPower);
                     linearOpMode.telemetry.addData("Target Ticks: ", targetTicks);
                     linearOpMode.telemetry.addData("Robot is moving: ", String.valueOf(dir), " with a power of ", power, " for ", targetDistance);
                     linearOpMode.telemetry.update();
@@ -400,12 +413,12 @@ public class Robot {
         linearOpMode.telemetry.update();
     }
 
-    public void moveClaw(Position pos, double power) {
+    public void moveArm(Position pos, double power) {
         //TODO: Calibrate the ticks needed for each of the 3 levels
         double lowPosition = 100;
         double midPosition = 200;
         double highPosition = 300;
-        armClaw.setPower(power);
+        arm.setPower(power);
         switch(pos) {
             case LOW:
                 if (lowPosition > lastClawPosition) {
@@ -414,7 +427,7 @@ public class Robot {
                 else {
                     lowPosition = lowPosition - lastClawPosition;
                 }
-                armClaw.setTargetPosition((int) (lowPosition * armTickPerRev));
+                arm.setTargetPosition((int) (lowPosition * armTickPerRev));
                 lastClawPosition = lowPosition;
                 break;
             case MID:
@@ -424,20 +437,20 @@ public class Robot {
                 else {
                     midPosition = midPosition - lastClawPosition;
                 }
-                armClaw.setTargetPosition((int) (midPosition * armTickPerRev));
+                arm.setTargetPosition((int) (midPosition * armTickPerRev));
                 lastClawPosition = midPosition;
                 break;
             case HIGH:
                 // No need to check if above it will never be above the highest possible position
                 highPosition = highPosition - lastClawPosition;
-                armClaw.setTargetPosition((int) (highPosition * armTickPerRev));
+                arm.setTargetPosition((int) (highPosition * armTickPerRev));
                 lastClawPosition = highPosition;
                 break;
             case DOWN:
-                armClaw.setTargetPosition((int) (-lastClawPosition * armTickPerRev));
+                arm.setTargetPosition((int) (-lastClawPosition * armTickPerRev));
                 break;
         }
-        armClaw.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        arm.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
         while (collector.isBusy()) {
             linearOpMode.telemetry.addData("The arm is moving ", "to the ", pos, " from ", lastClawPosition, " with a power of ", power);
             linearOpMode.telemetry.update();
@@ -477,6 +490,22 @@ public class Robot {
         duckSpinner2.setPower(0);
     }
 
+    public String cargoDetection(){
+        // Cargo detection
+        // The less the distance from the ground subtraction the higher object we are possessing
+        double currentDistance = cargoDetector.getDistance(DistanceUnit.CM);
+        if (collectorBoxHeight - cubeHeight < collectorBoxHeight - currentDistance) {
+            detectedCargo = "Ball";
+        }
+        else if(collectorBoxHeight - ballHeight < collectorBoxHeight - currentDistance) {
+            detectedCargo = "Cube OR Duck";
+        }
+        else {
+            detectedCargo = "None";
+        }
+        return detectedCargo;
+    }
+
     // Class constructor.
     // Important initialization code. Modify only if needed.
     public Robot(List<DcMotorEx> motors, LinearOpMode linearOpMode) {
@@ -486,14 +515,15 @@ public class Robot {
         frontLeft = motors.get(1);
         backRight = motors.get(2);
         frontRight = motors.get(3);
-        armClaw = motors.get(4);
+        arm = motors.get(4);
         collector = motors.get(5);
         duckSpinner1 = motors.get(6);
         duckSpinner2 = motors.get(7);
+        initDistanceSensor();
         initIMU();
 
         // Run using encoders!!!
-        armClaw.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        arm.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         resetEncoders();
 
         // Fix all the directions of the motors.
@@ -507,7 +537,9 @@ public class Robot {
         backRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 
-        // IMU remaping axis
+        // IMU remapping axis
         // BNO055IMUUtil.remapAxes(imu, AxesOrder.ZYX, AxesSigns.NPN);
+
+        // Distance sensor and cargo definition
     }
 }

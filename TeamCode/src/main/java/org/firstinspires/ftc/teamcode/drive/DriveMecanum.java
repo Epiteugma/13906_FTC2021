@@ -1,13 +1,10 @@
 package org.firstinspires.ftc.teamcode.drive;
 
 // Navigation and IMU
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 // Sensors , Motors and Opmode
@@ -18,37 +15,38 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.Gamepad;
-import com.qualcomm.robotcore.hardware.Servo;
 
 //FTCLib
 import com.arcrobotics.ftclib.gamepad.*;
 import com.arcrobotics.ftclib.hardware.*;
 import com.arcrobotics.ftclib.hardware.motors.*;
-import com.qualcomm.robotcore.hardware.ServoImpl;
-
-// Misc utils
-import java.util.ArrayList;
-import java.util.List;
+import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp(name = "FTC 2022 Drive (Mecanum)", group = "FTC22")
 public class DriveMecanum extends LinearOpMode {
+
+    // cargoDetector
+    String detectedCargo = "None";
+    double cubeHeight= 5.08;
+    double ballHeight = 6.99;
+    double duckHeight = 5.4;
+    double currentDistance = 0;
+    double collectorBoxHeight = 0;
+    SensorRevTOFDistance cargoDetector = null;
 
     @Override
     public void runOpMode() {
         // INIT CODE START HERE
 
-        // Temp
-        CRServo capper = hardwareMap.get(CRServo.class,"capper");
-
-        // Motors, servos and IMU
+        // Motors, servos, distance sensor and IMU
         BNO055IMU IMU = hardwareMap.get(BNO055IMU.class, "imu");
+        SensorRevTOFDistance cargoDetector = new SensorRevTOFDistance(hardwareMap, "cargoDetector");
         Motor duckSpinner1 = new Motor( hardwareMap, "duckSpinner1");
         Motor duckSpinner2 = new Motor( hardwareMap, "duckSpinner2");
         MotorGroup duckSpinners = new MotorGroup(duckSpinner1, duckSpinner2);
         Motor m_arm = new Motor(hardwareMap, "arm");
         Motor m_collector = new Motor(hardwareMap, "collector");
-        //ServoEx m_capper= new SimpleServo(hardwareMap, "capper",0,90);
+        ServoEx capper= new SimpleServo(hardwareMap, "capper",0,90);
         Motor m_frontRight = new Motor(hardwareMap, "frontRight");
         Motor m_frontLeft = new Motor(hardwareMap, "frontLeft");
         Motor m_backRight = new Motor(hardwareMap, "backRight");
@@ -61,11 +59,10 @@ public class DriveMecanum extends LinearOpMode {
         DcMotor backLeft = m_backLeft.motor;
         DcMotor arm = m_arm.motor;
         DcMotor collector = m_collector.motor;
-        //Servo capper = m_capper.;
 
         // Fix all the directions of the motors.
-        m_frontRight.motor.setDirection(DcMotor.Direction.REVERSE);
-        m_backRight.motor.setDirection(DcMotor.Direction.REVERSE);
+        frontRight.setDirection(DcMotor.Direction.REVERSE);
+        backRight.setDirection(DcMotor.Direction.REVERSE);
 
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -87,15 +84,17 @@ public class DriveMecanum extends LinearOpMode {
         params.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
         BNO055IMU imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(params);
-        // IMU remaping axis
+        // IMU remapping axis
         //BNO055IMUUtil.remapAxes(imu, AxesOrder.ZYX, AxesSigns.NPN);
 
-        // power constants
+        // power and constants
         double armPower = 0;
         double duckSpinnersPower = 0;
-        double capperPower = 0;
+        double capperPosition = capper.getPosition();
         // timers
-        double prevTime = 0;
+        // double prevTime = 0;
+        // initial box size
+        collectorBoxHeight = cargoDetector.getDistance(DistanceUnit.CM);
         // Collector
         boolean isCollectorActive = false;
         boolean collectorDirection = false;
@@ -155,28 +154,25 @@ public class DriveMecanum extends LinearOpMode {
                 armPower = -multiplier;
             }
             // Capper up LEFT_TRIGGER AND DPAD_UP
-            else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 1 && gamepad2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
-                capperPower = 1;
+            else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 1 && gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) {
+                capperPosition += 1;
+                capper.setPosition(capperPosition);
             }
             // Capper down LEFT_TRIGGER AND DPAD_DOWN
-            else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0 && gamepad2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
-                capperPower = -1;
+            else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_DOWN)) {
+                capperPosition -= 1;
+                capper.setPosition(capperPosition);
             }
             // Stop arm DPAD_LEFT
             else if(gamepad2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
                 armPower = 0;
             }
-            // Stop Capper
-            else {
-                capperPower = 0;
-            }
-            // Set the accordinate powers to arm and capper
-            capper.setPower(capperPower);
+            // Set the accordinate power to the arm
             arm.setPower(armPower);
 
 
             // INTAKE CODE
-            if(gamepad2.wasJustPressed(GamepadKeys.Button.A)) {
+            if(gamepad2.wasJustPressed(CROSS)) {
                 if(isCollectorActive && collectorDirection) { isCollectorActive = false; }
                 else {
                     isCollectorActive = true;
@@ -200,7 +196,10 @@ public class DriveMecanum extends LinearOpMode {
                 collector.setPower(collectorDirection ? 1 : -multiplier);
             } else collector.setPower(0);
 
+
             // Telemetry
+            cargoDetection();
+            telemetry.addData("Detected Cargo : ", detectedCargo);
             telemetry.addData("GlobalPowerFactor: ", globalpowerfactor);
             telemetry.addData("Turn amount: ", calculateAngle360(angles.firstAngle));
             telemetry.addData("frontRight: ", -(forwardpower + sidepower - turnpower));
@@ -213,13 +212,22 @@ public class DriveMecanum extends LinearOpMode {
         }
     }
 
-    private double makePositive(double num) {
-        if(num < 0) return -num;
-        return num;
-    }
-
     private double calculateAngle360(double num) {
         if(num < 0) return 360+num;
         return num;
+    }
+    private void cargoDetection(){
+        // Cargo detection
+        // The less the distance from the ground subtraction the higher object we are possessing
+        currentDistance = cargoDetector.getDistance(DistanceUnit.CM);
+        if (collectorBoxHeight - cubeHeight < collectorBoxHeight - currentDistance) {
+            detectedCargo = "Ball";
+        }
+        else if(collectorBoxHeight - ballHeight < collectorBoxHeight - currentDistance) {
+            detectedCargo = "Cube OR Duck";
+        }
+        else {
+            detectedCargo = "None";
+        }
     }
 }
