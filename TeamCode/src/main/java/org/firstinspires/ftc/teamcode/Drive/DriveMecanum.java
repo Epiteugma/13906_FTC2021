@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive;
+package org.firstinspires.ftc.teamcode.Drive;
 
 // Navigation and IMU
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -56,15 +56,15 @@ public class DriveMecanum extends LinearOpMode {
         frontRight.setInverted(true);
         backRight.setInverted(true);
 
-        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        frontLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
 
-        backLeft.setRunMode(Motor.RunMode.RUN_USING_ENCODER);
-        backRight.setRunMode(Motor.RunMode.RUN_USING_ENCODER);
-        frontLeft.setRunMode(Motor.RunMode.RUN_USING_ENCODER);
-        frontRight.setRunMode(Motor.RunMode.RUN_USING_ENCODER);
+        backLeft.setRunMode(Motor.RunMode.PositionControl);
+        backRight.setRunMode(Motor.RunMode.PositionControl);
+        frontLeft.setRunMode(Motor.RunMode.PositionControl);
+        frontRight.setRunMode(Motor.RunMode.PositionControl);
 
         // IMU init.
         BNO055IMU.Parameters params = new BNO055IMU.Parameters();
@@ -94,9 +94,9 @@ public class DriveMecanum extends LinearOpMode {
         // power and constants
         double duckSpinnersPower = 0;
         // initial positions
-        double capperPosition = capper.getPosition();
-        double armPosition = arm.getPosition();
+        int armPosition = arm.getCurrentPosition();
         // initial box size
+        int collectorTicksPerRevolution = 0;
         collectorBoxHeight = cargoDetector.getDistance(DistanceUnit.CM);
         // Collector
         boolean isCollectorActive = false;
@@ -130,29 +130,31 @@ public class DriveMecanum extends LinearOpMode {
             // Calculate Mecanum Powers for field-centric drive
             drivetrain.driveFieldCentric(sidepower, forwardpower, turnpower, heading);
 
+
+            // TODO: fix arm and capper.
             // Arm up DPAD_UP
             if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) {
-                armPosition += 0.1;
-                arm.setPosition(armPosition);
-                arm.setRunMode(Motor.RunMode.RUN_TO_POSITION);
+                armPosition += collectorTicksPerRevolution;
+                arm.setTargetPosition(armPosition);
+                arm.set(0.5);
+                arm.setRunMode(Motor.RunMode.PositionControl);
             }
             // Arm down DPAD_DOWN
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_DOWN)) {
-                armPosition -= 0.1;
-                arm.setPosition(armPosition);
-                arm.setRunMode(Motor.RunMode.RUN_TO_POSITION);
+                armPosition -= collectorTicksPerRevolution;
+                arm.setTargetPosition(armPosition);
+                arm.set(0.5);
+                arm.setRunMode(Motor.RunMode.PositionControl);
             }
             // Capper up LEFT_TRIGGER AND DPAD_UP
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) {
-                capperPosition += 0.1;
-                capper.setPosition(capperPosition);
-                capper.setRunMode(ServoEx.RunMode.RUN_TO_POSITION);
+                capper.rotateByAngle(1);
             }
             // Capper down LEFT_TRIGGER AND DPAD_DOWN
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_DOWN)) {
-                capperPosition -= 0.1;
-                capper.setPosition(capperPosition);
-                capper.setRunMode(ServoEx.RunMode.RUN_TO_POSITION);
+                capper.rotateByAngle(-1);
+            } else {
+                arm.set(0);
             }
 
 
@@ -178,10 +180,10 @@ public class DriveMecanum extends LinearOpMode {
             duckSpinners.set(duckSpinnersPower);
 
             if(isCollectorActive) {
-                collector.setPower(collectorDirection ? 1 : -multiplier);
+                collector.set(collectorDirection ? 1 : -multiplier);
             } 
             else {
-                collector.setPower(0);
+                collector.set(0);
             }
 
             // Telemetry
@@ -197,8 +199,8 @@ public class DriveMecanum extends LinearOpMode {
             telemetry.addData("frontLeft: ", (forwardpower - sidepower + turnpower));
             telemetry.addData("backRight: ", -(forwardpower - sidepower - turnpower));
             telemetry.addData("backLeft: ", (forwardpower + sidepower + turnpower));
-            telemetry.addData("Arm :", arm.getPower());
-            telemetry.addData("Collector: ", collector.getPower());
+            telemetry.addData("Arm :", arm.motor.getPower());
+            telemetry.addData("Collector: ", collector.motor.getPower());
             telemetry.update();
         }
     }

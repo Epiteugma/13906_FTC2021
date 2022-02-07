@@ -1,3 +1,5 @@
+package org.firstinspires.ftc.teamcode.Autonomous.visionv2;
+
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.ImageFormat;
@@ -253,6 +255,6 @@ public class Detector {
     }
 
     public enum ElementPosition {
-        LEFT, RIGHT, NONE
+        LEFT, RIGHT, CENTER, NONE
     }
 }

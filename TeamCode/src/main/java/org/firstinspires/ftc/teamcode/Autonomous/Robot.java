@@ -1,6 +1,8 @@
-package org.firstinspires.ftc.teamcode.autonomous;
+package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.arcrobotics.ftclib.hardware.SensorRevTOFDistance;
+import com.arcrobotics.ftclib.hardware.motors.Motor;
+import com.arcrobotics.ftclib.hardware.motors.MotorGroup;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -30,12 +32,12 @@ import com.qualcomm.robotcore.util.Range;
 public class Robot {
     LinearOpMode linearOpMode;
     HardwareMap hardwareMap;
-    DcMotor frontRight;
-    DcMotor frontLeft;
-    DcMotor backRight;
-    DcMotor backLeft;
-    DcMotor collector;
-    DcMotor arm;
+    Motor frontRight;
+    Motor frontLeft;
+    Motor backRight;
+    Motor backLeft;
+    Motor collector;
+    Motor arm;
     MotorGroup duckSpinners;
     BNO055IMU imu;
     SensorRevTOFDistance cargoDetector;
@@ -216,7 +218,7 @@ public class Robot {
     }
 
     public boolean isMoving(){
-        return frontRight.isBusy() || frontLeft.isBusy() || backRight.isBusy() || backLeft.isBusy();
+        return frontRight.motor.isBusy() || frontLeft.motor.isBusy() || backRight.motor.isBusy() || backLeft.motor.isBusy();
     }
 
     public void resetEncoders() {
@@ -227,10 +229,10 @@ public class Robot {
     }
 
     public void runUsingEncoders(){
-        frontRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        frontLeft.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backLeft.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setRunMode(Motor.RunMode.PositionControl);
+        frontLeft.setRunMode(Motor.RunMode.PositionControl);
+        backRight.setRunMode(Motor.RunMode.PositionControl);
+        backLeft.setRunMode(Motor.RunMode.PositionControl);
     }
 
     public void setTargetPos(double frpos, double flpos, double brpos, double blpos) {
@@ -241,10 +243,10 @@ public class Robot {
     }
 
     public void runToPos() {
-        frontRight.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-        frontLeft.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-        backRight.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-        backLeft.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontRight.setRunMode(Motor.RunMode.PositionControl);
+        frontLeft.setRunMode(Motor.RunMode.PositionControl);
+        backRight.setRunMode(Motor.RunMode.PositionControl);
+        backLeft.setRunMode(Motor.RunMode.PositionControl);
     }
 
     public void setAllPower(double frPower, double flPower, double brPower, double blPower) {
@@ -452,8 +454,8 @@ public class Robot {
                 arm.setTargetPosition((int) (-lastClawPosition * armTickPerRev));
                 break;
         }
-        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        while (collector.isBusy()) {
+        arm.setRunMode(Motor.RunMode.PositionControl);
+        while (collector.motor.isBusy()) {
             linearOpMode.telemetry.addData("The arm is moving ", "to the ", pos, " from ", lastClawPosition, " with a power of ", power);
             linearOpMode.telemetry.update();
         }
@@ -508,33 +510,33 @@ public class Robot {
 
     // Class constructor.
     // Important initialization code. Modify only if needed.
-    public Robot(List<DcMotor> motors, LinearOpMode linearOpMode) {
+    public Robot(List motors, LinearOpMode linearOpMode) {
         hardwareMap = linearOpMode.hardwareMap;
         this.linearOpMode = linearOpMode;
-        backLeft = motors.get(0);
-        frontLeft = motors.get(1);
-        backRight = motors.get(2);
-        frontRight = motors.get(3);
-        arm = motors.get(4);
-        collector = motors.get(5);
-        duckSpinners = motors.get(6);
+        backLeft = (Motor)motors.get(0);
+        frontLeft = (Motor)motors.get(1);
+        backRight = (Motor)motors.get(2);
+        frontRight = (Motor)motors.get(3);
+        arm = (Motor) motors.get(4);
+        collector = (Motor) motors.get(5);
+        duckSpinners = (MotorGroup) motors.get(6);
         initDistanceSensor();
         initIMU();
 
         // Run using encoders!!!
-        arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        arm.setRunMode(Motor.RunMode.PositionControl);
         resetEncoders();
 
         // Fix all the directions of the motors.
-        frontRight.setDirection(DcMotor.Direction.REVERSE);
-        backRight.setDirection(DcMotor.Direction.REVERSE);
+        frontRight.setInverted(true);
+        backRight.setInverted(true);
 
         // Set the zero power behavior of the motors.
         // We don't want them to slide after every trajectory or else we will lose accuracy.
-        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        frontLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
 
         // IMU remapping axis
         // BNO055IMUUtil.remapAxes(imu, AxesOrder.ZYX, AxesSigns.NPN);
