@@ -4,7 +4,7 @@ import com.arcrobotics.ftclib.hardware.SensorRevTOFDistance;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
@@ -30,14 +30,13 @@ import com.qualcomm.robotcore.util.Range;
 public class Robot {
     LinearOpMode linearOpMode;
     HardwareMap hardwareMap;
-    DcMotorEx frontRight;
-    DcMotorEx frontLeft;
-    DcMotorEx backRight;
-    DcMotorEx backLeft;
-    DcMotorEx collector;
-    DcMotorEx arm;
-    DcMotorEx duckSpinner1;
-    DcMotorEx duckSpinner2;
+    DcMotor frontRight;
+    DcMotor frontLeft;
+    DcMotor backRight;
+    DcMotor backLeft;
+    DcMotor collector;
+    DcMotor arm;
+    MotorGroup duckSpinners;
     BNO055IMU imu;
     SensorRevTOFDistance cargoDetector;
     TouchSensor touchSensorSideRight;
@@ -221,14 +220,14 @@ public class Robot {
     }
 
     public void resetEncoders() {
-        frontRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        frontLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        backRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        backLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        frontRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        frontLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        backRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        backLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void setTargetPos(double frpos, double flpos, double brpos, double blpos) {
@@ -239,10 +238,10 @@ public class Robot {
     }
 
     public void runToPos() {
-        frontRight.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-        frontLeft.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-        backRight.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
-        backLeft.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     public void setAllPower(double frPower, double flPower, double brPower, double blPower) {
@@ -450,7 +449,7 @@ public class Robot {
                 arm.setTargetPosition((int) (-lastClawPosition * armTickPerRev));
                 break;
         }
-        arm.setMode(DcMotorEx.RunMode.RUN_TO_POSITION);
+        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         while (collector.isBusy()) {
             linearOpMode.telemetry.addData("The arm is moving ", "to the ", pos, " from ", lastClawPosition, " with a power of ", power);
             linearOpMode.telemetry.update();
@@ -483,11 +482,9 @@ public class Robot {
         long timeMillis = 0;
         while(System.currentTimeMillis()+timeToSpin > timeMillis && linearOpMode.opModeIsActive()) {
             timeMillis = System.currentTimeMillis();
-            duckSpinner1.setPower(power);
-            duckSpinner2.setPower(power);
+            duckSpinners.set(power);
         }
-        duckSpinner1.setPower(0);
-        duckSpinner2.setPower(0);
+        duckSpinners.set(0);
     }
 
     public String cargoDetection(){
@@ -508,7 +505,7 @@ public class Robot {
 
     // Class constructor.
     // Important initialization code. Modify only if needed.
-    public Robot(List<DcMotorEx> motors, LinearOpMode linearOpMode) {
+    public Robot(List<DcMotor> motors, LinearOpMode linearOpMode) {
         hardwareMap = linearOpMode.hardwareMap;
         this.linearOpMode = linearOpMode;
         backLeft = motors.get(0);
@@ -517,25 +514,24 @@ public class Robot {
         frontRight = motors.get(3);
         arm = motors.get(4);
         collector = motors.get(5);
-        duckSpinner1 = motors.get(6);
-        duckSpinner2 = motors.get(7);
+        duckSpinners = motors.get(6);
         initDistanceSensor();
         initIMU();
 
         // Run using encoders!!!
-        arm.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         resetEncoders();
 
         // Fix all the directions of the motors.
-        frontRight.setDirection(DcMotorEx.Direction.REVERSE);
-        backRight.setDirection(DcMotorEx.Direction.REVERSE);
+        frontRight.setDirection(DcMotor.Direction.REVERSE);
+        backRight.setDirection(DcMotor.Direction.REVERSE);
 
         // Set the zero power behavior of the motors.
         // We don't want them to slide after every trajectory or else we will lose accuracy.
-        frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        backRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
-        backLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // IMU remapping axis
         // BNO055IMUUtil.remapAxes(imu, AxesOrder.ZYX, AxesSigns.NPN);

@@ -27,6 +27,7 @@ public class DriveMecanum extends LinearOpMode {
 
     // cargoDetector
     String detectedCargo = "None";
+    String prevDetectedCargo = "None";
     double cubeHeight= 5.08;
     double ballHeight = 6.99;
     double duckHeight = 5.4;
@@ -198,8 +199,13 @@ public class DriveMecanum extends LinearOpMode {
 
 
             // Telemetry
-            cargoDetection();
-            telemetry.addData("Detected Cargo : ", detectedCargo);
+            detectedCargo = deteccargoDetection();
+            if (prevDetectedCargo != detectedCargo && prevDetectedCargo == "None") {
+                this.gamepad1.rumble(1,1,1000);
+                this.gamepad2.rumble(1,1,1000);
+            }
+            prevDetectedCargo = detectedCargo;
+            telemetry.addData("Detected Cargo", detectedCargo);
             telemetry.addData("GlobalPowerFactor: ", globalpowerfactor);
             telemetry.addData("Turn amount: ", calculateAngle360(angles.firstAngle));
             telemetry.addData("frontRight: ", -(forwardpower + sidepower - turnpower));
@@ -216,18 +222,18 @@ public class DriveMecanum extends LinearOpMode {
         if(num < 0) return 360+num;
         return num;
     }
-    private void cargoDetection(){
+    private String cargoDetection(){
         // Cargo detection
         // The less the distance from the ground subtraction the higher object we are possessing
         currentDistance = cargoDetector.getDistance(DistanceUnit.CM);
         if (collectorBoxHeight - cubeHeight < collectorBoxHeight - currentDistance) {
-            detectedCargo = "Ball";
+            return "Ball";
         }
         else if(collectorBoxHeight - ballHeight < collectorBoxHeight - currentDistance) {
-            detectedCargo = "Cube OR Duck";
+            return "Cube OR Duck";
         }
         else {
-            detectedCargo = "None";
+            return "None";
         }
     }
 }

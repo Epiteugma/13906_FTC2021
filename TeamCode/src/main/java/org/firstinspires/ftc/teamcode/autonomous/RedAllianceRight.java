@@ -4,9 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
-// Import Location enums. (Detector.Location)
-import org.firstinspires.ftc.teamcode.autonomous.vision.DuckDetector;
-import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
+import org.firstinspires.ftc.teamcode.autonomous.visionv2.Detector;
 
 import org.openftc.easyopencv.OpenCvCamera;
 
@@ -14,34 +12,38 @@ import java.util.Arrays;
 
 @Autonomous(name="Red Alliance Right", group="FTC22")
 public class RedAllianceRight extends LinearOpMode {
-    OpenCvCamera webcam;
-    DcMotorEx backLeft;
-    DcMotorEx backRight;
-    DcMotorEx frontLeft;
-    DcMotorEx frontRight;
-    DcMotorEx armClaw;
-    DcMotorEx collector;
-    DcMotorEx duckSpinner1;
-    DcMotorEx duckSpinner2;
-    Robot robot;
 
     private void initMotors() {
-        backLeft = hardwareMap.get(DcMotorEx.class, "backLeft");
-        frontLeft = hardwareMap.get(DcMotorEx.class, "frontLeft");
-        backRight = hardwareMap.get(DcMotorEx.class, "backRight");
-        frontRight = hardwareMap.get(DcMotorEx.class, "frontRight");
-        armClaw = hardwareMap.get(DcMotorEx.class, "armClaw");
-        collector = hardwareMap.get(DcMotorEx.class, "collector");
-        duckSpinner1 = hardwareMap.get(DcMotorEx.class, "duckSpinner1");
-        duckSpinner2 = hardwareMap.get(DcMotorEx.class, "duckSpinner2");
+        // Motors, servos, distance sensor and IMU
+        BNO055IMU IMU = hardwareMap.get(BNO055IMU.class, "imu");
+        SensorRevTOFDistance cargoDetector = new SensorRevTOFDistance(hardwareMap, "cargoDetector");
+        Motor duckSpinner1 = new Motor( hardwareMap, "duckSpinner1");
+        Motor duckSpinner2 = new Motor( hardwareMap, "duckSpinner2");
+        MotorGroup duckSpinners = new MotorGroup(duckSpinner1, duckSpinner2);
+        Motor m_arm = new Motor(hardwareMap, "arm");
+        Motor m_collector = new Motor(hardwareMap, "collector");
+        ServoEx capper= new SimpleServo(hardwareMap, "capper",0,90);
+        Motor m_frontRight = new Motor(hardwareMap, "frontRight");
+        Motor m_frontLeft = new Motor(hardwareMap, "frontLeft");
+        Motor m_backRight = new Motor(hardwareMap, "backRight");
+        Motor m_backLeft = new Motor(hardwareMap, "backLeft");
+
+        // grab the internal DcMotor or servo object
+        DcMotor frontRight = m_frontRight.motor;
+        DcMotor frontLeft = m_frontLeft.motor;
+        DcMotor backRight = m_backRight.motor;
+        DcMotor backLeft = m_backLeft.motor;
+        DcMotor arm = m_arm.motor;
+        DcMotor collector = m_collector.motor;
     }
     
     @Override
     public void runOpMode(){
         initMotors();
-        robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, armClaw, collector, duckSpinner1, duckSpinner2), this);
+        Robot robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, armClaw, collector, duckSpinners), this);
 
-        DuckDetector.Location duckPos = robot.getDuckPos();
+        Detector detector = new Detector(hardwareMap);
+        Detector.ElementPosition itemPos = detector.getElementPosition();
         telemetry.addData("Detected Cargo : ", robot.cargoDetection());
         telemetry.update();
         waitForStart();
@@ -54,14 +56,14 @@ public class RedAllianceRight extends LinearOpMode {
         // Move towards the shipping hub.
         //robot.drive(Robot.Direction.FORWARDS, 0.5, 1000);
         // Lift the claw to the right level.
-        switch(duckPos) {
-            case LEFT:
+        switch(itemPos) {
+            case Detector.ElementPosition.LEFT:
                 //robot.moveClaw(Robot.Position.HIGH, 1);
                 break;
-            case RIGHT:
+            case Detector.ElementPosition.RIGHT:
                 robot.drive(Robot.Direction.FORWARDS,1,100);
                 break;
-            case CENTER:
+            case Detector.ElementPosition.CENTER:
                 robot.drive(Robot.Direction.FORWARDS,1,100);
                 //robot.moveClaw(Robot.Position.MID,1);
                 break;
