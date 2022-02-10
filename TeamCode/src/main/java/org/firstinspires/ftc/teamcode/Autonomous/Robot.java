@@ -86,7 +86,7 @@ public class Robot {
     public double blPower;
 
 
-    // Ticks completion booleans
+    // global ticks
     public int frCurrentTicks;
     public int flCurrentTicks;
     public int brCurrentTicks;
@@ -145,7 +145,7 @@ public class Robot {
         BNO055IMU.Parameters params = new BNO055IMU.Parameters();
         params.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         params.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        params.calibrationDataFile = "BNO055IMUCalibackRightation.json";
+        params.calibrationDataFile = "BNO055IMUCalibration.json";
         params.loggingEnabled = true;
         params.loggingTag = "IMU";
         params.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
