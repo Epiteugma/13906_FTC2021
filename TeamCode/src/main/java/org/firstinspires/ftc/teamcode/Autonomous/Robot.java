@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Autonomous;
 
+import com.arcrobotics.ftclib.hardware.RevIMU;
 import com.arcrobotics.ftclib.hardware.SensorRevTOFDistance;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorGroup;
@@ -142,15 +143,8 @@ public class Robot {
     }
 
     private void initIMU() {
-        BNO055IMU.Parameters params = new BNO055IMU.Parameters();
-        params.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        params.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        params.calibrationDataFile = "BNO055IMUCalibration.json";
-        params.loggingEnabled = true;
-        params.loggingTag = "IMU";
-        params.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
         RevIMU imu = new RevIMU(hardwareMap);
-        imu.init(params);
+        imu.init();
     }
 
     private void initCargoDetector(){
@@ -160,11 +154,11 @@ public class Robot {
     public float getIMUAngle(Axis axis) {
         switch(axis) {
             case X:
-                return imu.getAngles().firstAngle;
+                return imu.getAngularOrientation().firstAngle;
             case Y:
-                return getAngles().secondAngle;
+                return imu.getAngularOrientation().secondAngle;
             case Z:
-                return getAngles().firstAngle;   
+                return imu.getAngularOrientation().thirdAngle;
         }
         return 0;
     }
@@ -191,11 +185,11 @@ public class Robot {
         return location;
     }
 
-    public TseDetector.Location getTsePos() {
-        Detector.ElementPosition location = detector.getElementPosition();
-        linearOpMode.telemetry.addData("The shipping element is located at the ", location);
+    public Detector.ElementPosition getTsePos() {
+        Detector.ElementPosition pos = Detector.getElementPosition();
+        linearOpMode.telemetry.addData("The shipping element is located at the ", pos);
         linearOpMode.telemetry.update();
-        return location;
+        return pos;
     }
     
 
@@ -258,10 +252,10 @@ public class Robot {
                     correction = (targetAngle - currentAngle) * strafeGain;
                     cappedPower = Range.clip(power, -1, 1);
                     correctedCappedPower = Range.clip(power - correction, -1, 1);
-                    frpower = -correctedCappedPower;
-                    flpower = -cappedPower;
-                    brpower = correctedCappedPower;                    
-                    blpower = cappedPower;
+                    frPower = -correctedCappedPower;
+                    flPower = -cappedPower;
+                    brPower = correctedCappedPower;
+                    blPower = cappedPower;
                     frCurrentTicks = frontRight.getCurrentPosition();
                     flCurrentTicks = frontLeft.getCurrentPosition();
                     brCurrentTicks = backRight.getCurrentPosition();
@@ -278,10 +272,10 @@ public class Robot {
                     if (backLeft.atTargetPosition()) {
                         blPower = 0;
                     }
-                    setDrivePower(frpower, flpower, brpower, blpower);
+                    setDrivePower(frPower, flPower, brPower, blPower);
                     linearOpMode.telemetry.addData("Correction: ", correction);
                     linearOpMode.telemetry.addData("Current Angle: ", currentAngle);
-                    linearOpMode.telemetry.addData("Current Power: ", "FR: " + frPower + " FL: " + flPower + " BR: " + brpower + " BL: " + blpower);
+                    linearOpMode.telemetry.addData("Current Power: ", "FR: " + frPower + " FL: " + flPower + " BR: " + brPower + " BL: " + blPower);
                     linearOpMode.telemetry.addData("Current Ticks: ", "FR: "+ frCurrentTicks + " FL: " + flCurrentTicks + " BR: " + brCurrentTicks + " BL: " + blCurrentTicks);
                     linearOpMode.telemetry.addData("Target Ticks: ", targetTicks);
                     linearOpMode.telemetry.addData("Robot is moving: ", String.valueOf(dir), " with a power of ", power, " for ", targetDistance + "cm");
@@ -293,10 +287,10 @@ public class Robot {
                     correction = (targetAngle - currentAngle) * strafeGain;
                     cappedPower = -Range.clip(power, -1, 1);
                     correctedCappedPower = -Range.clip(power - correction, -1, 1);
-                    frpower = correctedCappedPower;
-                    flpower = cappedPower;
-                    brpower = -correctedCappedPower;                    
-                    blpower = -cappedPower;
+                    frPower = correctedCappedPower;
+                    flPower = cappedPower;
+                    brPower = -correctedCappedPower;
+                    blPower = -cappedPower;
                     frCurrentTicks = frontRight.getCurrentPosition();
                     flCurrentTicks = frontLeft.getCurrentPosition();
                     brCurrentTicks = backRight.getCurrentPosition();
@@ -313,7 +307,7 @@ public class Robot {
                     if (backLeft.atTargetPosition()) {
                         blPower = 0;
                     }
-                    setDrivePower(frpower, flpower, brpower, blpower);
+                    setDrivePower(frPower, flPower, brPower, blPower);
                     linearOpMode.telemetry.addData("Correction: ", correction);
                     linearOpMode.telemetry.addData("Current Angle: ", currentAngle);
                     linearOpMode.telemetry.addData("Current Power: ", correctedCappedPower + " " + cappedPower + " " + -correctedCappedPower + " " + -cappedPower);
@@ -419,7 +413,7 @@ public class Robot {
                     linearOpMode.telemetry.update();
                 }
         while (isMoving()) {
-            linearOpMode.telemetry.addData("Robot is moving, when it shouldn't");
+            linearOpMode.telemetry.addData("Robot is moving" ," (when it shouldn't)");
             linearOpMode.telemetry.update();
         }
         linearOpMode.telemetry.addData("Robot has moved: ", String.valueOf(targetDistance) + "cm " + dir);
@@ -428,7 +422,7 @@ public class Robot {
     }
         
     public void turn(Direction dir, double power, double degrees) {
-        frpower = flpower = brpower = blpower = power;
+        frPower = flPower = brPower = blPower = power;
         targetRotations = degrees / 360 * turnCircumference;
         ticksToTurn = targetRotations * driveTicksPerRev;
         resetEncoders();
@@ -454,7 +448,7 @@ public class Robot {
             if (backLeft.atTargetPosition()) {
                 blPower = 0;
             }
-        setDrivePower(frpower, flpower, brpower, blpower);
+        setDrivePower(frPower, flPower, brPower, blPower);
         }
         while (isMoving()) {
             linearOpMode.telemetry.addData("Robot is turning ", String.valueOf(degrees), "to the ", dir, "with a power of ", power);
@@ -467,6 +461,7 @@ public class Robot {
 
     public void moveArm(Position pos, double power) {
         //TODO: Calibrate the ticks needed for each of the 3 levels
+        arm.resetEncoder();
         double lowPosition = 100;
         double midPosition = 200;
         double highPosition = 300;
@@ -502,8 +497,8 @@ public class Robot {
                 arm.setTargetPosition((int) (-lastClawPosition * armTickPerRev));
                 break;
         }
-        arm.set(power);
-        while (collector.motor.isBusy()) {
+        while (!collector.atTargetPosition()) {
+            arm.set(power);
             linearOpMode.telemetry.addData("The arm is moving ", "to the ", pos, " from ", lastClawPosition, " with a power of ", power);
             linearOpMode.telemetry.update();
         }
@@ -515,40 +510,21 @@ public class Robot {
         switch(dir){
             case IN:
                 while(cargoDetection() == "None"){
-                    linearOpMode.telemetry.addData("We are still NOT in possession of cargo...");
+                    linearOpMode.telemetry.addData("We are still NOT in possession of cargo...", "None");
                     linearOpMode.telemetry.update();
                     collector.set(power);
                 }
                 break;
             case OUT:
                 while(cargoDetection() != "None"){
-                    linearOpMode.telemetry.addData("We are still in possession of cargo: ", + "(" + cargoDetection() + ")");
+                    linearOpMode.telemetry.addData("We are still in possession of cargo: ", "(" + cargoDetection() + ")");
                     linearOpMode.telemetry.update();
                     collector.set(-power);
                 }
                 break;
             }
-            collector.stopMotor();
+        collector.stopMotor();
         }
-
-    // public void intakeTimeBased(Direction dir, double power, long timeToCollect) {
-    //     long timeMillis = 0;
-    //     switch(dir){
-    //         case IN:
-    //             while(System.currentTimeMillis()+timeToCollect > timeMillis && linearOpMode.opModeIsActive()) {
-    //                 timeMillis = System.currentTimeMillis();
-    //                 collector.set(power);
-    //             }
-    //             break;
-    //         case OUT:
-    //             while(System.currentTimeMillis()+timeToCollect > timeMillis && linearOpMode.opModeIsActive()) {
-    //                 timeMillis = System.currentTimeMillis();
-    //                 collector.set(-power);
-    //             }
-    //             break;
-    //         }
-    //         collector.stopMotor();
-    //     }
 
     public void duckSpin(double power, long timeToSpin) {
         // TODO: calibrate time to spin.

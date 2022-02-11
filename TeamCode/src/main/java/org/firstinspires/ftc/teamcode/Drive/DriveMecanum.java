@@ -1,11 +1,7 @@
 package org.firstinspires.ftc.teamcode.Drive;
 
 // Navigation and IMU
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 // Sensors , Motors and Opmode
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
@@ -13,14 +9,11 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
 
 //FTCLib
 import com.arcrobotics.ftclib.gamepad.*;
 import com.arcrobotics.ftclib.hardware.*;
 import com.arcrobotics.ftclib.hardware.motors.*;
-import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp(name = "FTC 2022 Drive (Mecanum)", group = "FTC22")
 public class DriveMecanum extends LinearOpMode {
@@ -67,15 +60,8 @@ public class DriveMecanum extends LinearOpMode {
         frontRight.setRunMode(Motor.RunMode.PositionControl);
 
         // IMU init.
-        BNO055IMU.Parameters params = new BNO055IMU.Parameters();
-        params.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        params.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        params.calibrationDataFile = "BNO055IMUCalibackRightation.json";
-        params.loggingEnabled = true;
-        params.loggingTag = "IMU";
-        params.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
         RevIMU imu = new RevIMU(hardwareMap);
-        imu.init(params);
+        imu.init();
         // IMU remapping axis
         //BNO055IMUUtil.remapAxes(imu, AxesOrder.ZYX, AxesSigns.NPN);
 
@@ -85,16 +71,22 @@ public class DriveMecanum extends LinearOpMode {
         // Meccanum drivebase; Pass the motor objects
         MecanumDrive drivetrain = new MecanumDrive(frontLeft, frontRight, backLeft, backRight);
 
+        // Current Free buttons:
+        // Turbo
+
         // Custom controller keymaping
         GamepadKeys.Button CROSS = GamepadKeys.Button.A;
         GamepadKeys.Button CIRCLE = GamepadKeys.Button.B;
         GamepadKeys.Button TRIANGLE = GamepadKeys.Button.Y;
         GamepadKeys.Button SQUARE = GamepadKeys.Button.X;
 
+        // IMU
+        double heading;
         // power and constants
+        double sidepower;
+        double forwardpower;
+        double turnpower;
         double duckSpinnersPower = 0;
-        // initial positions
-        int armPosition = arm.getCurrentPosition();
         // initial box size
         int collectorTicksPerRevolution = 0;
         collectorBoxHeight = cargoDetector.getDistance(DistanceUnit.CM);
@@ -104,6 +96,14 @@ public class DriveMecanum extends LinearOpMode {
         // power factors
         double multiplier = 0.6;
         double globalpowerfactor = 1.0;
+        // Arm and positions
+        //TODO: Calibrate the ticks needed for each of the 3 levels
+        double armPower = 0.6;
+        double lowPosition = 100;
+        double midPosition = 200;
+        double highPosition = 300;
+        double lastClawPosition = arm.getCurrentPosition();
+        double armTickPerRev = 0;
 
         //END INIT CODE
 
@@ -114,11 +114,11 @@ public class DriveMecanum extends LinearOpMode {
 
         while (opModeIsActive()) {
             // Orientation angles = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-            double heading = imu.getHeading();
+            heading = imu.getHeading();
 
-            double sidepower = gamepad1.getLeftX() * globalpowerfactor;
-            double forwardpower = gamepad1.getLeftY() * globalpowerfactor;
-            double turnpower = gamepad1.getRightX() * globalpowerfactor;
+            sidepower = gamepad1.getLeftX() * globalpowerfactor;
+            forwardpower = gamepad1.getLeftY() * globalpowerfactor;
+            turnpower = gamepad1.getRightX() * globalpowerfactor;
 
             if(gamepad1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
                 globalpowerfactor += 0.1;
@@ -130,21 +130,51 @@ public class DriveMecanum extends LinearOpMode {
             // Calculate Mecanum Powers for field-centric drive
             drivetrain.driveFieldCentric(sidepower, forwardpower, turnpower, heading);
 
+            // Arm predifined positions
+            arm.setPositionTolerance(2);
+            if (gamepad2.wasJustPressed(CROSS)){
+                if (lowPosition > lastClawPosition) {
+                    lowPosition = lowPosition + lastClawPosition;
+                }
+                else {
+                    lowPosition = lowPosition - lastClawPosition;
+                }
+                arm.setTargetPosition((int) (lowPosition * armTickPerRev));
+                lastClawPosition = lowPosition;
+                }
+            else if (gamepad2.wasJustPressed(CIRCLE)){
+                if (midPosition > lastClawPosition) {
+                    midPosition = midPosition + lastClawPosition;
+                }
+                else {
+                    midPosition = midPosition - lastClawPosition;
+                }
+                arm.setTargetPosition((int) (midPosition * armTickPerRev));
+                lastClawPosition = midPosition;
+                }
+            else if (gamepad2.wasJustPressed(TRIANGLE)){
+                // No need to check if above it will never be above the highest possible position
+                highPosition = highPosition - lastClawPosition;
+                arm.setTargetPosition((int) (highPosition * armTickPerRev));
+                lastClawPosition = highPosition;
+            }
+//            else if(DOWN){
+//                arm.setTargetPosition((int) (-lastClawPosition * armTickPerRev));
+//            }
+            while (!collector.atTargetPosition()) {
+                arm.set(armPower);
+            }
 
             // TODO: fix arm and capper.
             // Arm up DPAD_UP
             if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) {
-                armPosition += collectorTicksPerRevolution;
-                arm.setTargetPosition(armPosition);
+                arm.setRunMode(Motor.RunMode.RawPower);
                 arm.set(0.5);
-                arm.setRunMode(Motor.RunMode.PositionControl);
             }
             // Arm down DPAD_DOWN
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_DOWN)) {
-                armPosition -= collectorTicksPerRevolution;
-                arm.setTargetPosition(armPosition);
+                arm.setRunMode(Motor.RunMode.RawPower);
                 arm.set(0.5);
-                arm.setRunMode(Motor.RunMode.PositionControl);
             }
             // Capper up LEFT_TRIGGER AND DPAD_UP
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) {
@@ -157,15 +187,15 @@ public class DriveMecanum extends LinearOpMode {
                 arm.set(0);
             }
 
-
             // INTAKE CODE
-            if(gamepad2.wasJustPressed(CROSS)) {
+            if(gamepad2.getButton(GamepadKeys.Button.START)) {
                 if(isCollectorActive && collectorDirection) { isCollectorActive = false; }
                 else {
                     isCollectorActive = true;
                     collectorDirection = true;
                 }
-            } else if(gamepad2.wasJustPressed(TRIANGLE)) {
+            } 
+            else if(gamepad2.getButton(GamepadKeys.Button.BACK)) {
                 if(isCollectorActive && !collectorDirection) { isCollectorActive = false; }
                 else {
                     isCollectorActive = true;
@@ -188,19 +218,29 @@ public class DriveMecanum extends LinearOpMode {
 
             // Telemetry
             detectedCargo = cargoDetection();
-            if (prevDetectedCargo != detectedCargo && prevDetectedCargo == "None") {
-                this.gamepad1.rumble(1,1,1000);
-                this.gamepad2.rumble(1,1,1000);
+            if (!prevDetectedCargo.equals(detectedCargo) && prevDetectedCargo.equals("None")) {
+                // Beta stop the intake when freight is collected and vibrate the drivers' controllers to make them aware
+                collector.stopMotor();
+                // Vibrate only the right part (means cube or duck)
+                if (detectedCargo.equals("Cuber OR Duck")) {
+                    this.gamepad1.rumble(0,1,1000);
+                    this.gamepad2.rumble(0,1,1000);
+                }
+                // Vibrate only the left part (means ball)
+                if (detectedCargo.equals("Ball")) {
+                    this.gamepad1.rumble(1,0,1000);
+                    this.gamepad2.rumble(1,0,1000);
+                }
             }
             prevDetectedCargo = detectedCargo;
-            telemetry.addData("Detected Cargo", detectedCargo);
+            telemetry.addData("Detected Cargo: ", detectedCargo);
             telemetry.addData("GlobalPowerFactor: ", globalpowerfactor);
-            telemetry.addData("frontRight: ", -(forwardpower + sidepower - turnpower));
-            telemetry.addData("frontLeft: ", (forwardpower - sidepower + turnpower));
-            telemetry.addData("backRight: ", -(forwardpower - sidepower - turnpower));
-            telemetry.addData("backLeft: ", (forwardpower + sidepower + turnpower));
-            telemetry.addData("Arm :", arm.motor.getPower());
-            telemetry.addData("Collector: ", collector.motor.getPower());
+            telemetry.addData("frontRight: ", frontRight.get());
+            telemetry.addData("frontLeft: ", frontLeft.get());
+            telemetry.addData("backRight: ", backRight.get());
+            telemetry.addData("backLeft: ", backLeft.get());
+            telemetry.addData("Arm: ", arm.get());
+            telemetry.addData("Collector: ", collector.get());
             telemetry.update();
         }
     }
