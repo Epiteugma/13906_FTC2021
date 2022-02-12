@@ -126,21 +126,21 @@ public class Robot {
         DOWN
     }
 
-    public String inContact() {
-        touchSensorSideRight = hardwareMap.get(TouchSensor.class, "rightSideTouch");
-        touchSensorSideLeft = hardwareMap.get(TouchSensor.class, "leftSideTouch");
-        touchSensorFrontLeft = hardwareMap.get(TouchSensor.class, "frontLeftTouch");
-
-        if (touchSensorSideLeft.isPressed()) {
-            return "Left side";
-        } else if (touchSensorSideRight.isPressed()) {
-            return "Right side";
-        } else if (touchSensorFrontLeft.isPressed()){
-            return "Front side";
-        } else {
-            return "Not In Contact";
-        }
-    }
+//    public String inContact() {
+//        touchSensorSideRight = hardwareMap.get(TouchSensor.class, "rightSideTouch");
+//        touchSensorSideLeft = hardwareMap.get(TouchSensor.class, "leftSideTouch");
+//        touchSensorFrontLeft = hardwareMap.get(TouchSensor.class, "frontLeftTouch");
+//
+//        if (touchSensorSideLeft.isPressed()) {
+//            return "Left side";
+//        } else if (touchSensorSideRight.isPressed()) {
+//            return "Right side";
+//        } else if (touchSensorFrontLeft.isPressed()){
+//            return "Front side";
+//        } else {
+//            return "Not In Contact";
+//        }
+//    }
 
     private void initIMU() {
         RevIMU imu = new RevIMU(hardwareMap);
@@ -186,7 +186,7 @@ public class Robot {
     }
 
     public Detector.ElementPosition getTsePos() {
-        Detector.ElementPosition pos = Detector.getElementPosition();
+        Detector.ElementPosition pos = Detector.ElementPosition.CENTER;
         linearOpMode.telemetry.addData("The shipping element is located at the ", pos);
         linearOpMode.telemetry.update();
         return pos;

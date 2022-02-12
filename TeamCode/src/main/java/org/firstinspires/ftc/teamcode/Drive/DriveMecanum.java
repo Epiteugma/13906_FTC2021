@@ -26,38 +26,50 @@ public class DriveMecanum extends LinearOpMode {
     double duckHeight = 5.4;
     double currentDistance = 0;
     double collectorBoxHeight = 0;
+    boolean collectedFreight = false;
     SensorRevTOFDistance cargoDetector = null;
+
+    private String cargoDetection(){
+        // Cargo detection
+        // The less the distance from the ground subtraction the higher object we are possessing
+        currentDistance = cargoDetector.getDistance(DistanceUnit.CM);
+        if (3.45 < collectorBoxHeight - currentDistance && collectorBoxHeight - currentDistance < 7.5) {
+            return "Ball";
+        }
+        else if(1 < collectorBoxHeight - currentDistance && collectorBoxHeight - currentDistance < 3.45) {
+            return "Cube OR Duck";
+        }
+        else {
+            return "None";
+        }
+    }
 
     @Override
     public void runOpMode() {
         // INIT CODE START HERE
 
+        cargoDetector = new SensorRevTOFDistance(hardwareMap, "cargoDetector");
+
         // Motors, servos initialization
-        SensorRevTOFDistance cargoDetector = new SensorRevTOFDistance(hardwareMap, "cargoDetector");
         Motor duckSpinner1 = new Motor( hardwareMap, "duckSpinner1");
         Motor duckSpinner2 = new Motor( hardwareMap, "duckSpinner2");
+        duckSpinner1.setRunMode(Motor.RunMode.VelocityControl);
+        duckSpinner2.setRunMode(Motor.RunMode.VelocityControl);
         MotorGroup duckSpinners = new MotorGroup(duckSpinner1, duckSpinner2);
         Motor arm = new Motor(hardwareMap, "arm");
         Motor collector = new Motor(hardwareMap, "collector");
-        ServoEx capper= new SimpleServo(hardwareMap, "capper",0,90);
+        CRServo capper= new CRServo(hardwareMap, "capper");
         Motor frontRight = new Motor(hardwareMap, "frontRight");
         Motor frontLeft = new Motor(hardwareMap, "frontLeft");
         Motor backRight = new Motor(hardwareMap, "backRight");
         Motor backLeft = new Motor(hardwareMap, "backLeft");
 
-        // Fix all the directions of the motors.
-        frontRight.setInverted(true);
-        backRight.setInverted(true);
+        duckSpinners.setRunMode(Motor.RunMode.VelocityControl);
 
         backLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         frontLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
-
-        backLeft.setRunMode(Motor.RunMode.PositionControl);
-        backRight.setRunMode(Motor.RunMode.PositionControl);
-        frontLeft.setRunMode(Motor.RunMode.PositionControl);
-        frontRight.setRunMode(Motor.RunMode.PositionControl);
 
         // IMU init.
         RevIMU imu = new RevIMU(hardwareMap);
@@ -88,13 +100,13 @@ public class DriveMecanum extends LinearOpMode {
         double turnpower;
         double duckSpinnersPower = 0;
         // initial box size
-        int collectorTicksPerRevolution = 0;
+        int collectorTicksPerRevolution = 1120;
         collectorBoxHeight = cargoDetector.getDistance(DistanceUnit.CM);
         // Collector
         boolean isCollectorActive = false;
         boolean collectorDirection = false;
         // power factors
-        double multiplier = 0.6;
+        double multiplier = 0.75;
         double globalpowerfactor = 1.0;
         // Arm and positions
         //TODO: Calibrate the ticks needed for each of the 3 levels
@@ -120,10 +132,10 @@ public class DriveMecanum extends LinearOpMode {
             forwardpower = gamepad1.getLeftY() * globalpowerfactor;
             turnpower = gamepad1.getRightX() * globalpowerfactor;
 
-            if(gamepad1.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER)) {
+            if(gamepad1.getButton(GamepadKeys.Button.RIGHT_BUMPER)) {
                 globalpowerfactor += 0.1;
             }
-            else if(gamepad1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) {
+            else if(gamepad1.getButton(GamepadKeys.Button.LEFT_BUMPER)) {
                 globalpowerfactor -= 0.1;
             }
 
@@ -132,7 +144,7 @@ public class DriveMecanum extends LinearOpMode {
 
             // Arm predifined positions
             arm.setPositionTolerance(2);
-            if (gamepad2.wasJustPressed(CROSS)){
+            if (gamepad2.getButton(CROSS)){
                 if (lowPosition > lastClawPosition) {
                     lowPosition = lowPosition + lastClawPosition;
                 }
@@ -142,7 +154,7 @@ public class DriveMecanum extends LinearOpMode {
                 arm.setTargetPosition((int) (lowPosition * armTickPerRev));
                 lastClawPosition = lowPosition;
                 }
-            else if (gamepad2.wasJustPressed(CIRCLE)){
+            else if (gamepad2.getButton(CIRCLE)){
                 if (midPosition > lastClawPosition) {
                     midPosition = midPosition + lastClawPosition;
                 }
@@ -152,7 +164,7 @@ public class DriveMecanum extends LinearOpMode {
                 arm.setTargetPosition((int) (midPosition * armTickPerRev));
                 lastClawPosition = midPosition;
                 }
-            else if (gamepad2.wasJustPressed(TRIANGLE)){
+            else if (gamepad2.getButton(TRIANGLE)){
                 // No need to check if above it will never be above the highest possible position
                 highPosition = highPosition - lastClawPosition;
                 arm.setTargetPosition((int) (highPosition * armTickPerRev));
@@ -178,24 +190,26 @@ public class DriveMecanum extends LinearOpMode {
             }
             // Capper up LEFT_TRIGGER AND DPAD_UP
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) {
-                capper.rotateByAngle(1);
+                capper.set(-1);
             }
             // Capper down LEFT_TRIGGER AND DPAD_DOWN
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_DOWN)) {
-                capper.rotateByAngle(-1);
-            } else {
-                arm.set(0);
+                capper.set(1);
+            }
+            else {
+                capper.stopMotor();
+                arm.stopMotor();
             }
 
             // INTAKE CODE
-            if(gamepad2.getButton(GamepadKeys.Button.START)) {
+            if(gamepad2.getButton(GamepadKeys.Button.BACK)) {
                 if(isCollectorActive && collectorDirection) { isCollectorActive = false; }
                 else {
                     isCollectorActive = true;
                     collectorDirection = true;
                 }
             } 
-            else if(gamepad2.getButton(GamepadKeys.Button.BACK)) {
+            else if(gamepad2.getButton(GamepadKeys.Button.START)) {
                 if(isCollectorActive && !collectorDirection) { isCollectorActive = false; }
                 else {
                     isCollectorActive = true;
@@ -204,36 +218,38 @@ public class DriveMecanum extends LinearOpMode {
             }
 
             // DUCK SPINNER CODE
-            if(gamepad1.wasJustPressed(SQUARE)) {
-                duckSpinnersPower = duckSpinnersPower == multiplier-0.25 ? 0 : multiplier-0.25;
+            if(gamepad1.isDown(SQUARE)) {
+                duckSpinnersPower = duckSpinnersPower == multiplier ? 0 : multiplier;
             }
             duckSpinners.set(duckSpinnersPower);
 
             if(isCollectorActive) {
-                collector.set(collectorDirection ? 1 : -multiplier);
+                collector.set(collectorDirection ? 1 : -1);
             } 
             else {
-                collector.set(0);
+                collector.stopMotor();
             }
 
             // Telemetry
             detectedCargo = cargoDetection();
-            if (!prevDetectedCargo.equals(detectedCargo) && prevDetectedCargo.equals("None")) {
+            if (!detectedCargo.equals("None") && prevDetectedCargo.equals("None")) {
                 // Beta stop the intake when freight is collected and vibrate the drivers' controllers to make them aware
-                collector.stopMotor();
+                isCollectorActive = false;
+                telemetry.addData("Went inside detection check", "");
                 // Vibrate only the right part (means cube or duck)
                 if (detectedCargo.equals("Cuber OR Duck")) {
                     this.gamepad1.rumble(0,1,1000);
                     this.gamepad2.rumble(0,1,1000);
                 }
                 // Vibrate only the left part (means ball)
-                if (detectedCargo.equals("Ball")) {
+                else if (detectedCargo.equals("Ball")) {
                     this.gamepad1.rumble(1,0,1000);
                     this.gamepad2.rumble(1,0,1000);
                 }
             }
-            prevDetectedCargo = detectedCargo;
-            telemetry.addData("Detected Cargo: ", detectedCargo);
+
+            telemetry.addData("Probably Detected Cargo: ", detectedCargo);
+            telemetry.addData("Probably Prev Detected Cargo: ", prevDetectedCargo);
             telemetry.addData("GlobalPowerFactor: ", globalpowerfactor);
             telemetry.addData("frontRight: ", frontRight.get());
             telemetry.addData("frontLeft: ", frontLeft.get());
@@ -241,21 +257,11 @@ public class DriveMecanum extends LinearOpMode {
             telemetry.addData("backLeft: ", backLeft.get());
             telemetry.addData("Arm: ", arm.get());
             telemetry.addData("Collector: ", collector.get());
+            telemetry.addData("DucksSpinners power: ", duckSpinners.get());
+            telemetry.addData("Initial Box Height: ", collectorBoxHeight);
+            telemetry.addData("Height of cargo: ", collectorBoxHeight - cargoDetector.getDistance(DistanceUnit.CM));
             telemetry.update();
-        }
-    }
-    private String cargoDetection(){
-        // Cargo detection
-        // The less the distance from the ground subtraction the higher object we are possessing
-        currentDistance = cargoDetector.getDistance(DistanceUnit.CM);
-        if (collectorBoxHeight - cubeHeight < collectorBoxHeight - currentDistance) {
-            return "Ball";
-        }
-        else if(collectorBoxHeight - ballHeight < collectorBoxHeight - currentDistance) {
-            return "Cube OR Duck";
-        }
-        else {
-            return "None";
+            prevDetectedCargo = detectedCargo;
         }
     }
 }

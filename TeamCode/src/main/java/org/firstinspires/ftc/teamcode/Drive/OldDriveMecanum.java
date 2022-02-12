@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.drive;
+package org.firstinspires.ftc.teamcode.Drive;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
@@ -43,9 +43,9 @@ public class OldDriveMecanum extends LinearOpMode {
         DcMotor FR = hardwareMap.get(DcMotor.class, "frontRight");
         DcMotor duckSpinner1 = hardwareMap.get(DcMotor.class, "duckSpinner1");
         DcMotor duckSpinner2 = hardwareMap.get(DcMotor.class, "duckSpinner2");
-        DcMotor claw = hardwareMap.get(DcMotor.class, "armClaw");
+        DcMotor claw = hardwareMap.get(DcMotor.class, "arm");
         DcMotor collector = hardwareMap.get(DcMotor.class, "collector");
-        CRServo capper = hardwareMap.get(CRServo.class, "capper");
+        Servo capper = hardwareMap.get(Servo.class, "capper");
 
 
         // Fix all the directions of the motors.
@@ -145,7 +145,7 @@ public class OldDriveMecanum extends LinearOpMode {
             else {
                 capperPower = 0;
             }
-            capper.setPower(capperPower);
+            //capper.setPower(capperPower);
             claw.setPower(clawPower);
 
 
