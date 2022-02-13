@@ -18,7 +18,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.autonomous.vision.DuckDetector;
-import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
@@ -52,9 +51,10 @@ public class Robot {
     
     // Tunable variables to tune from the dashboard, must be public and static so the dashboard can access them.
     // Always have to be in cm!!!
-    //Constants
+    // Constants
     // TODO: adjust gain (almost done)
-    public static double driveTicksPerRev = 1120.0;
+    public static double gearRatio = 20.0/10.0;
+    public static double driveTicksPerRev = 1120.0 * gearRatio;
     public static double armTickPerRev = 1120.0;
     // Old Wheels
     // public static double wheelRadius = 7/2;
@@ -63,11 +63,11 @@ public class Robot {
     public static double wheelCircumference = 2 * Math.PI * wheelRadius;
     public static double centerToWheel = 21;
     public static double turnCircumference = 2 * Math.PI * centerToWheel;
-    public static double driveGain = 0.05;
-    public static double strafeGain = 0.05;
+    public static double driveGain = 0.125;
+    public static double strafeGain = 0.125;
     public static double turnGain = 0.125;
 
-    //Ticks Angles and postiions
+    // Ticks Angles and postiions
     public double lastClawPosition = 0;
     public double targetRotations = 0;
     public double targetTicks = 0;
@@ -98,7 +98,7 @@ public class Robot {
     public double cubeHeight= 5.08;
     public double ballHeight = 6.99;
     public double duckHeight = 5.4;
-    public double currentDistance = 0;
+    public double currentCargoDistance = 0;
     public double collectorBoxHeight = 0;
 
 
@@ -149,6 +149,7 @@ public class Robot {
 
     private void initCargoDetector(){
         cargoDetector = new SensorRevTOFDistance(hardwareMap, "cargoDetector");
+        collectorBoxHeight = cargoDetector.getDistance(DistanceUnit.CM);
     }
 
     public float getIMUAngle(Axis axis) {
@@ -499,10 +500,10 @@ public class Robot {
         }
         while (!collector.atTargetPosition()) {
             arm.set(power);
-            linearOpMode.telemetry.addData("The arm is moving ", "to the ", pos, " from ", lastClawPosition, " with a power of ", power);
+            linearOpMode.telemetry.addData("The arm is moving to the ", pos, " from ", lastClawPosition, " with a power of ", power);
             linearOpMode.telemetry.update();
         }
-        linearOpMode.telemetry.addData("The arm has moved ", "to the ", pos, " from ", lastClawPosition);
+        linearOpMode.telemetry.addData("The arm has moved to the ", pos, " from ", lastClawPosition);
         linearOpMode.telemetry.update();
     }
 
@@ -531,25 +532,27 @@ public class Robot {
         long timeMillis = 0;
         while(System.currentTimeMillis()+timeToSpin > timeMillis && linearOpMode.opModeIsActive()) {
             timeMillis = System.currentTimeMillis();
-            duckSpinners.set(power);
+            if (duckSpinnersPower < power) {
+                duckSpinnersPower = duckSpinners.get() +0.1; 
+                duckSpinners.set(duckSpinnersPower);
         }
+    }
         duckSpinners.stopMotor();
     }
 
     public String cargoDetection(){
         // Cargo detection
         // The less the distance from the ground subtraction the higher object we are possessing
-        double currentDistance = cargoDetector.getDistance(DistanceUnit.CM);
-        if (collectorBoxHeight - cubeHeight < collectorBoxHeight - currentDistance) {
-            detectedCargo = "Ball";
+        currentCargoDistance = cargoDetector.getDistance(DistanceUnit.CM);
+        if (3.45 < collectorBoxHeight - currentCargoDistance && collectorBoxHeight - currentCargoDistance < 7.5) {
+            return "Ball";
         }
-        else if(collectorBoxHeight - ballHeight < collectorBoxHeight - currentDistance) {
-            detectedCargo = "Cube OR Duck";
+        else if(1 < collectorBoxHeight - currentCargoDistance && collectorBoxHeight - currentCargoDistance < 3.45) {
+            return "Cube OR Duck";
         }
         else {
-            detectedCargo = "None";
+            return "None";
         }
-        return detectedCargo;
     }
 
     // Class constructor.
@@ -582,10 +585,7 @@ public class Robot {
         arm.setRunMode(Motor.RunMode.PositionControl);
         resetEncoders();
 
-        // Initialize the detector
+        // Initialize the new detector
         Detector detector = new Detector(hardwareMap);
-
-        // IMU remapping axis
-        // BNO055IMUUtil.remapAxes(imu, AxesOrder.ZYX, AxesSigns.NPN);
     }
 }
