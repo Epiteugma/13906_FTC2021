@@ -5,18 +5,13 @@ import com.arcrobotics.ftclib.hardware.SensorRevTOFDistance;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorGroup;
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.autonomous.vision.DuckDetector;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
@@ -85,6 +80,8 @@ public class Robot {
     public double flPower;
     public double brPower;
     public double blPower;
+    public double duckSpinnersPower =0;
+
 
 
     // global ticks
@@ -165,29 +162,29 @@ public class Robot {
     }
 
     // OLD!!!
-    public DuckDetector.Location getDuckPos() {
-        DuckDetector detector;
-        detector = new DuckDetector();
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        OpenCvWebcam webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
-        webcam.setPipeline(detector);
-        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-            @Override
-            public void onOpened() {
-                webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
-            }
-
-            @Override
-            public void onError(int errorCode) {
-
-            }
-        });
-        DuckDetector.Location location = detector.getLocation();
-        return location;
-    }
+//    public DuckDetector.Location getDuckPos() {
+//        DuckDetector detector;
+//        detector = new DuckDetector();
+//        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+//        OpenCvWebcam webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+//        webcam.setPipeline(detector);
+//        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+//            @Override
+//            public void onOpened() {
+//                webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+//            }
+//
+//            @Override
+//            public void onError(int errorCode) {
+//
+//            }
+//        });
+//        DuckDetector.Location location = detector.getLocation();
+//        return location;
+//    }
 
     public Detector.ElementPosition getTsePos() {
-        Detector.ElementPosition pos = Detector.ElementPosition.CENTER;
+        Detector.ElementPosition pos = new Detector(hardwareMap).getElementPosition();
         linearOpMode.telemetry.addData("The shipping element is located at the ", pos);
         linearOpMode.telemetry.update();
         return pos;
@@ -500,10 +497,10 @@ public class Robot {
         }
         while (!collector.atTargetPosition()) {
             arm.set(power);
-            linearOpMode.telemetry.addData("The arm is moving to the ", pos, " from ", lastClawPosition, " with a power of ", power);
+            linearOpMode.telemetry.addData("The arm is moving to the ", String.valueOf(pos), " from ", lastClawPosition, " with a power of ", power);
             linearOpMode.telemetry.update();
         }
-        linearOpMode.telemetry.addData("The arm has moved to the ", pos, " from ", lastClawPosition);
+        linearOpMode.telemetry.addData("The arm has moved to the ", String.valueOf(pos), " from ", lastClawPosition);
         linearOpMode.telemetry.update();
     }
 

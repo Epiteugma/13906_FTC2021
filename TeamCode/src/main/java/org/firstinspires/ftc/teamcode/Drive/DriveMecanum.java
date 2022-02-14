@@ -103,11 +103,14 @@ public class DriveMecanum extends LinearOpMode {
         // Collector
         boolean isCollectorActive = false;
         boolean collectorDirection = false;
+        // duckSpinners
+        boolean duckSpinnersEnabled = false;
         // power factors
         double multiplier = 0.75;
         double globalpowerfactor = 1.0;
         // Arm and positions
         //TODO: Calibrate the ticks needed for each of the 3 levels
+        double armTickPerRev = 1120.0;
         double armPower = 0.75;
         double lowPosition = 100;
         double midPosition = 200;
