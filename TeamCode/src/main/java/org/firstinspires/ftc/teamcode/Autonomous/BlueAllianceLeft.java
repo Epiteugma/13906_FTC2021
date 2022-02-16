@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Autonomous;
 
+import com.arcrobotics.ftclib.hardware.RevIMU;
 import com.arcrobotics.ftclib.hardware.SensorRevTOFDistance;
 import com.arcrobotics.ftclib.hardware.motors.CRServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
@@ -21,10 +22,12 @@ public class BlueAllianceLeft extends LinearOpMode {
     Motor backRight;
     Motor backLeft;
     MotorGroup duckSpinners;
+    RevIMU imu;
 
     private void initMotors() {
         // Motors, servos, distance sensor and IMU
-        BNO055IMU IMU = hardwareMap.get(BNO055IMU.class, "imu");
+        RevIMU imu = new RevIMU(hardwareMap);
+        imu.init();
         SensorRevTOFDistance cargoDetector = new SensorRevTOFDistance(hardwareMap, "cargoDetector");
         Motor duckSpinner1 = new Motor( hardwareMap, "duckSpinner1");
         Motor duckSpinner2 = new Motor( hardwareMap, "duckSpinner2");
@@ -41,7 +44,7 @@ public class BlueAllianceLeft extends LinearOpMode {
     @Override
     public void runOpMode(){
         initMotors();
-        Robot robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, arm, collector, duckSpinners), this);
+        Robot robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, arm, collector, duckSpinners, imu), this);
 
 //        Detector detector = new Detector(hardwareMap);
 //        Detector.ElementPosition itemPos = detector.getElementPosition();

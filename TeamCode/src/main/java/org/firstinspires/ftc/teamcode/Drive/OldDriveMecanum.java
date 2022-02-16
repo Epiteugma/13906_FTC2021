@@ -5,6 +5,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 
+import com.arcrobotics.ftclib.hardware.RevIMU;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -36,7 +37,7 @@ public class OldDriveMecanum extends LinearOpMode {
         // INIT CODE START HERE
 
         // Motors and servos
-        BNO055IMU IMU = hardwareMap.get(BNO055IMU.class, "imu");
+        RevIMU imu = new RevIMU(hardwareMap);
         DcMotor BL = hardwareMap.get(DcMotor.class, "backLeft");
         DcMotor BR = hardwareMap.get(DcMotor.class, "backRight");
         DcMotor FL = hardwareMap.get(DcMotor.class, "frontLeft");
@@ -63,15 +64,7 @@ public class OldDriveMecanum extends LinearOpMode {
         FR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // IMU init.
-        BNO055IMU.Parameters params = new BNO055IMU.Parameters();
-        params.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        params.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        params.calibrationDataFile = "BNO055IMUCalibration.json";
-        params.loggingEnabled = true;
-        params.loggingTag = "IMU";
-        params.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-        BNO055IMU imu = hardwareMap.get(BNO055IMU.class, "imu");
-        imu.initialize(params);
+        imu.init();
 
         // power constants
         double clawPower = 0;
@@ -93,7 +86,7 @@ public class OldDriveMecanum extends LinearOpMode {
         // AFTER START CODE HERE
 
         while (opModeIsActive()) {
-            Orientation angles = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+//            Orientation angles = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
             double forwardpower = gamepad1.left_stick_y * globalpowerfactor;
             double sidepower = gamepad1.left_stick_x * globalpowerfactor;
@@ -180,7 +173,7 @@ public class OldDriveMecanum extends LinearOpMode {
 
             // Telemetry
             telemetry.addData("GlobalPowerFactor: ", globalpowerfactor);
-            telemetry.addData("Turn amount: ", calculateAngle360(angles.firstAngle));
+            // telemetry.addData("Turn amount: ", calculateAngle360(angles.firstAngle));
             telemetry.addData("FL: ", (forwardpower - sidepower + turnpower));
             telemetry.addData("BL: ", (forwardpower + sidepower + turnpower));
             telemetry.addData("FR: ", -(forwardpower + sidepower - turnpower));

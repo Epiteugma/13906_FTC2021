@@ -22,6 +22,7 @@ import org.openftc.easyopencv.OpenCvWebcam;
 import org.firstinspires.ftc.teamcode.Autonomous.visionv2.Detector;
 
 
+import java.lang.reflect.Array;
 import java.util.List;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -38,7 +39,7 @@ public class Robot {
     Motor collector;
     Motor arm;
     MotorGroup duckSpinners;
-    BNO055IMU imu;
+    RevIMU imu;
     SensorRevTOFDistance cargoDetector;
     TouchSensor touchSensorSideRight;
     TouchSensor touchSensorSideLeft;
@@ -68,8 +69,8 @@ public class Robot {
     public double targetTicks = 0;
     public double ticksToTurn = 0;
     public double correction = 0;
-    public float targetAngle = 0;
-    public float currentAngle = 0;
+    public double targetAngle = 0;
+    public double currentAngle = 0;
     public int currentTicks = 0;
 
     // Powers and error tolerance
@@ -80,9 +81,7 @@ public class Robot {
     public double flPower;
     public double brPower;
     public double blPower;
-    public double duckSpinnersPower =0;
-
-
+    public double duckSpinnersPower = 0;
 
     // global ticks
     public int frCurrentTicks;
@@ -139,24 +138,25 @@ public class Robot {
 //        }
 //    }
 
-    private void initIMU() {
-        RevIMU imu = new RevIMU(hardwareMap);
-        imu.init();
-    }
+//    private void initIMU() {
+//        RevIMU imu = new RevIMU(hardwareMap);
+//        imu.init();
+//    }
 
     private void initCargoDetector(){
         cargoDetector = new SensorRevTOFDistance(hardwareMap, "cargoDetector");
         collectorBoxHeight = cargoDetector.getDistance(DistanceUnit.CM);
     }
 
-    public float getIMUAngle(Axis axis) {
+    public double getIMUAngle(Axis axis) {
+        double[] angles = imu.getAngles();
         switch(axis) {
             case X:
-                return imu.getAngularOrientation().firstAngle;
+                return angles[0];
             case Y:
-                return imu.getAngularOrientation().secondAngle;
+                return angles[1];
             case Z:
-                return imu.getAngularOrientation().thirdAngle;
+                return angles[2];
         }
         return 0;
     }
@@ -564,8 +564,9 @@ public class Robot {
         arm = (Motor) motors.get(4);
         collector = (Motor) motors.get(5);
         duckSpinners = (MotorGroup) motors.get(6);
+        this.imu = (RevIMU)motors.get(7);
         initCargoDetector();
-        initIMU();
+        //initIMU();
 
         // Fix all the directions of the motors.
         frontRight.setInverted(true);

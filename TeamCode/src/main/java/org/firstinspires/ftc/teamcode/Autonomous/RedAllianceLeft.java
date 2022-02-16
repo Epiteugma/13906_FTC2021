@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Autonomous;
 
+import com.arcrobotics.ftclib.hardware.RevIMU;
 import com.arcrobotics.ftclib.hardware.SensorRevTOFDistance;
 import com.arcrobotics.ftclib.hardware.ServoEx;
 import com.arcrobotics.ftclib.hardware.SimpleServo;
@@ -28,7 +29,8 @@ public class RedAllianceLeft extends LinearOpMode {
 
     private void initMotors() {
         // Motors, servos, distance sensor and IMU
-        BNO055IMU IMU = hardwareMap.get(BNO055IMU.class, "imu");
+        RevIMU imu = new RevIMU(hardwareMap);
+        imu.init();
         SensorRevTOFDistance cargoDetector = new SensorRevTOFDistance(hardwareMap, "cargoDetector");
         Motor duckSpinner1 = new Motor( hardwareMap, "duckSpinner1");
         Motor duckSpinner2 = new Motor( hardwareMap, "duckSpinner2");

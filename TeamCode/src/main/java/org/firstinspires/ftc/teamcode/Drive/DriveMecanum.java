@@ -180,7 +180,7 @@ public class DriveMecanum extends LinearOpMode {
             // Arm up DPAD_UP
             if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) {
                 arm.setRunMode(Motor.RunMode.RawPower);
-                arm.set(0.5);
+                arm.set(-0.5);
             }
             // Arm down DPAD_DOWN
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_DOWN)) {
