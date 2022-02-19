@@ -138,10 +138,10 @@ public class Robot {
 //        }
 //    }
 
-//    private void initIMU() {
-//        RevIMU imu = new RevIMU(hardwareMap);
-//        imu.init();
-//    }
+    private void initIMU() {
+        this.imu = new RevIMU(hardwareMap);
+        imu.init();
+    }
 
     private void initCargoDetector(){
         cargoDetector = new SensorRevTOFDistance(hardwareMap, "cargoDetector");
@@ -207,6 +207,7 @@ public class Robot {
         frontLeft.resetEncoder();
         backRight.resetEncoder();
         backLeft.resetEncoder();
+        runUsingEncoders();
     }
 
     public void runUsingEncoders(){
@@ -246,7 +247,7 @@ public class Robot {
         switch (dir) {
             case LEFT:
                 while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
-                    currentAngle = getIMUAngle(Axis.Z);
+                    currentAngle = getIMUAngle(Axis.X);
                     correction = (targetAngle - currentAngle) * strafeGain;
                     cappedPower = Range.clip(power, -1, 1);
                     correctedCappedPower = Range.clip(power - correction, -1, 1);
@@ -281,7 +282,7 @@ public class Robot {
                 }
             case RIGHT:
                 while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
-                    currentAngle = getIMUAngle(Axis.Z);
+                    currentAngle = getIMUAngle(Axis.X);
                     correction = (targetAngle - currentAngle) * strafeGain;
                     cappedPower = -Range.clip(power, -1, 1);
                     correctedCappedPower = -Range.clip(power - correction, -1, 1);
@@ -328,7 +329,7 @@ public class Robot {
     }
 
     public void drive(Direction dir, double power, double targetDistance) {
-        targetAngle = getIMUAngle(Axis.Z);
+        targetAngle = getIMUAngle(Axis.X);
         targetRotations = targetDistance / wheelCircumference;
         targetTicks = targetRotations * driveTicksPerRev;
         resetEncoders();
@@ -337,7 +338,7 @@ public class Robot {
         switch (dir) {
             case FORWARDS:
                 while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
-                    currentAngle = getIMUAngle(Axis.Z);
+                    currentAngle = getIMUAngle(Axis.X);
                     if (Math.abs(targetAngle - currentAngle) > 3) {
                         correction = (targetAngle - currentAngle) * driveGain;
                     }
@@ -350,10 +351,10 @@ public class Robot {
                     flPower = cappedPower;
                     brPower = correctedCappedPower;
                     blPower = cappedPower;
-                    frCurrentTicks = frontRight.getCurrentPosition();
-                    flCurrentTicks = frontLeft.getCurrentPosition();
-                    brCurrentTicks = backRight.getCurrentPosition();
-                    blCurrentTicks = backLeft.getCurrentPosition();
+                    frCurrentTicks = frontRight.encoder.getPosition();
+                    flCurrentTicks = frontLeft.encoder.getPosition();
+                    brCurrentTicks = backRight.encoder.getPosition();
+                    blCurrentTicks = backLeft.encoder.getPosition();
                     if (frontRight.atTargetPosition()) {
                         frPower = 0;
                     }
@@ -377,7 +378,7 @@ public class Robot {
                 }
             case BACKWARDS:
                 while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
-                    currentAngle = getIMUAngle(Axis.Z);
+                    currentAngle = getIMUAngle(Axis.X);
                     correction = (targetAngle - currentAngle) * driveGain;
                     cappedPower = -Range.clip(power, -1, 1);
                     correctedCappedPower = -Range.clip(power - correction, -1, 1);
@@ -564,9 +565,8 @@ public class Robot {
         arm = (Motor) motors.get(4);
         collector = (Motor) motors.get(5);
         duckSpinners = (MotorGroup) motors.get(6);
-        this.imu = (RevIMU)motors.get(7);
         initCargoDetector();
-        //initIMU();
+        initIMU();
 
         // Fix all the directions of the motors.
         frontRight.setInverted(true);
