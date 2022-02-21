@@ -103,14 +103,11 @@ public class DriveMecanum extends LinearOpMode {
         // Collector
         boolean isCollectorActive = false;
         boolean collectorDirection = false;
-        // duckSpinners
-        boolean duckSpinnersEnabled = false;
         // power factors
         double multiplier = 0.75;
         double globalpowerfactor = 1.0;
         // Arm and positions
         //TODO: Calibrate the ticks needed for each of the 3 levels
-        double armTickPerRev = 1120.0;
         double armPower = 0.75;
         double lowPosition = 100;
         double midPosition = 200;
@@ -179,33 +176,26 @@ public class DriveMecanum extends LinearOpMode {
 
             // Arm up DPAD_UP
             if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) {
-                arm.setRunMode(Motor.RunMode.PositionControl);
-                arm.setTargetPosition(arm.getCurrentPosition() - 10);
-                while(!arm.atTargetPosition()){
-                    arm.set(0.5);
-                }
+                arm.setRunMode(Motor.RunMode.RawPower);
+                arm.set(0.5);
             }
             // Arm down DPAD_DOWN
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_DOWN)) {
-                arm.setRunMode(Motor.RunMode.PositionControl);
-                arm.setTargetPosition(arm.getCurrentPosition() + 10);
-                while(!arm.atTargetPosition()){
-                    arm.set(0.5);
-                }
+                arm.setRunMode(Motor.RunMode.RawPower);
+                arm.set(0.5);
             }
             // Capper up LEFT_TRIGGER AND DPAD_UP
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) {
-                capper.set(-0.3);
+                capper.set(-1);
             }
             // Capper down LEFT_TRIGGER AND DPAD_DOWN
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_DOWN)) {
-                capper.set(0.3);
+                capper.set(1);
             }
             else {
                 capper.stopMotor();
                 arm.stopMotor();
             }
-            // ARM KEEP POSITION!!!
 
             // INTAKE CODE
             if(gamepad2.getButton(GamepadKeys.Button.BACK)) {

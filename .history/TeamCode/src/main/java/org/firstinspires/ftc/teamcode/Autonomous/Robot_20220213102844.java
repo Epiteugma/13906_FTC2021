@@ -5,14 +5,20 @@ import com.arcrobotics.ftclib.hardware.SensorRevTOFDistance;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorGroup;
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-//import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.autonomous.vision.DuckDetector;
+import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
@@ -22,7 +28,6 @@ import org.openftc.easyopencv.OpenCvWebcam;
 import org.firstinspires.ftc.teamcode.Autonomous.visionv2.Detector;
 
 
-import java.lang.reflect.Array;
 import java.util.List;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -39,22 +44,19 @@ public class Robot {
     Motor collector;
     Motor arm;
     MotorGroup duckSpinners;
-    RevIMU imu;
+    BNO055IMU imu;
     SensorRevTOFDistance cargoDetector;
-//    TouchSensor touchSensorSideRight;
-//    TouchSensor touchSensorSideLeft;
-//    TouchSensor touchSensorFrontLeft;
+    TouchSensor touchSensorSideRight;
+    TouchSensor touchSensorSideLeft;
+    TouchSensor touchSensorFrontLeft;
     
     // Tunable variables to tune from the dashboard, must be public and static so the dashboard can access them.
     // Always have to be in cm!!!
-    // Constants and ratios
-    public static double driveGearRatio = 20.0/10.0;
-    public static double driveTicksPerRev = 1120.0 * driveGearRatio;
-    public static double armTickPerRev = 1120.0;
+    //Constants
     // TODO: adjust gain (almost done)
-    public static double driveGain = 0.125;
-    public static double strafeGain = 0.125;
-    public static double turnGain = 0.125;
+    public static double gearRatio = 26.0/15.0;
+    public static double driveTicksPerRev = 1120.0;
+    public static double armTickPerRev = 1120.0;
     // Old Wheels
     // public static double wheelRadius = 7/2;
     // New wheels
@@ -62,15 +64,18 @@ public class Robot {
     public static double wheelCircumference = 2 * Math.PI * wheelRadius;
     public static double centerToWheel = 21;
     public static double turnCircumference = 2 * Math.PI * centerToWheel;
+    public static double driveGain = 0.05;
+    public static double strafeGain = 0.05;
+    public static double turnGain = 0.125;
 
-    // Ticks Angles and postiions
+    //Ticks Angles and postiions
     public double lastClawPosition = 0;
     public double targetRotations = 0;
     public double targetTicks = 0;
     public double ticksToTurn = 0;
     public double correction = 0;
-    public double targetAngle = 0;
-    public double currentAngle = 0;
+    public float targetAngle = 0;
+    public float currentAngle = 0;
     public int currentTicks = 0;
 
     // Powers and error tolerance
@@ -81,7 +86,7 @@ public class Robot {
     public double flPower;
     public double brPower;
     public double blPower;
-    public double duckSpinnersPower = 0;
+
 
     // global ticks
     public int frCurrentTicks;
@@ -94,7 +99,7 @@ public class Robot {
     public double cubeHeight= 5.08;
     public double ballHeight = 6.99;
     public double duckHeight = 5.4;
-    public double currentCargoDistance = 0;
+    public double currentDistance = 0;
     public double collectorBoxHeight = 0;
 
 
@@ -137,43 +142,52 @@ public class Robot {
 //            return "Not In Contact";
 //        }
 //    }
-    public double getIMUAngle(Axis axis) {
-        double[] angles = imu.getAngles();
+
+    private void initIMU() {
+        RevIMU imu = new RevIMU(hardwareMap);
+        imu.init();
+    }
+
+    private void initCargoDetector(){
+        cargoDetector = new SensorRevTOFDistance(hardwareMap, "cargoDetector");
+    }
+
+    public float getIMUAngle(Axis axis) {
         switch(axis) {
             case X:
-                return angles[0];
+                return imu.getAngularOrientation().firstAngle;
             case Y:
-                return angles[1];
+                return imu.getAngularOrientation().secondAngle;
             case Z:
-                return angles[2];
+                return imu.getAngularOrientation().thirdAngle;
         }
         return 0;
     }
 
     // OLD!!!
-//    public DuckDetector.Location getDuckPos() {
-//        DuckDetector detector;
-//        detector = new DuckDetector();
-//        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-//        OpenCvWebcam webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
-//        webcam.setPipeline(detector);
-//        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-//            @Override
-//            public void onOpened() {
-//                webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
-//            }
-//
-//            @Override
-//            public void onError(int errorCode) {
-//
-//            }
-//        });
-//        DuckDetector.Location location = detector.getLocation();
-//        return location;
-//    }
+    public DuckDetector.Location getDuckPos() {
+        DuckDetector detector;
+        detector = new DuckDetector();
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        OpenCvWebcam webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+        webcam.setPipeline(detector);
+        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            @Override
+            public void onOpened() {
+                webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+            }
+
+            @Override
+            public void onError(int errorCode) {
+
+            }
+        });
+        DuckDetector.Location location = detector.getLocation();
+        return location;
+    }
 
     public Detector.ElementPosition getTsePos() {
-        Detector.ElementPosition pos = new Detector(hardwareMap).getElementPosition();
+        Detector.ElementPosition pos = Detector.ElementPosition.CENTER;
         linearOpMode.telemetry.addData("The shipping element is located at the ", pos);
         linearOpMode.telemetry.update();
         return pos;
@@ -196,7 +210,6 @@ public class Robot {
         frontLeft.resetEncoder();
         backRight.resetEncoder();
         backLeft.resetEncoder();
-        runUsingEncoders();
     }
 
     public void runUsingEncoders(){
@@ -236,12 +249,14 @@ public class Robot {
         switch (dir) {
             case LEFT:
                 while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
-                    currentAngle = getIMUAngle(Axis.X);
+                    currentAngle = getIMUAngle(Axis.Z);
                     correction = (targetAngle - currentAngle) * strafeGain;
                     cappedPower = Range.clip(power, -1, 1);
                     correctedCappedPower = Range.clip(power - correction, -1, 1);
-                    frPower = brPower = correctedCappedPower;
-                    flPower = blPower = cappedPower;
+                    frPower = -correctedCappedPower;
+                    flPower = -cappedPower;
+                    brPower = correctedCappedPower;
+                    blPower = cappedPower;
                     frCurrentTicks = frontRight.getCurrentPosition();
                     flCurrentTicks = frontLeft.getCurrentPosition();
                     brCurrentTicks = backRight.getCurrentPosition();
@@ -258,23 +273,25 @@ public class Robot {
                     if (backLeft.atTargetPosition()) {
                         blPower = 0;
                     }
-                    setDrivePower(-frPower, -flPower, brPower, blPower);
+                    setDrivePower(frPower, flPower, brPower, blPower);
                     linearOpMode.telemetry.addData("Correction: ", correction);
                     linearOpMode.telemetry.addData("Current Angle: ", currentAngle);
                     linearOpMode.telemetry.addData("Current Power: ", "FR: " + frPower + " FL: " + flPower + " BR: " + brPower + " BL: " + blPower);
                     linearOpMode.telemetry.addData("Current Ticks: ", "FR: "+ frCurrentTicks + " FL: " + flCurrentTicks + " BR: " + brCurrentTicks + " BL: " + blCurrentTicks);
-                    linearOpMode.telemetry.addData("Target Ticks: ", (int) targetTicks);
+                    linearOpMode.telemetry.addData("Target Ticks: ", targetTicks);
                     linearOpMode.telemetry.addData("Robot is moving: ", String.valueOf(dir), " with a power of ", power, " for ", targetDistance + "cm");
                     linearOpMode.telemetry.update();
                 }
             case RIGHT:
                 while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
-                    currentAngle = getIMUAngle(Axis.X);
+                    currentAngle = getIMUAngle(Axis.Z);
                     correction = (targetAngle - currentAngle) * strafeGain;
                     cappedPower = -Range.clip(power, -1, 1);
                     correctedCappedPower = -Range.clip(power - correction, -1, 1);
-                    frPower = brPower = correctedCappedPower;
-                    flPower = blPower = cappedPower;
+                    frPower = correctedCappedPower;
+                    flPower = cappedPower;
+                    brPower = -correctedCappedPower;
+                    blPower = -cappedPower;
                     frCurrentTicks = frontRight.getCurrentPosition();
                     flCurrentTicks = frontLeft.getCurrentPosition();
                     brCurrentTicks = backRight.getCurrentPosition();
@@ -291,12 +308,12 @@ public class Robot {
                     if (backLeft.atTargetPosition()) {
                         blPower = 0;
                     }
-                    setDrivePower(frPower, flPower, -brPower, -blPower);
+                    setDrivePower(frPower, flPower, brPower, blPower);
                     linearOpMode.telemetry.addData("Correction: ", correction);
                     linearOpMode.telemetry.addData("Current Angle: ", currentAngle);
                     linearOpMode.telemetry.addData("Current Power: ", correctedCappedPower + " " + cappedPower + " " + -correctedCappedPower + " " + -cappedPower);
                     linearOpMode.telemetry.addData("Current Ticks: ", currentTicks);
-                    linearOpMode.telemetry.addData("Target Ticks: ", (int) targetTicks);
+                    linearOpMode.telemetry.addData("Target Ticks: ", targetTicks);
                     linearOpMode.telemetry.addData("Robot is moving: ", String.valueOf(dir), " with a power of ", power, " for ", targetDistance);
                     linearOpMode.telemetry.update();
                 }
@@ -314,7 +331,7 @@ public class Robot {
     }
 
     public void drive(Direction dir, double power, double targetDistance) {
-        targetAngle = getIMUAngle(Axis.X);
+        targetAngle = getIMUAngle(Axis.Z);
         targetRotations = targetDistance / wheelCircumference;
         targetTicks = targetRotations * driveTicksPerRev;
         resetEncoders();
@@ -323,7 +340,7 @@ public class Robot {
         switch (dir) {
             case FORWARDS:
                 while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
-                    currentAngle = getIMUAngle(Axis.X);
+                    currentAngle = getIMUAngle(Axis.Z);
                     if (Math.abs(targetAngle - currentAngle) > 3) {
                         correction = (targetAngle - currentAngle) * driveGain;
                     }
@@ -332,8 +349,10 @@ public class Robot {
                     }
                     cappedPower = Range.clip(power + correction, -1, 1);
                     correctedCappedPower = Range.clip(power - correction, -1, 1);
-                    frPower = brPower = correctedCappedPower;
-                    flPower = blPower = cappedPower;
+                    frPower = correctedCappedPower;
+                    flPower = cappedPower;
+                    brPower = correctedCappedPower;
+                    blPower = cappedPower;
                     frCurrentTicks = frontRight.getCurrentPosition();
                     flCurrentTicks = frontLeft.getCurrentPosition();
                     brCurrentTicks = backRight.getCurrentPosition();
@@ -355,23 +374,20 @@ public class Robot {
                     linearOpMode.telemetry.addData("Current Angle: ", currentAngle);
                     linearOpMode.telemetry.addData("Current Power: ", "FR: " + correctedCappedPower + " FL: " + cappedPower + " BR: " + correctedCappedPower + " BL: " + cappedPower);
                     linearOpMode.telemetry.addData("Current Ticks: ", "FR: " + frCurrentTicks + " FL: " + flCurrentTicks + " BR: " + brCurrentTicks + " BL: " + blCurrentTicks);
-                    linearOpMode.telemetry.addData("Target Ticks: ", (int) targetTicks);
+                    linearOpMode.telemetry.addData("Target Ticks: ", targetTicks);
                     linearOpMode.telemetry.addData("Robot is moving: ", String.valueOf(dir), " with a power of ", power, " for ", targetDistance + "cm");
                     linearOpMode.telemetry.update();
                 }
             case BACKWARDS:
                 while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
-                    currentAngle = getIMUAngle(Axis.X);
-                    if (Math.abs(targetAngle - currentAngle) > 3) {
-                        correction = (targetAngle - currentAngle) * driveGain;
-                    }
-                    else {
-                        correction = 1;
-                    }
-                    cappedPower = -Range.clip(power + correction, -1, 1);
+                    currentAngle = getIMUAngle(Axis.Z);
+                    correction = (targetAngle - currentAngle) * driveGain;
+                    cappedPower = -Range.clip(power, -1, 1);
                     correctedCappedPower = -Range.clip(power - correction, -1, 1);
-                    frPower = brPower = correctedCappedPower;
-                    flPower = blPower = cappedPower;
+                    frPower = correctedCappedPower;
+                    flPower = cappedPower;
+                    brPower = correctedCappedPower;
+                    blPower = cappedPower;
                     frCurrentTicks = frontRight.getCurrentPosition();
                     flCurrentTicks = frontLeft.getCurrentPosition();
                     brCurrentTicks = backRight.getCurrentPosition();
@@ -393,15 +409,15 @@ public class Robot {
                     linearOpMode.telemetry.addData("Current Angle: ", currentAngle);
                     linearOpMode.telemetry.addData("Current Power: ", "FR: " + correctedCappedPower + " FL: " + cappedPower + " BR: " + correctedCappedPower + " BL: " + cappedPower);
                     linearOpMode.telemetry.addData("Current Ticks: ", "FR: " + frCurrentTicks + " FL: " + flCurrentTicks + " BR: " + brCurrentTicks + " BL: " + blCurrentTicks);
-                    linearOpMode.telemetry.addData("Target Ticks: ", (int) targetTicks);
+                    linearOpMode.telemetry.addData("Target Ticks: ", targetTicks);
                     linearOpMode.telemetry.addData("Robot is moving: ", String.valueOf(dir), " with a power of ", power, " for ", targetDistance + "cm");
                     linearOpMode.telemetry.update();
                 }
-        while (isMoving() && linearOpMode.opModeIsActive()) {
+        while (isMoving()) {
             linearOpMode.telemetry.addData("Robot is moving" ," (when it shouldn't)");
             linearOpMode.telemetry.update();
         }
-        linearOpMode.telemetry.addData("Robot has moved: ", targetDistance + "cm " + dir);
+        linearOpMode.telemetry.addData("Robot has moved: ", String.valueOf(targetDistance) + "cm " + dir);
         linearOpMode.telemetry.update();
         }
     }
@@ -412,44 +428,30 @@ public class Robot {
         ticksToTurn = targetRotations * driveTicksPerRev;
         resetEncoders();
         setDriveTolerance(driveErrorTolerance, driveErrorTolerance, driveErrorTolerance, driveErrorTolerance);
-        setDriveTargetPos(ticksToTurn, ticksToTurn, ticksToTurn, ticksToTurn);
         switch (dir){
             case LEFT:
-                while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
-                    if (frontRight.atTargetPosition()) {
-                        frPower = 0;
-                    }
-                    if (frontLeft.atTargetPosition()) {
-                        flPower = 0;
-                    }
-                    if (backRight.atTargetPosition()) {
-                        brPower = 0;
-                    }
-                    if (backLeft.atTargetPosition()) {
-                        blPower = 0;
-                    }
-                }
-                setDrivePower(-frPower, -flPower, brPower, blPower);
+                setDriveTargetPos(-ticksToTurn, -ticksToTurn, ticksToTurn, ticksToTurn);
                 break;
             case RIGHT:
-                while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
-                    if (frontRight.atTargetPosition()) {
-                        frPower = 0;
-                    }
-                    if (frontLeft.atTargetPosition()) {
-                        flPower = 0;
-                    }
-                    if (backRight.atTargetPosition()) {
-                        brPower = 0;
-                    }
-                    if (backLeft.atTargetPosition()) {
-                        blPower = 0;
-                    }
-                }
-                setDrivePower(frPower, flPower, -brPower, -blPower);
+                setDriveTargetPos(ticksToTurn, ticksToTurn, -ticksToTurn, -ticksToTurn);
                 break;
             }
-        while (isMoving() && linearOpMode.opModeIsActive()) {
+        while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
+            if (frontRight.atTargetPosition()) {
+                frPower = 0;
+            }
+            if (frontLeft.atTargetPosition()) {
+                flPower = 0;
+            }
+            if (backRight.atTargetPosition()) {
+                brPower = 0;
+            }
+            if (backLeft.atTargetPosition()) {
+                blPower = 0;
+            }
+        setDrivePower(frPower, flPower, brPower, blPower);
+        }
+        while (isMoving()) {
             linearOpMode.telemetry.addData("Robot is turning ", String.valueOf(degrees), "to the ", dir, "with a power of ", power);
             linearOpMode.telemetry.addData("Target Ticks to turn: ", ticksToTurn);
             linearOpMode.telemetry.update();
@@ -498,24 +500,24 @@ public class Robot {
         }
         while (!collector.atTargetPosition()) {
             arm.set(power);
-            linearOpMode.telemetry.addData("The arm is moving to the ", String.valueOf(pos), " from ", lastClawPosition, " with a power of ", power);
+            linearOpMode.telemetry.addData("The arm is moving ", "to the ", pos, " from ", lastClawPosition, " with a power of ", power);
             linearOpMode.telemetry.update();
         }
-        linearOpMode.telemetry.addData("The arm has moved to the ", String.valueOf(pos), " from ", lastClawPosition);
+        linearOpMode.telemetry.addData("The arm has moved ", "to the ", pos, " from ", lastClawPosition);
         linearOpMode.telemetry.update();
     }
 
     public void intake(Direction dir, double power) {
         switch(dir){
             case IN:
-                while(cargoDetection().equals("None")){
+                while(cargoDetection() == "None"){
                     linearOpMode.telemetry.addData("We are still NOT in possession of cargo...", "None");
                     linearOpMode.telemetry.update();
                     collector.set(power);
                 }
                 break;
             case OUT:
-                while(!cargoDetection().equals("None")){
+                while(cargoDetection() != "None"){
                     linearOpMode.telemetry.addData("We are still in possession of cargo: ", "(" + cargoDetection() + ")");
                     linearOpMode.telemetry.update();
                     collector.set(-power);
@@ -530,27 +532,25 @@ public class Robot {
         long timeMillis = 0;
         while(System.currentTimeMillis()+timeToSpin > timeMillis && linearOpMode.opModeIsActive()) {
             timeMillis = System.currentTimeMillis();
-            if (duckSpinnersPower < power) {
-                duckSpinnersPower = duckSpinners.get() +0.1; 
-                duckSpinners.set(duckSpinnersPower);
+            duckSpinners.set(power);
         }
-    }
         duckSpinners.stopMotor();
     }
 
     public String cargoDetection(){
         // Cargo detection
         // The less the distance from the ground subtraction the higher object we are possessing
-        currentCargoDistance = cargoDetector.getDistance(DistanceUnit.CM);
-        if (3.45 < collectorBoxHeight - currentCargoDistance && collectorBoxHeight - currentCargoDistance < 7.5) {
-            return "Ball";
+        double currentDistance = cargoDetector.getDistance(DistanceUnit.CM);
+        if (collectorBoxHeight - cubeHeight < collectorBoxHeight - currentDistance) {
+            detectedCargo = "Ball";
         }
-        else if(1 < collectorBoxHeight - currentCargoDistance && collectorBoxHeight - currentCargoDistance < 3.45) {
-            return "Cube OR Duck";
+        else if(collectorBoxHeight - ballHeight < collectorBoxHeight - currentDistance) {
+            detectedCargo = "Cube OR Duck";
         }
         else {
-            return "None";
+            detectedCargo = "None";
         }
+        return detectedCargo;
     }
 
     // Class constructor.
@@ -565,14 +565,12 @@ public class Robot {
         arm = (Motor) motors.get(4);
         collector = (Motor) motors.get(5);
         duckSpinners = (MotorGroup) motors.get(6);
-        imu = (RevIMU) motors.get(7);
-        imu.init();
-        cargoDetector = (SensorRevTOFDistance) motors.get(8);
-        collectorBoxHeight = cargoDetector.getDistance(DistanceUnit.CM);
+        initCargoDetector();
+        initIMU();
 
         // Fix all the directions of the motors.
-        frontLeft.setInverted(true);
-        backLeft.setInverted(true);
+        frontRight.setInverted(true);
+        backRight.setInverted(true);
 
         // Set the zero power behavior of the motors.
         // We don't want them to slide after every trajectory or else we will lose accuracy.
@@ -585,7 +583,10 @@ public class Robot {
         arm.setRunMode(Motor.RunMode.PositionControl);
         resetEncoders();
 
-        // Initialize the new detector
+        // Initialize the detector
         Detector detector = new Detector(hardwareMap);
+
+        // IMU remapping axis
+        // BNO055IMUUtil.remapAxes(imu, AxesOrder.ZYX, AxesSigns.NPN);
     }
 }

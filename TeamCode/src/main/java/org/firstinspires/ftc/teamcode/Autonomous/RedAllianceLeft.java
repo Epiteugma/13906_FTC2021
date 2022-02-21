@@ -26,8 +26,10 @@ public class RedAllianceLeft extends LinearOpMode {
     Motor backRight;
     Motor backLeft;
     MotorGroup duckSpinners;
+    RevIMU imu;
+    SensorRevTOFDistance cargoDetector;
 
-    private void initMotors() {
+    private void initHardware() {
         // Motors, servos, distance sensor and IMU
         RevIMU imu = new RevIMU(hardwareMap);
         imu.init();
@@ -46,8 +48,8 @@ public class RedAllianceLeft extends LinearOpMode {
 
     @Override
     public void runOpMode(){
-        initMotors();
-        Robot robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, arm, collector, duckSpinners), this);
+        initHardware();
+        Robot robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, arm, collector, duckSpinners, imu, cargoDetector), this);
 
         Detector detector = new Detector(hardwareMap);
         Detector.ElementPosition itemPos = detector.getElementPosition();

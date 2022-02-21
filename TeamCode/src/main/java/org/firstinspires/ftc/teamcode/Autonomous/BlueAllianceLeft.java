@@ -23,11 +23,11 @@ public class BlueAllianceLeft extends LinearOpMode {
     Motor backLeft;
     MotorGroup duckSpinners;
     RevIMU imu;
+    SensorRevTOFDistance cargoDetector;
 
-    private void initMotors() {
+    private void initHardware() {
         // Motors, servos, distance sensor and IMU
         RevIMU imu = new RevIMU(hardwareMap);
-        imu.init();
         SensorRevTOFDistance cargoDetector = new SensorRevTOFDistance(hardwareMap, "cargoDetector");
         Motor duckSpinner1 = new Motor( hardwareMap, "duckSpinner1");
         Motor duckSpinner2 = new Motor( hardwareMap, "duckSpinner2");
@@ -43,14 +43,14 @@ public class BlueAllianceLeft extends LinearOpMode {
 
     @Override
     public void runOpMode(){
-        initMotors();
-        Robot robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, arm, collector, duckSpinners, imu), this);
+        initHardware();
+        Robot robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, arm, collector, duckSpinners, imu, cargoDetector), this);
 
 //        Detector detector = new Detector(hardwareMap);
 //        Detector.ElementPosition itemPos = detector.getElementPosition();
 //        telemetry.addData("Detected Cargo : ", robot.cargoDetection());
 //        telemetry.update();
-          waitForStart();
+        waitForStart();
 //        switch (itemPos) {
 //            case LEFT:
 //                robot.drive(Robot.Direction.LEFT, 0.5, 5000);
