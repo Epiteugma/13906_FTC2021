@@ -64,7 +64,9 @@ public class DriveMecanum extends LinearOpMode {
         Motor backRight = new Motor(hardwareMap, "backRight");
         Motor backLeft = new Motor(hardwareMap, "backLeft");
 
-        duckSpinners.setRunMode(Motor.RunMode.VelocityControl);
+        frontRight.setInverted(true);
+
+        duckSpinners.setRunMode(Motor.RunMode.RawPower);
 
         backLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
@@ -111,6 +113,8 @@ public class DriveMecanum extends LinearOpMode {
         // Arm and positions
         //TODO: Calibrate the ticks needed for each of the 3 levels
         double armTickPerRev = 1120.0;
+        double armGearRatio = (double) 125 / 15;
+        double armPositionalPower = 0;
         double armPower = 0.75;
         double lowPosition = 100;
         double midPosition = 200;
@@ -170,28 +174,30 @@ public class DriveMecanum extends LinearOpMode {
                 arm.setTargetPosition((int) (highPosition * armTickPerRev));
                 lastClawPosition = highPosition;
             }
+            // Do the tick relationship equation here for more accuracy
+//            else {
+//                if (!collector.atTargetPosition()) {
+//                     // ARM KEEP POSITION!!!
+//                    lastClawPosition = arm.getCurrentPosition();
+//                    armPositionalPower = lastClawPosition / 180 /10;
+//                    arm.setPositionTolerance(15);
+//                    arm.setPositionTolerance(15);
+//                    arm.set(armPower);
+//                }
+//            }
 //            else if(DOWN){
 //                arm.setTargetPosition((int) (-lastClawPosition * armTickPerRev));
 //            }
-            while (!collector.atTargetPosition()) {
-                arm.set(armPower);
-            }
 
             // Arm up DPAD_UP
             if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) {
-                arm.setRunMode(Motor.RunMode.PositionControl);
-                arm.setTargetPosition(arm.getCurrentPosition() - 10);
-                while(!arm.atTargetPosition()){
-                    arm.set(0.5);
-                }
+                arm.setRunMode(Motor.RunMode.RawPower);
+                arm.set(-0.5);
             }
             // Arm down DPAD_DOWN
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_DOWN)) {
-                arm.setRunMode(Motor.RunMode.PositionControl);
-                arm.setTargetPosition(arm.getCurrentPosition() + 10);
-                while(!arm.atTargetPosition()){
-                    arm.set(0.5);
-                }
+                arm.setRunMode(Motor.RunMode.RawPower);
+                arm.set(0.5);
             }
             // Capper up LEFT_TRIGGER AND DPAD_UP
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) {
@@ -203,9 +209,15 @@ public class DriveMecanum extends LinearOpMode {
             }
             else {
                 capper.stopMotor();
-                arm.stopMotor();
+                // ARM KEEP POSITION!!!
+                lastClawPosition = arm.getCurrentPosition();
+                armPositionalPower = lastClawPosition / 180 /10;
+                arm.setPositionTolerance(15);
+                arm.setTargetPosition((int) lastClawPosition);
+                if (!arm.atTargetPosition()){
+                    arm.set(armPositionalPower);
+                }
             }
-            // ARM KEEP POSITION!!!
 
             // INTAKE CODE
             if(gamepad2.getButton(GamepadKeys.Button.BACK)) {
@@ -225,15 +237,13 @@ public class DriveMecanum extends LinearOpMode {
 
             // DUCK SPINNER CODE
             if(gamepad1.getButton(SQUARE)) {
-                if (duckSpinnersEnabled == false) {
-                    if (duckSpinnersPower < 1) {
-                        duckSpinnersPower = duckSpinners.get() +0.1; 
-                    }
+                if (!duckSpinnersEnabled) {
+                    duckSpinnersPower = 0.65;
                     duckSpinnersEnabled = true;
                 }
                 else {
                     duckSpinnersEnabled = false;
-                    duckSpinners.stopMotor();
+                    duckSpinnersPower = 0;
                 }
             }
             duckSpinners.set(duckSpinnersPower);
