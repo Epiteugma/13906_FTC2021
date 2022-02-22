@@ -322,7 +322,7 @@ public class Robot {
         setDriveTolerance(driveErrorTolerance, driveErrorTolerance, driveErrorTolerance, driveErrorTolerance);
         switch (dir) {
             case FORWARDS:
-                while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
+                while ((!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition()) && linearOpMode.opModeIsActive()) {
                     currentAngle = getIMUAngle(Axis.X);
                     if (Math.abs(targetAngle - currentAngle) > 3) {
                         correction = (targetAngle - currentAngle) * driveGain;
@@ -496,7 +496,7 @@ public class Robot {
                 arm.setTargetPosition((int) (-lastClawPosition * armTickPerRev));
                 break;
         }
-        while (!collector.atTargetPosition()) {
+        if (!collector.atTargetPosition()) {
             arm.set(power);
             linearOpMode.telemetry.addData("The arm is moving to the ", String.valueOf(pos), " from ", lastClawPosition, " with a power of ", power);
             linearOpMode.telemetry.update();
@@ -508,14 +508,14 @@ public class Robot {
     public void intake(Direction dir, double power) {
         switch(dir){
             case IN:
-                while(cargoDetection().equals("None")){
+                if(cargoDetection().equals("None")){
                     linearOpMode.telemetry.addData("We are still NOT in possession of cargo...", "None");
                     linearOpMode.telemetry.update();
                     collector.set(power);
                 }
                 break;
             case OUT:
-                while(!cargoDetection().equals("None")){
+                if(!cargoDetection().equals("None")){
                     linearOpMode.telemetry.addData("We are still in possession of cargo: ", "(" + cargoDetection() + ")");
                     linearOpMode.telemetry.update();
                     collector.set(-power);
@@ -529,12 +529,8 @@ public class Robot {
         // TODO: calibrate time to spin.
         long timeMillis = 0;
         while(System.currentTimeMillis()+timeToSpin > timeMillis && linearOpMode.opModeIsActive()) {
-            timeMillis = System.currentTimeMillis();
-            if (duckSpinnersPower < power) {
-                duckSpinnersPower = duckSpinners.get() +0.1; 
-                duckSpinners.set(duckSpinnersPower);
+            duckSpinners.set(power);
         }
-    }
         duckSpinners.stopMotor();
     }
 
@@ -571,8 +567,10 @@ public class Robot {
         collectorBoxHeight = cargoDetector.getDistance(DistanceUnit.CM);
 
         // Fix all the directions of the motors.
-        frontLeft.setInverted(true);
-        backLeft.setInverted(true);
+//        frontLeft.setInverted(true);
+//        backLeft.setInverted(true);
+//        frontRight.setInverted(true);
+//        backRight.setInverted(true);
 
         // Set the zero power behavior of the motors.
         // We don't want them to slide after every trajectory or else we will lose accuracy.

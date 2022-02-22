@@ -27,14 +27,14 @@ public class BlueAllianceLeft extends LinearOpMode {
 
     private void initHardware() {
         // Motors, servos, distance sensor and IMU
-        RevIMU imu = new RevIMU(hardwareMap);
-        SensorRevTOFDistance cargoDetector = new SensorRevTOFDistance(hardwareMap, "cargoDetector");
+        imu = new RevIMU(hardwareMap);
+        cargoDetector = new SensorRevTOFDistance(hardwareMap, "cargoDetector");
         Motor duckSpinner1 = new Motor( hardwareMap, "duckSpinner1");
         Motor duckSpinner2 = new Motor( hardwareMap, "duckSpinner2");
         duckSpinners = new MotorGroup(duckSpinner1, duckSpinner2);
         arm = new Motor(hardwareMap, "arm");
         collector = new Motor(hardwareMap, "collector");
-        CRServo capper= new CRServo(hardwareMap, "capper");
+        capper= new CRServo(hardwareMap, "capper");
         frontRight = new Motor(hardwareMap, "frontRight");
         frontLeft = new Motor(hardwareMap, "frontLeft");
         backRight = new Motor(hardwareMap, "backRight");
@@ -59,7 +59,7 @@ public class BlueAllianceLeft extends LinearOpMode {
 //                robot.strafe(Robot.Direction.LEFT, 0.5, 5000);
 //                break;
 //            case CENTER:
-        robot.drive(Robot.Direction.FORWARDS, 0.5, 15);
+        robot.drive(Robot.Direction.FORWARDS, 0.3, 15);
                 //break;
 //        }
     }
