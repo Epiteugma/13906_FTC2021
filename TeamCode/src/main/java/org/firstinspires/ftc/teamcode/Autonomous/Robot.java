@@ -191,7 +191,7 @@ public class Robot {
         // Fix all the directions of the motors.
 //        frontLeft.setInverted(true);
 //        backLeft.setInverted(true);
-//        frontRight.setInverted(true);
+          frontRight.setInverted(true);
 //        backRight.setInverted(true);
         frontRight.resetEncoder();
         frontLeft.resetEncoder();
@@ -214,13 +214,6 @@ public class Robot {
         backLeft.setTargetPosition((int) blpos);
     }
 
-    public void runToPos() {
-        frontRight.setRunMode(Motor.RunMode.PositionControl);
-        frontLeft.setRunMode(Motor.RunMode.PositionControl);
-        backRight.setRunMode(Motor.RunMode.PositionControl);
-        backLeft.setRunMode(Motor.RunMode.PositionControl);
-    }
-
     public void setDrivePower(double frPower, double flPower, double brPower, double blPower) {
         frontRight.set(frPower);
         frontLeft.set(flPower);
@@ -236,7 +229,7 @@ public class Robot {
         setDriveTolerance(driveErrorTolerance, driveErrorTolerance, driveErrorTolerance, driveErrorTolerance);
         switch (dir) {
             case LEFT:
-                while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
+                while (!frCurrentTicks >= targetTicks || !flCurrentTicks >= targetTicks || !brCurrentTicks >= targetTicks || !blCurrentTicks >= targetTicks && linearOpMode.opModeIsActive()) {
                     currentAngle = getIMUAngle(Axis.X);
                     correction = (targetAngle - currentAngle) * strafeGain;
                     cappedPower = Range.clip(power, -1, 1);
@@ -247,16 +240,16 @@ public class Robot {
                     flCurrentTicks = frontLeft.getCurrentPosition();
                     brCurrentTicks = backRight.getCurrentPosition();
                     blCurrentTicks = backLeft.getCurrentPosition();
-                    if (frontRight.atTargetPosition()) {
+                    if (frCurrentTicks >= targetTicks) {
                         frPower = 0;
                     }
-                    if (frontLeft.atTargetPosition()) {
+                    if (flCurrentTicks >= targetTicks) {
                         flPower = 0;
                     }
-                    if (backRight.atTargetPosition()) {
+                    if (brCurrentTicks >= targetTicks) {
                         brPower = 0;
                     }
-                    if (backLeft.atTargetPosition()) {
+                    if (blCurrentTicks >= targetTicks) {
                         blPower = 0;
                     }
                     setDrivePower(-frPower, -flPower, brPower, blPower);
@@ -269,7 +262,7 @@ public class Robot {
                     linearOpMode.telemetry.update();
                 }
             case RIGHT:
-                while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
+                while (!frCurrentTicks >= targetTicks || !flCurrentTicks >= targetTicks || !brCurrentTicks >= targetTicks || !blCurrentTicks >= targetTicks && linearOpMode.opModeIsActive()) {
                     currentAngle = getIMUAngle(Axis.X);
                     correction = (targetAngle - currentAngle) * strafeGain;
                     cappedPower = -Range.clip(power, -1, 1);
@@ -280,16 +273,16 @@ public class Robot {
                     flCurrentTicks = frontLeft.getCurrentPosition();
                     brCurrentTicks = backRight.getCurrentPosition();
                     blCurrentTicks = backLeft.getCurrentPosition();
-                    if (frontRight.atTargetPosition()) {
+                    if (frCurrentTicks >= targetTicks) {
                         frPower = 0;
                     }
-                    if (frontLeft.atTargetPosition()) {
+                    if (flCurrentTicks >= targetTicks) {
                         flPower = 0;
                     }
-                    if (backRight.atTargetPosition()) {
+                    if (brCurrentTicks >= targetTicks) {
                         brPower = 0;
                     }
-                    if (backLeft.atTargetPosition()) {
+                    if (blCurrentTicks >= targetTicks) {
                         blPower = 0;
                     }
                     setDrivePower(frPower, flPower, -brPower, -blPower);
@@ -325,7 +318,7 @@ public class Robot {
             case FORWARDS:
                 while ((frCurrentTicks < targetTicks || flCurrentTicks < targetTicks || brCurrentTicks < targetTicks || blCurrentTicks < targetTicks) && linearOpMode.opModeIsActive()) {
                     currentAngle = getIMUAngle(Axis.X);
-                    //correction = (targetAngle - currentAngle) * driveGain;
+                    correction = (targetAngle - currentAngle) * driveGain;
                     cappedPower = Range.clip(power + correction, -1, 1);
                     correctedCappedPower = Range.clip(power - correction, -1, 1);
                     frPower = brPower = correctedCappedPower;
@@ -357,9 +350,10 @@ public class Robot {
                 }
                 break;
             case BACKWARDS:
-                while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
+                //while (!frCurrentTicks >= targetTicks || !flCurrentTicks >= targetTicks || !brCurrentTicks >= targetTicks || !blCurrentTicks >= targetTicks && linearOpMode.opModeIsActive()) {
+                while ((frCurrentTicks < targetTicks || flCurrentTicks < targetTicks || brCurrentTicks < targetTicks || blCurrentTicks < targetTicks) && linearOpMode.opModeIsActive()) { 
                     currentAngle = getIMUAngle(Axis.X);
-                    //correction = (targetAngle - currentAngle) * driveGain;
+                    correction = (targetAngle - currentAngle) * driveGain;
                     cappedPower = -Range.clip(power + correction, -1, 1);
                     correctedCappedPower = -Range.clip(power - correction, -1, 1);
                     frPower = brPower = correctedCappedPower;
@@ -368,16 +362,16 @@ public class Robot {
                     flCurrentTicks = frontLeft.getCurrentPosition();
                     brCurrentTicks = backRight.getCurrentPosition();
                     blCurrentTicks = backLeft.getCurrentPosition();
-                    if (frontRight.atTargetPosition()) {
+                    if (frCurrentTicks >= targetTicks) {
                         frPower = 0;
                     }
-                    if (frontLeft.atTargetPosition()) {
+                    if (flCurrentTicks >= targetTicks) {
                         flPower = 0;
                     }
-                    if (backRight.atTargetPosition()) {
+                    if (brCurrentTicks >= targetTicks) {
                         brPower = 0;
                     }
-                    if (backLeft.atTargetPosition()) {
+                    if (blCurrentTicks >= targetTicks) {
                         blPower = 0;
                     }
                     setDrivePower(frPower, flPower, brPower, blPower);
@@ -409,33 +403,34 @@ public class Robot {
         switch (dir){
             case LEFT:
                 while ((frCurrentTicks < targetTicks || flCurrentTicks < targetTicks || brCurrentTicks < targetTicks || blCurrentTicks < targetTicks) && linearOpMode.opModeIsActive()) {
-                    if (frontRight.atTargetPosition()) {
+                    if (frCurrentTicks >= targetTicks) {
                         frPower = 0;
                     }
-                    if (frontLeft.atTargetPosition()) {
+                    if (flCurrentTicks >= targetTicks) {
                         flPower = 0;
                     }
-                    if (backRight.atTargetPosition()) {
+                    if (brCurrentTicks >= targetTicks) {
                         brPower = 0;
                     }
-                    if (backLeft.atTargetPosition()) {
+                    if (blCurrentTicks >= targetTicks) {
                         blPower = 0;
                     }
                     setDrivePower(-frPower, -flPower, brPower, blPower);
                 }
                 break;
             case RIGHT:
-                while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
-                    if (frontRight.atTargetPosition()) {
+                //while (!frCurrentTicks >= targetTicks || !flCurrentTicks >= targetTicks || !brCurrentTicks >= targetTicks || !blCurrentTicks >= targetTicks && linearOpMode.opModeIsActive()) {
+                while ((frCurrentTicks < targetTicks || flCurrentTicks < targetTicks || brCurrentTicks < targetTicks || blCurrentTicks < targetTicks) && linearOpMode.opModeIsActive()) {
+                    if (frCurrentTicks >= targetTicks) {
                         frPower = 0;
                     }
-                    if (frontLeft.atTargetPosition()) {
+                    if (flCurrentTicks >= targetTicks) {
                         flPower = 0;
                     }
-                    if (backRight.atTargetPosition()) {
+                    if (brCurrentTicks >= targetTicks) {
                         brPower = 0;
                     }
-                    if (backLeft.atTargetPosition()) {
+                    if (blCurrentTicks >= targetTicks) {
                         blPower = 0;
                     }
                     setDrivePower(frPower, flPower, -brPower, -blPower);
