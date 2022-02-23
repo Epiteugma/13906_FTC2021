@@ -79,7 +79,7 @@ public class DriveMecanum extends LinearOpMode {
         // Gamepads init
         GamepadEx gamepad1 = new GamepadEx(this.gamepad1);
         GamepadEx gamepad2 = new GamepadEx(this.gamepad2);
-        // Meccanum drivebase; Pass the motor objects
+        // Mecanum drivebase (Pass the motor objects)
         MecanumDrive drivetrain = new MecanumDrive(frontLeft, frontRight, backLeft, backRight);
 
         // Current Free buttons:

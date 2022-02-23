@@ -64,7 +64,7 @@ public class Robot {
     public double targetRotations = 0;
     public double targetTicks = 0;
     public double ticksToTurn = 0;
-    public double correction = 0;
+    public double correction = 1;
     public double targetAngle = 0;
     public double currentAngle = 0;
     public int currentTicks = 0;
@@ -188,6 +188,11 @@ public class Robot {
     }
 
     public void resetEncoders() {
+        // Fix all the directions of the motors.
+//        frontLeft.setInverted(true);
+//        backLeft.setInverted(true);
+//        frontRight.setInverted(true);
+//        backRight.setInverted(true);
         frontRight.resetEncoder();
         frontLeft.resetEncoder();
         backRight.resetEncoder();
@@ -314,61 +319,47 @@ public class Robot {
         targetRotations = targetDistance / wheelCircumference;
         targetTicks = targetRotations * driveTicksPerRev;
         resetEncoders();
-//        setDriveTolerance(driveErrorTolerance, driveErrorTolerance, driveErrorTolerance, driveErrorTolerance);
-//        setDriveTargetPos(targetTicks, targetTicks, targetTicks, targetTicks);
+        setDriveTolerance(driveErrorTolerance, driveErrorTolerance, driveErrorTolerance, driveErrorTolerance);
+        setDriveTargetPos(targetTicks, targetTicks, targetTicks, targetTicks);
         switch (dir) {
             case FORWARDS:
-//                    while ((frCurrentTicks < targetTicks || flCurrentTicks < targetTicks || brCurrentTicks < targetTicks || blCurrentTicks < targetTicks) && linearOpMode.opModeIsActive()) {
-//                    linearOpMode.telemetry
-//                    currentAngle = getIMUAngle(Axis.X);
-//                    correction = (targetAngle - currentAngle) * driveGain;
-//                    cappedPower = Range.clip(power + correction, -1, 1);
-//                    correctedCappedPower = Range.clip(power - correction, -1, 1);
-////                    frPower = brPower = correctedCappedPower;
-////                    flPower = blPower = cappedPower;
-//                    frPower = brPower = 1;
-//                    flPower = blPower = 1;
-//                    frCurrentTicks = frontRight.getCurrentPosition();
-//                    flCurrentTicks = frontLeft.getCurrentPosition();
-//                    brCurrentTicks = backRight.getCurrentPosition();
-//                    blCurrentTicks = backLeft.getCurrentPosition();
-//                    if (frCurrentTicks >= targetTicks) {
-//                        frPower = 0;
-//                    }
-//                    if (flCurrentTicks >= targetTicks) {
-//                        flPower = 0;
-//                    }
-//                    if (brCurrentTicks >= targetTicks) {
-//                        brPower = 0;
-//                    }
-//                    if (blCurrentTicks >= targetTicks) {
-//                        blPower = 0;
-//                    }
-//                    linearOpMode.telemetry.addData("FR distance: ",frontRight.getDistance());
-//                    setDrivePower(frPower, flPower, brPower, blPower);
-//                    linearOpMode.telemetry.addData("Correction: ", correction);
-//                    linearOpMode.telemetry.addData("Current Angle: ", currentAngle);
-//                    linearOpMode.telemetry.addData("Current Power: ", "FR: " + correctedCappedPower + " FL: " + cappedPower + " BR: " + correctedCappedPower + " BL: " + cappedPower);
-//                    linearOpMode.telemetry.addData("Current Ticks: ", "FR: " + frCurrentTicks + " FL: " + flCurrentTicks + " BR: " + brCurrentTicks + " BL: " + blCurrentTicks);
-//                    linearOpMode.telemetry.addData("Target Ticks: ", (int) targetTicks);
-//                    linearOpMode.telemetry.addData("Robot is moving: ", String.valueOf(dir), " with a power of ", power, " for ", targetDistance + "cm");
-//                    linearOpMode.telemetry.update();
-//                }
-                frontRight.setRunMode(Motor.RunMode.RawPower);
-                frontLeft.setRunMode(Motor.RunMode.RawPower);
-                backRight.setRunMode(Motor.RunMode.RawPower);
-                backLeft.setRunMode(Motor.RunMode.RawPower);
-                setDrivePower(1,1,1,1);
-                linearOpMode.sleep(5000);
+                while ((frCurrentTicks < targetTicks || flCurrentTicks < targetTicks || brCurrentTicks < targetTicks || blCurrentTicks < targetTicks) && linearOpMode.opModeIsActive()) {
+                    currentAngle = getIMUAngle(Axis.X);
+                    //correction = (targetAngle - currentAngle) * driveGain;
+                    cappedPower = Range.clip(power + correction, -1, 1);
+                    correctedCappedPower = Range.clip(power - correction, -1, 1);
+                    frPower = brPower = correctedCappedPower;
+                    flPower = blPower = cappedPower;
+                    frCurrentTicks = frontRight.getCurrentPosition();
+                    flCurrentTicks = frontLeft.getCurrentPosition();
+                    brCurrentTicks = backRight.getCurrentPosition();
+                    blCurrentTicks = backLeft.getCurrentPosition();
+                    if (frCurrentTicks >= targetTicks) {
+                        frPower = 0;
+                    }
+                    if (flCurrentTicks >= targetTicks) {
+                        flPower = 0;
+                    }
+                    if (brCurrentTicks >= targetTicks) {
+                        brPower = 0;
+                    }
+                    if (blCurrentTicks >= targetTicks) {
+                        blPower = 0;
+                    }
+                    setDrivePower(frPower, flPower, brPower, blPower);
+                    linearOpMode.telemetry.addData("Correction: ", correction);
+                    linearOpMode.telemetry.addData("Current Angle: ", currentAngle);
+                    linearOpMode.telemetry.addData("Current Power: ", "FR: " + correctedCappedPower + " FL: " + cappedPower + " BR: " + correctedCappedPower + " BL: " + cappedPower);
+                    linearOpMode.telemetry.addData("Current Ticks: ", "FR: " + frCurrentTicks + " FL: " + flCurrentTicks + " BR: " + brCurrentTicks + " BL: " + blCurrentTicks);
+                    linearOpMode.telemetry.addData("Target Ticks: ", (int) targetTicks);
+                    linearOpMode.telemetry.addData("Robot is moving: ", String.valueOf(dir), " with a power of ", power, " for ", targetDistance + "cm");
+                    linearOpMode.telemetry.update();
+                }
+                break;
             case BACKWARDS:
                 while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
                     currentAngle = getIMUAngle(Axis.X);
-                    if (Math.abs(targetAngle - currentAngle) > 3) {
-                        correction = (targetAngle - currentAngle) * driveGain;
-                    }
-                    else {
-                        correction = 1;
-                    }
+                    //correction = (targetAngle - currentAngle) * driveGain;
                     cappedPower = -Range.clip(power + correction, -1, 1);
                     correctedCappedPower = -Range.clip(power - correction, -1, 1);
                     frPower = brPower = correctedCappedPower;
@@ -398,6 +389,8 @@ public class Robot {
                     linearOpMode.telemetry.addData("Robot is moving: ", String.valueOf(dir), " with a power of ", power, " for ", targetDistance + "cm");
                     linearOpMode.telemetry.update();
                 }
+                break;
+        }
         while (isMoving() && linearOpMode.opModeIsActive()) {
             linearOpMode.telemetry.addData("Robot is moving" ," (when it shouldn't)");
             linearOpMode.telemetry.update();
@@ -405,8 +398,7 @@ public class Robot {
         linearOpMode.telemetry.addData("Robot has moved: ", targetDistance + "cm " + dir);
         linearOpMode.telemetry.update();
         }
-    }
-        
+
     public void turn(Direction dir, double power, double degrees) {
         frPower = flPower = brPower = blPower = power;
         targetRotations = degrees / 360 * turnCircumference;
@@ -416,7 +408,7 @@ public class Robot {
         setDriveTargetPos(ticksToTurn, ticksToTurn, ticksToTurn, ticksToTurn);
         switch (dir){
             case LEFT:
-                while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
+                while ((frCurrentTicks < targetTicks || flCurrentTicks < targetTicks || brCurrentTicks < targetTicks || blCurrentTicks < targetTicks) && linearOpMode.opModeIsActive()) {
                     if (frontRight.atTargetPosition()) {
                         frPower = 0;
                     }
@@ -429,8 +421,8 @@ public class Robot {
                     if (backLeft.atTargetPosition()) {
                         blPower = 0;
                     }
+                    setDrivePower(-frPower, -flPower, brPower, blPower);
                 }
-                setDrivePower(-frPower, -flPower, brPower, blPower);
                 break;
             case RIGHT:
                 while (!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition() && linearOpMode.opModeIsActive()) {
@@ -446,8 +438,8 @@ public class Robot {
                     if (backLeft.atTargetPosition()) {
                         blPower = 0;
                     }
+                    setDrivePower(frPower, flPower, -brPower, -blPower);
                 }
-                setDrivePower(frPower, flPower, -brPower, -blPower);
                 break;
             }
         while (isMoving() && linearOpMode.opModeIsActive()) {
@@ -566,12 +558,6 @@ public class Robot {
         imu.init();
         cargoDetector = (SensorRevTOFDistance) motors.get(8);
         collectorBoxHeight = cargoDetector.getDistance(DistanceUnit.CM);
-
-        // Fix all the directions of the motors.
-        frontLeft.setInverted(true);
-        backLeft.setInverted(true);
-        // frontRight.setInverted(true);
-        // backRight.setInverted(true);
 
         // Set the zero power behavior of the motors.
         // We don't want them to slide after every trajectory or else we will lose accuracy.
