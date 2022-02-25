@@ -48,9 +48,9 @@ public class Robot {
     public static double driveTicksPerRev = 1120.0 * driveGearRatio;
     public static double armTickPerRev = 1120.0;
     // TODO: adjust gain (almost done)
-    public static double driveGain = 0.125;
+    public static double driveGain = 0.05;
     public static double strafeGain = 0.125;
-    public static double turnGain = 0.125;
+    public static double turnGain = 0.1;
     // Old Wheels
     // public static double wheelRadius = 7/2;
     // New wheels
@@ -59,12 +59,12 @@ public class Robot {
     public static double centerToWheel = 21;
     public static double turnCircumference = 2 * Math.PI * centerToWheel;
 
-    // Ticks Angles and postiions
-    public double lastClawPosition = 0;
+    // Ticks Angles and positions
+    public int lastClawPosition = 0;
     public double targetRotations = 0;
     public double targetTicks = 0;
     public double ticksToTurn = 0;
-    public double correction = 1;
+    public double correction = 0;
     public double targetAngle = 0;
     public double currentAngle = 0;
     public int currentTicks = 0;
@@ -91,7 +91,7 @@ public class Robot {
     public double ballHeight = 6.99;
     public double duckHeight = 5.4;
     public double currentCargoDistance = 0;
-    public double collectorBoxHeight = 0;
+    public double collectorBoxHeight;
 
 
     public enum Axis {
@@ -191,8 +191,8 @@ public class Robot {
         // Fix all the directions of the motors.
 //        frontLeft.setInverted(true);
 //        backLeft.setInverted(true);
-          frontRight.setInverted(true);
-//        backRight.setInverted(true);
+        // frontRight.setInverted(true);
+        backRight.setInverted(true);
         frontRight.resetEncoder();
         frontLeft.resetEncoder();
         backRight.resetEncoder();
@@ -226,10 +226,10 @@ public class Robot {
         targetTicks = targetRotations * driveTicksPerRev;
         resetEncoders();
         setDriveTargetPos(targetTicks, targetTicks, targetTicks, targetTicks);
-        setDriveTolerance(driveErrorTolerance, driveErrorTolerance, driveErrorTolerance, driveErrorTolerance);
+        // setDriveTolerance(driveErrorTolerance, driveErrorTolerance, driveErrorTolerance, driveErrorTolerance);
         switch (dir) {
             case LEFT:
-                while (!frCurrentTicks >= targetTicks || !flCurrentTicks >= targetTicks || !brCurrentTicks >= targetTicks || !blCurrentTicks >= targetTicks && linearOpMode.opModeIsActive()) {
+                while (frCurrentTicks >= targetTicks || flCurrentTicks >= targetTicks || brCurrentTicks >= targetTicks || blCurrentTicks >= targetTicks && linearOpMode.opModeIsActive()) {
                     currentAngle = getIMUAngle(Axis.X);
                     correction = (targetAngle - currentAngle) * strafeGain;
                     cappedPower = Range.clip(power, -1, 1);
@@ -262,7 +262,7 @@ public class Robot {
                     linearOpMode.telemetry.update();
                 }
             case RIGHT:
-                while (!frCurrentTicks >= targetTicks || !flCurrentTicks >= targetTicks || !brCurrentTicks >= targetTicks || !blCurrentTicks >= targetTicks && linearOpMode.opModeIsActive()) {
+                while (frCurrentTicks >= targetTicks || flCurrentTicks >= targetTicks || brCurrentTicks >= targetTicks || blCurrentTicks >= targetTicks && linearOpMode.opModeIsActive()) {
                     currentAngle = getIMUAngle(Axis.X);
                     correction = (targetAngle - currentAngle) * strafeGain;
                     cappedPower = -Range.clip(power, -1, 1);
@@ -312,17 +312,17 @@ public class Robot {
         targetRotations = targetDistance / wheelCircumference;
         targetTicks = targetRotations * driveTicksPerRev;
         resetEncoders();
-        setDriveTolerance(driveErrorTolerance, driveErrorTolerance, driveErrorTolerance, driveErrorTolerance);
+        // // setDriveTolerance(driveErrorTolerance, driveErrorTolerance, driveErrorTolerance, driveErrorTolerance);
         setDriveTargetPos(targetTicks, targetTicks, targetTicks, targetTicks);
         switch (dir) {
             case FORWARDS:
-                while ((frCurrentTicks < targetTicks || flCurrentTicks < targetTicks || brCurrentTicks < targetTicks || blCurrentTicks < targetTicks) && linearOpMode.opModeIsActive()) {
+                while (((frCurrentTicks < targetTicks && flCurrentTicks < targetTicks) || (brCurrentTicks < targetTicks && blCurrentTicks < targetTicks)) && linearOpMode.opModeIsActive()) {
                     currentAngle = getIMUAngle(Axis.X);
                     correction = (targetAngle - currentAngle) * driveGain;
                     cappedPower = Range.clip(power + correction, -1, 1);
                     correctedCappedPower = Range.clip(power - correction, -1, 1);
-                    frPower = brPower = correctedCappedPower;
-                    flPower = blPower = cappedPower;
+                    frPower = brPower = cappedPower;
+                    flPower = blPower = correctedCappedPower;
                     frCurrentTicks = frontRight.getCurrentPosition();
                     flCurrentTicks = frontLeft.getCurrentPosition();
                     brCurrentTicks = backRight.getCurrentPosition();
@@ -350,8 +350,7 @@ public class Robot {
                 }
                 break;
             case BACKWARDS:
-                //while (!frCurrentTicks >= targetTicks || !flCurrentTicks >= targetTicks || !brCurrentTicks >= targetTicks || !blCurrentTicks >= targetTicks && linearOpMode.opModeIsActive()) {
-                while ((frCurrentTicks < targetTicks || flCurrentTicks < targetTicks || brCurrentTicks < targetTicks || blCurrentTicks < targetTicks) && linearOpMode.opModeIsActive()) { 
+                while (((frCurrentTicks < targetTicks && flCurrentTicks < targetTicks) || (brCurrentTicks < targetTicks && blCurrentTicks < targetTicks)) && linearOpMode.opModeIsActive()) {
                     currentAngle = getIMUAngle(Axis.X);
                     correction = (targetAngle - currentAngle) * driveGain;
                     cappedPower = -Range.clip(power + correction, -1, 1);
@@ -398,11 +397,11 @@ public class Robot {
         targetRotations = degrees / 360 * turnCircumference;
         ticksToTurn = targetRotations * driveTicksPerRev;
         resetEncoders();
-        setDriveTolerance(driveErrorTolerance, driveErrorTolerance, driveErrorTolerance, driveErrorTolerance);
+        // setDriveTolerance(driveErrorTolerance, driveErrorTolerance, driveErrorTolerance, driveErrorTolerance);
         setDriveTargetPos(ticksToTurn, ticksToTurn, ticksToTurn, ticksToTurn);
         switch (dir){
             case LEFT:
-                while ((frCurrentTicks < targetTicks || flCurrentTicks < targetTicks || brCurrentTicks < targetTicks || blCurrentTicks < targetTicks) && linearOpMode.opModeIsActive()) {
+                while (((frCurrentTicks < targetTicks && flCurrentTicks < targetTicks) || (brCurrentTicks < targetTicks && blCurrentTicks < targetTicks)) && linearOpMode.opModeIsActive()) {
                     if (frCurrentTicks >= targetTicks) {
                         frPower = 0;
                     }
@@ -419,8 +418,7 @@ public class Robot {
                 }
                 break;
             case RIGHT:
-                //while (!frCurrentTicks >= targetTicks || !flCurrentTicks >= targetTicks || !brCurrentTicks >= targetTicks || !blCurrentTicks >= targetTicks && linearOpMode.opModeIsActive()) {
-                while ((frCurrentTicks < targetTicks || flCurrentTicks < targetTicks || brCurrentTicks < targetTicks || blCurrentTicks < targetTicks) && linearOpMode.opModeIsActive()) {
+                while (((frCurrentTicks < targetTicks && flCurrentTicks < targetTicks) || (brCurrentTicks < targetTicks && blCurrentTicks < targetTicks)) && linearOpMode.opModeIsActive()) {
                     if (frCurrentTicks >= targetTicks) {
                         frPower = 0;
                     }
@@ -449,9 +447,9 @@ public class Robot {
     public void moveArm(Position pos, double power) {
         //TODO: Calibrate the ticks needed for each of the 3 levels
         arm.resetEncoder();
-        double lowPosition = 100;
-        double midPosition = 200;
-        double highPosition = 300;
+        int lowPosition = -370;
+        int midPosition = -1000;
+        int highPosition = -1800;
         arm.setPositionTolerance(2);
         switch(pos) {
             case LOW:

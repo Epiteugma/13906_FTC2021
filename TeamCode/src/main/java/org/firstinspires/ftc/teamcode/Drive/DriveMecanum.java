@@ -114,7 +114,7 @@ public class DriveMecanum extends LinearOpMode {
         int midPosition = -1000;
         int highPosition = -1800;
         int lastClawPosition = arm.getCurrentPosition();
-
+        arm.resetEncoder();
         //END INIT CODE
 
         // wait for user to press start
