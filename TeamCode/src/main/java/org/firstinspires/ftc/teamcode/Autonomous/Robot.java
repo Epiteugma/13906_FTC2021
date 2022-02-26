@@ -77,7 +77,6 @@ public class Robot {
     public double flPower;
     public double brPower;
     public double blPower;
-    public double duckSpinnersPower = 0;
 
     // global ticks
     public int frCurrentTicks;
@@ -312,7 +311,7 @@ public class Robot {
         targetRotations = targetDistance / wheelCircumference;
         targetTicks = targetRotations * driveTicksPerRev;
         resetEncoders();
-        // // setDriveTolerance(driveErrorTolerance, driveErrorTolerance, driveErrorTolerance, driveErrorTolerance);
+        // setDriveTolerance(driveErrorTolerance, driveErrorTolerance, driveErrorTolerance, driveErrorTolerance);
         setDriveTargetPos(targetTicks, targetTicks, targetTicks, targetTicks);
         switch (dir) {
             case FORWARDS:
@@ -395,7 +394,7 @@ public class Robot {
     public void turn(Direction dir, double power, double degrees) {
         frPower = flPower = brPower = blPower = power;
         targetRotations = degrees / 360 * turnCircumference;
-        ticksToTurn = targetRotations * driveTicksPerRev;
+        targetTicks = targetRotations * driveTicksPerRev;
         resetEncoders();
         // setDriveTolerance(driveErrorTolerance, driveErrorTolerance, driveErrorTolerance, driveErrorTolerance);
         setDriveTargetPos(ticksToTurn, ticksToTurn, ticksToTurn, ticksToTurn);
