@@ -519,6 +519,16 @@ public class Robot {
         duckSpinners.stopMotor();
     }
 
+    // TODO: Complete this function next meeting
+    public void finalCorrection(int frTicks,int flTicks,int brTicks,int blTicks, String side){
+        if (side == "Left"){
+
+        }
+        else if(side == "Right") {
+
+        }
+    }
+
     public String cargoDetection(){
         // Cargo detection
         // The less the distance from the ground subtraction the higher object we are possessing
