@@ -167,12 +167,12 @@ public class Robot {
 //        return location;
 //    }
 
-    public Detector.ElementPosition getTsePos() {
-        Detector.ElementPosition pos = new Detector(hardwareMap).getElementPosition();
-        linearOpMode.telemetry.addData("The shipping element is located at the ", pos);
-        linearOpMode.telemetry.update();
-        return pos;
-    }
+//    public Detector.ElementPosition getTsePos() {
+//        Detector.ElementPosition pos = new Detector(hardwareMap).getElementPosition();
+//        linearOpMode.telemetry.addData("The shipping element is located at the ", pos);
+//        linearOpMode.telemetry.update();
+//        return pos;
+//    }
     
 
     private void HALT() {
@@ -312,9 +312,9 @@ public class Robot {
         targetTicks = targetRotations * driveTicksPerRev;
         resetEncoders();
         // setDriveTolerance(driveErrorTolerance, driveErrorTolerance, driveErrorTolerance, driveErrorTolerance);
-        setDriveTargetPos(targetTicks, targetTicks, targetTicks, targetTicks);
         switch (dir) {
             case FORWARDS:
+                setDriveTargetPos(targetTicks, targetTicks, targetTicks, targetTicks);
                 while (((frCurrentTicks < targetTicks && flCurrentTicks < targetTicks) || (brCurrentTicks < targetTicks && blCurrentTicks < targetTicks)) && linearOpMode.opModeIsActive()) {
                     currentAngle = getIMUAngle(Axis.X);
                     correction = (targetAngle - currentAngle) * driveGain;
@@ -349,13 +349,14 @@ public class Robot {
                 }
                 break;
             case BACKWARDS:
+                setDriveTargetPos(-targetTicks, -targetTicks, -targetTicks, -targetTicks);
                 while (((frCurrentTicks < targetTicks && flCurrentTicks < targetTicks) || (brCurrentTicks < targetTicks && blCurrentTicks < targetTicks)) && linearOpMode.opModeIsActive()) {
                     currentAngle = getIMUAngle(Axis.X);
                     correction = (targetAngle - currentAngle) * driveGain;
-                    cappedPower = -Range.clip(power + correction, -1, 1);
-                    correctedCappedPower = -Range.clip(power - correction, -1, 1);
-                    frPower = brPower = correctedCappedPower;
-                    flPower = blPower = cappedPower;
+                    cappedPower = Range.clip(power + correction, -1, 1);
+                    correctedCappedPower = Range.clip(power - correction, -1, 1);
+                    frPower = brPower = cappedPower;
+                    flPower = blPower = correctedCappedPower;
                     frCurrentTicks = frontRight.getCurrentPosition();
                     flCurrentTicks = frontLeft.getCurrentPosition();
                     brCurrentTicks = backRight.getCurrentPosition();
@@ -383,13 +384,16 @@ public class Robot {
                 }
                 break;
         }
-        while (isMoving() && linearOpMode.opModeIsActive()) {
-            linearOpMode.telemetry.addData("Robot is moving" ," (when it shouldn't)");
-            linearOpMode.telemetry.update();
-        }
+        finalCorrection(frontRight.getCurrentPosition(), frontLeft.getCurrentPosition(), backRight.getCurrentPosition(), backLeft.getCurrentPosition(), power);
+
+//        while (isMoving() && linearOpMode.opModeIsActive()) {
+//            linearOpMode.telemetry.addData("Robot is moving" ," (when it shouldn't)");
+//            linearOpMode.telemetry.update();
+//        }
+
         linearOpMode.telemetry.addData("Robot has moved: ", targetDistance + "cm " + dir);
         linearOpMode.telemetry.update();
-        }
+    }
 
     public void turn(Direction dir, double power, double degrees) {
         frPower = flPower = brPower = blPower = power;
@@ -520,13 +524,34 @@ public class Robot {
     }
 
     // TODO: Complete this function next meeting
-    public void finalCorrection(int frTicks,int flTicks,int brTicks,int blTicks, String side){
-        if (side == "Left"){
-
+    public void finalCorrection(int frTicks, int flTicks, int brTicks, int blTicks, double power) {
+        int frontCorrection = Math.abs(frTicks) - Math.abs(flTicks);
+        int backCorrection = Math.abs(brTicks) - Math.abs(blTicks);
+        int frontTarget;
+        int backTarget;
+        double dirPower = (frontCorrection + backCorrection) / 2 < 0 ? -power : power;
+        if(frTicks < 0) {
+            frontTarget = frTicks - frontCorrection;
+            backTarget = brTicks - backCorrection;
+            while (frontRight.getCurrentPosition() > frontTarget && backRight.getCurrentPosition() > backTarget) {
+                setDrivePower(dirPower, 0, dirPower, 0);
+            }
+        } else {
+            frontTarget = frTicks + frontCorrection;
+            backTarget = brTicks + backCorrection;
+            while (frontRight.getCurrentPosition() < frontTarget && backRight.getCurrentPosition() < backTarget) {
+                setDrivePower(dirPower, 0, dirPower, 0);
+            }
         }
-        else if(side == "Right") {
 
-        }
+
+        System.out.println("Front right ticks: " + frTicks);
+        System.out.println("Front left ticks: " + flTicks);
+        System.out.println("Back right ticks: " + brTicks);
+        System.out.println("Back left ticks: " + blTicks);
+        System.out.println("Correction: " + frontCorrection + " " + backCorrection);
+
+        HALT();
     }
 
     public String cargoDetection(){
@@ -573,6 +598,6 @@ public class Robot {
         resetEncoders();
 
         // Initialize the new detector
-        Detector detector = new Detector(hardwareMap);
+//        Detector detector = new Detector(hardwareMap);
     }
 }

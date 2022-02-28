@@ -228,7 +228,7 @@ public class DriveMecanum extends LinearOpMode {
             if(gamepad1.getButton(SQUARE)) {
                 if (!duckSpinnersEnabled) {
                     duckSpinnersEnabled = true;
-                    duckSpinners.set(-0.1);
+                    duckSpinners.set(-0.25 * globalpowerfactor);
                 }
                 else {
                     duckSpinnersEnabled = false;
