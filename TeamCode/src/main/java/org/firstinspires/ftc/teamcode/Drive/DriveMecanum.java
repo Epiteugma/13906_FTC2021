@@ -31,6 +31,8 @@ public class DriveMecanum extends LinearOpMode {
     public int lowPosition = Configurable.lowPosition;
     public int midPosition = Configurable.midPosition;
     public int highPosition = Configurable.highPosition;
+    public int capperHighLimit = Configurable.capperHighLimit;
+    public int capperLowLimit = Configurable.capperLowLimit;
 
     // IMU
     public double heading;
@@ -80,7 +82,7 @@ public class DriveMecanum extends LinearOpMode {
         MotorGroup duckSpinners = new MotorGroup(duckSpinner1, duckSpinner2);
         Motor arm = new Motor(hardwareMap, "arm");
         Motor collector = new Motor(hardwareMap, "collector");
-        CRServo capper= new CRServo(hardwareMap, "capper");
+        CRServo capper = new CRServo(hardwareMap, "capper");
         Motor frontRight = new Motor(hardwareMap, "frontRight");
         Motor frontLeft = new Motor(hardwareMap, "frontLeft");
         Motor backRight = new Motor(hardwareMap, "backRight");
@@ -151,10 +153,15 @@ public class DriveMecanum extends LinearOpMode {
             arm.setRunMode(Motor.RunMode.PositionControl);
             arm.setPositionTolerance(40); // has to be close to the teeth of the small gear
 
+            // capper Limit checker
+//            capper.setRunMode(Motor.RunMode.PositionControl);
+//            capper.setPositionTolerance(0);
+//            int capperCurrentPosition = capper.getCurrentPosition();
+
             // Arm up DPAD_UP
             if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) {
                 arm.setRunMode(Motor.RunMode.PositionControl);
-                if (arm.getCurrentPosition() >= -1800) {
+                if (arm.getCurrentPosition() >= -1850) {
                     arm.setRunMode(Motor.RunMode.RawPower);
                     arm.set(-armPower);
                 }
@@ -168,12 +175,18 @@ public class DriveMecanum extends LinearOpMode {
                 }
             }
             // Capper up LEFT_TRIGGER AND DPAD_UP
-            else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) {
-                capper.set(-0.2);
+            else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0) {
+                // if ( capperCurrentPosition < capperHighLimit){
+                capper.setRunMode(Motor.RunMode.RawPower);
+                capper.set(-gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) /2.5);
+                // }
             }
             // Capper down LEFT_TRIGGER AND DPAD_DOWN
-            else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_DOWN)) {
-                capper.set(0.2);
+            else if(gamepad2.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0) {
+                // if (capperCurrentPosition > capperLowLimit){
+                capper.setRunMode(Motor.RunMode.RawPower);
+                capper.set(gamepad2.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) /2.5);
+            // }
             }
             else {
                 capper.stopMotor();
@@ -202,7 +215,10 @@ public class DriveMecanum extends LinearOpMode {
                     }
                 }
                 // ARM KEEP POSITION!!!
-                else{
+                else {
+                    if (gamepad2.getButton(GamepadKeys.Button.LEFT_BUMPER) || gamepad2.getButton(GamepadKeys.Button.RIGHT_BUMPER)){
+                        arm.resetEncoder();
+                    }
                     lastClawPosition = arm.getCurrentPosition();
                     armPositionalPower = 0.1;
                     arm.setTargetPosition(lastClawPosition);
@@ -228,7 +244,7 @@ public class DriveMecanum extends LinearOpMode {
             if(gamepad1.getButton(SQUARE)) {
                 if (!duckSpinnersEnabled) {
                     duckSpinnersEnabled = true;
-                    duckSpinners.set(-0.25 * globalpowerfactor);
+                    duckSpinners.set(-0.2 * globalpowerfactor);
                 }
                 else {
                     duckSpinnersEnabled = false;
