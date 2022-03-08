@@ -24,9 +24,10 @@ public class DriveMecanum extends LinearOpMode {
     public boolean duckSpinnersEnabled = false;
     // power factors
     public double globalpowerfactor = 1.0;
-    // Arm and positions
-    //TODO: Calibrate the ticks needed for each of the 3 levels
-    public double armPositionalPower = 0.0;
+
+    public double duckSpinnersPower = 0;
+
+    public double armPositionalPower = 0;
     public double armPower = Configurable.armPower;
     public int lowPosition = Configurable.lowPosition;
     public int midPosition = Configurable.midPosition;
@@ -77,8 +78,6 @@ public class DriveMecanum extends LinearOpMode {
         // Motors, servos initialization
         Motor duckSpinner1 = new Motor( hardwareMap, "duckSpinner1");
         Motor duckSpinner2 = new Motor( hardwareMap, "duckSpinner2");
-        duckSpinner1.setRunMode(Motor.RunMode.VelocityControl);
-        duckSpinner2.setRunMode(Motor.RunMode.VelocityControl);
         MotorGroup duckSpinners = new MotorGroup(duckSpinner1, duckSpinner2);
         Motor arm = new Motor(hardwareMap, "arm");
         Motor collector = new Motor(hardwareMap, "collector");
@@ -122,8 +121,11 @@ public class DriveMecanum extends LinearOpMode {
         collectorBoxHeight = cargoDetector.getDistance(DistanceUnit.CM);
         // Collector
 
+        double duckMultiplier = 0;
+
         int lastClawPosition = arm.getCurrentPosition();
         arm.resetEncoder();
+
         //END INIT CODE
 
         // wait for user to press start
@@ -135,9 +137,6 @@ public class DriveMecanum extends LinearOpMode {
             // Orientation angles = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             heading = imu.getHeading();
 
-            sidepower = gamepad1.getLeftX() * globalpowerfactor;
-            forwardpower = gamepad1.getLeftY() * globalpowerfactor;
-            turnpower = gamepad1.getRightX() * globalpowerfactor;
 
             if(gamepad1.getButton(GamepadKeys.Button.RIGHT_BUMPER) || gamepad2.getButton(GamepadKeys.Button.RIGHT_BUMPER)) {
                 globalpowerfactor = 1.0;
@@ -146,8 +145,10 @@ public class DriveMecanum extends LinearOpMode {
                 globalpowerfactor = 0.35;
             }
 
-            // Calculate Mecanum Powers for field-centric drive
-            drivetrain.driveFieldCentric(sidepower, forwardpower, turnpower, heading);
+            sidepower = gamepad1.getLeftX() * globalpowerfactor;
+            forwardpower = gamepad1.getLeftY() * globalpowerfactor;
+            turnpower = gamepad1.getRightX() * globalpowerfactor;
+            drivetrain.driveRobotCentric(sidepower, forwardpower, turnpower);
 
             // Arm predefined positions
             arm.setRunMode(Motor.RunMode.PositionControl);
@@ -192,35 +193,47 @@ public class DriveMecanum extends LinearOpMode {
                 capper.stopMotor();
                 if (gamepad2.getButton(CROSS)) {
                         lastClawPosition = lowPosition;
-                        armPositionalPower = 0.3;
+                        armPositionalPower = 0.45;
                         arm.setTargetPosition(lastClawPosition);
                         while (!arm.atTargetPosition()) {
+                            sidepower = gamepad1.getLeftX() * globalpowerfactor;
+                            forwardpower = gamepad1.getLeftY() * globalpowerfactor;
+                            turnpower = gamepad1.getRightX() * globalpowerfactor;
+                            drivetrain.driveRobotCentric(sidepower, forwardpower, turnpower);
                             arm.set(armPositionalPower);
                         }
                     }
                 else if (gamepad2.getButton(CIRCLE)) {
                     lastClawPosition = midPosition;
-                    armPositionalPower = 0.2;
+                    armPositionalPower = 0.4;
                     arm.setTargetPosition(lastClawPosition);
                     while (!arm.atTargetPosition()) {
+                        sidepower = gamepad1.getLeftX() * globalpowerfactor;
+                        forwardpower = gamepad1.getLeftY() * globalpowerfactor;
+                        turnpower = gamepad1.getRightX() * globalpowerfactor;
+                        drivetrain.driveRobotCentric(sidepower, forwardpower, turnpower);
                         arm.set(armPositionalPower);
                     }
                 }
                 else if (gamepad2.getButton(TRIANGLE)) {
                     lastClawPosition = highPosition;
-                    armPositionalPower = 0.1;
+                    armPositionalPower = 0.35;
                     arm.setTargetPosition(lastClawPosition);
                     while (!arm.atTargetPosition()) {
+                        sidepower = gamepad1.getLeftX() * globalpowerfactor;
+                        forwardpower = gamepad1.getLeftY() * globalpowerfactor;
+                        turnpower = gamepad1.getRightX() * globalpowerfactor;
+                        drivetrain.driveRobotCentric(sidepower, forwardpower, turnpower);
                         arm.set(armPositionalPower);
                     }
                 }
                 // ARM KEEP POSITION!!!
                 else {
-                    if (gamepad2.getButton(GamepadKeys.Button.LEFT_BUMPER) || gamepad2.getButton(GamepadKeys.Button.RIGHT_BUMPER)){
+                    if (this.gamepad2.touchpad){
                         arm.resetEncoder();
                     }
                     lastClawPosition = arm.getCurrentPosition();
-                    armPositionalPower = 0.1;
+                    armPositionalPower = 0.09;
                     arm.setTargetPosition(lastClawPosition);
                     //armPositionalPower = +(+lastClawPosition / 275.0 /10.0);
                     if (!arm.atTargetPosition()) {
@@ -229,28 +242,40 @@ public class DriveMecanum extends LinearOpMode {
                 }
             }
 
+            if(gamepad2.getButton(SQUARE)) {
+                if(gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) arm.set(-0.5);
+                else if(gamepad2.isDown(GamepadKeys.Button.DPAD_DOWN)) arm.set(0.5);
+                else arm.set(0);
+                arm.resetEncoder();
+            }
+
             // INTAKE CODE
             if(gamepad2.isDown(GamepadKeys.Button.BACK)) {
-                collector.set(+globalpowerfactor + 0.3);
+                collector.set(+globalpowerfactor + 0.15);
             } 
             else if(gamepad2.isDown(GamepadKeys.Button.START)) {
-                collector.set(-globalpowerfactor - 0.3);
+                collector.set(-globalpowerfactor - 0.07);
             }
             else {
                 collector.stopMotor();
             }
 
+            // duckSpinners.set(-0.135 * duckMultiplier * globalpowerfactor);
             // DUCK SPINNER CODE
-            if(gamepad1.getButton(SQUARE)) {
-                if (!duckSpinnersEnabled) {
-                    duckSpinnersEnabled = true;
-                    duckSpinners.set(-0.2 * globalpowerfactor);
-                }
-                else {
-                    duckSpinnersEnabled = false;
-                    duckSpinners.stopMotor();
-                }
+
+            if (gamepad1.getButton((GamepadKeys.Button.DPAD_RIGHT))){
+                duckSpinners.setInverted(true);
             }
+            else if (gamepad1.getButton((GamepadKeys.Button.DPAD_LEFT))){
+                duckSpinners.setInverted(false);
+            }
+            else if(gamepad1.isDown(GamepadKeys.Button.DPAD_UP)) {
+                duckSpinnersPower += 0.1;
+            }
+            else if(gamepad1.isDown(GamepadKeys.Button.DPAD_DOWN)) {
+                duckSpinnersPower -= 0.1;
+            }
+            duckSpinners.set(duckSpinnersPower);
 
             // Telemetry
             detectedCargo = cargoDetection();
@@ -269,6 +294,9 @@ public class DriveMecanum extends LinearOpMode {
                 }
             }
 
+            if(duckMultiplier == 1) duckMultiplier = 0;
+            duckMultiplier += 0.1;
+
             telemetry.addData("Probably Detected Cargo: ", detectedCargo);
             telemetry.addData("Probably Prev Detected Cargo: ", prevDetectedCargo);
             telemetry.addData("GlobalPowerFactor: ", globalpowerfactor);
@@ -280,6 +308,7 @@ public class DriveMecanum extends LinearOpMode {
             telemetry.addData("Arm ticks: ",lastClawPosition);
             telemetry.addData("Arm positional power: ",armPositionalPower);
             telemetry.addData("Collector: ", collector.get());
+            telemetry.addData("DucksSpinners power variable: ", duckSpinnersPower);
             telemetry.addData("DucksSpinners power: ", duckSpinners.get());
             telemetry.addData("Initial Box Height: ", collectorBoxHeight);
             telemetry.addData("Height of cargo: ", collectorBoxHeight - currentCargoDistance);
