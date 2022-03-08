@@ -137,7 +137,10 @@ public class DriveMecanum extends LinearOpMode {
             // Orientation angles = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             heading = imu.getHeading();
 
-
+            if(gamepad1.getButton(GamepadKeys.Button.RIGHT_TRIGGER > 0.2) || gamepad1.getButton(GamepadKeys.Button.LEFT_TRIGGER) > 0.2) {
+              this.gamepad1.rumble(0,1,1000);
+              this.gamepad2.rumble(1,1,1000);
+            }
             if(gamepad1.getButton(GamepadKeys.Button.RIGHT_BUMPER) || gamepad2.getButton(GamepadKeys.Button.RIGHT_BUMPER)) {
                 globalpowerfactor = 1.0;
             }
