@@ -1,11 +1,11 @@
 package org.firstinspires.ftc.teamcode.Drive;
 
 // Navigation and IMU
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 // Sensors , Motors and Opmode
 import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -64,9 +64,10 @@ public class DriveMecanum extends LinearOpMode {
         }
     }
 
-    public String cTelemetry(String msg){
-        msg.replaceAll("<","&lt").replaceAll(">","&gt;").replaceAll(" ","&nbsp;").replaceAll('"',"&quot").replaceAll("'","&apos;");
-        return msg
+    // Colo9r telemetry based on given hex code like html
+    public void cTelemetry(String Tag, String color,String msg){
+        msg = msg.replaceAll("<","&lt").replaceAll(">","&gt;").replaceAll(" ","&nbsp;").replaceAll("\"","&quot").replaceAll("'","&apos;");
+        telemetry.addData(Tag, String.format("<span style=\"color:%s\">%s</span>",color,msg));
     }
 
     @Override
@@ -90,9 +91,7 @@ public class DriveMecanum extends LinearOpMode {
         Motor backLeft = new Motor(hardwareMap, "backLeft");
 
         frontRight.setInverted(true);
-
         arm.resetEncoder();
-
         duckSpinners.setRunMode(Motor.RunMode.RawPower);
 
         backLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
@@ -125,7 +124,7 @@ public class DriveMecanum extends LinearOpMode {
         int lastClawPosition = arm.getCurrentPosition();
         arm.resetEncoder();
 
-        // Colored telemetry
+        // Colored telemetry (basically html)
         telemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
 
         //END INIT CODE
@@ -140,7 +139,7 @@ public class DriveMecanum extends LinearOpMode {
             heading = imu.getHeading();
 
             // Driver vibration intercommunication
-            if(gamepad1.getButton(GamepadKeys.Button.RIGHT_TRIGGER > 0.2) || gamepad1.getButton(GamepadKeys.Button.LEFT_TRIGGER) > 0.2) {
+            if(gamepad1.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.2 || gamepad1.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.2) {
               this.gamepad1.rumble(0,1,1000);
               this.gamepad2.rumble(1,1,1000);
             }
@@ -321,21 +320,44 @@ public class DriveMecanum extends LinearOpMode {
                 }
             }
 
-            telemetry.addData("Probably Detected Cargo: ", detectedCargo);
-            telemetry.addData("Probably Prev Detected Cargo: ", prevDetectedCargo);
-            telemetry.addData("GlobalPowerFactor: ", globalpowerfactor);
-            telemetry.addData("frontRight: ", frontRight.get());
-            telemetry.addData("frontLeft: ", frontLeft.get());
-            telemetry.addData("backRight: ", backRight.get());
-            telemetry.addData("backLeft: ", backLeft.get());
-            telemetry.addData("Arm: ", arm.get());
-            telemetry.addData("Arm ticks: ",lastClawPosition);
-            telemetry.addData("Arm positional power: ",armPositionalPower);
-            telemetry.addData("Collector: ", collector.get());
-            telemetry.addData("DucksSpinners power variable: ", duckSpinnersPower);
-            telemetry.addData("DucksSpinners power: ", duckSpinners.get());
-            telemetry.addData("Initial Box Height: ", collectorBoxHeight);
-            telemetry.addData("Height of cargo: ", collectorBoxHeight - currentCargoDistance);
+            // New colored telemetry
+            String blue = "#001dff";
+            String yellow = "#e7ff00";
+            String green = "#11ff00";
+            String orange = "#ff9900";
+
+            cTelemetry("Probably Detected Cargo: ",orange, detectedCargo);
+            cTelemetry("GlobalPowerFactor: ",blue, String.valueOf(globalpowerfactor));
+            cTelemetry("frontRight: ",blue, String.valueOf(frontRight.get()));
+            cTelemetry("frontLeft: ",blue, String.valueOf(frontLeft.get()));
+            cTelemetry("backRight: ",blue , String.valueOf(backRight.get()));
+            cTelemetry("backLeft: ",blue, String.valueOf(backLeft.get()));
+            cTelemetry("Arm: ",blue , String.valueOf(arm.get()));
+            cTelemetry("Arm ticks: ",green, String.valueOf(lastClawPosition));
+            cTelemetry("Arm positional power: ",blue, String.valueOf(armPositionalPower));
+            cTelemetry("Collector: ",blue, String.valueOf(collector.get()));
+            cTelemetry("DucksSpinners power: ",blue, String.valueOf(duckSpinners.get()));
+            cTelemetry("DucksSpinners power variable: ",yellow, String.valueOf(duckSpinnersPower));
+            cTelemetry("Initial Box Height: ",yellow, String.valueOf(collectorBoxHeight));
+            cTelemetry("Height of cargo: ",yellow, String.valueOf(collectorBoxHeight - currentCargoDistance));
+            cTelemetry("Probably Prev Detected Cargo: ",orange, prevDetectedCargo);
+
+
+//            telemetry.addData("Probably Detected Cargo: ", detectedCargo);
+//            telemetry.addData("Probably Prev Detected Cargo: ", prevDetectedCargo);
+//            telemetry.addData("GlobalPowerFactor: ", globalpowerfactor);
+//            telemetry.addData("frontRight: ", frontRight.get());
+//            telemetry.addData("frontLeft: ", frontLeft.get());
+//            telemetry.addData("backRight: ", backRight.get());
+//            telemetry.addData("backLeft: ", backLeft.get());
+//            telemetry.addData("Arm: ", arm.get());
+//            telemetry.addData("Arm ticks: ",lastClawPosition);
+//            telemetry.addData("Arm positional power: ",armPositionalPower);
+//            telemetry.addData("Collector: ", collector.get());
+//            telemetry.addData("DucksSpinners power variable: ", duckSpinnersPower);
+//            telemetry.addData("DucksSpinners power: ", duckSpinners.get());
+//            telemetry.addData("Initial Box Height: ", collectorBoxHeight);
+//            telemetry.addData("Height of cargo: ", collectorBoxHeight - currentCargoDistance);
             telemetry.update();
             prevDetectedCargo = detectedCargo;
         }
