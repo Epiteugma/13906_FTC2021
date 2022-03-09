@@ -253,11 +253,13 @@ public class DriveMecanum extends LinearOpMode {
             }
 
             // INTAKE CODE
+            // Collect
             if(gamepad2.isDown(GamepadKeys.Button.BACK)) {
                 collector.set(+globalpowerfactor + 0.15);
             } 
+            // Release/Throw
             else if(gamepad2.isDown(GamepadKeys.Button.START)) {
-                collector.set(-globalpowerfactor - 0.07);
+                collector.set(-globalpowerfactor - 0.05);
             }
             else {
                 collector.stopMotor();
@@ -265,7 +267,6 @@ public class DriveMecanum extends LinearOpMode {
 
             // duckSpinners.set(-0.135 * duckMultiplier * globalpowerfactor);
             // DUCK SPINNER CODE
-
             if (gamepad1.getButton((GamepadKeys.Button.DPAD_RIGHT))){
                 duckSpinners.setInverted(true);
             }
@@ -278,18 +279,21 @@ public class DriveMecanum extends LinearOpMode {
             else if(gamepad1.isDown(GamepadKeys.Button.DPAD_DOWN)) {
                 duckSpinnersPower -= 0.05;
             }
+            else if (gamepad1.getButton(SQUARE)){
+              duckSpinnersPower = 0;
+            }
             duckSpinners.set(duckSpinnersPower);
             if (gamepad1.isDown(TRIANGLE)){
-              drivetrain.driveRobotCentric(1,0,0)
+              drivetrain.driveRobotCentric(1,0,0);
             }
             else if (gamepad1.isDown(CROSS)){
-              drivetrain.driveRobotCentric(-1,0,0)
+              drivetrain.driveRobotCentric(-1,0,0);
             }
             else if (gamepad1.isDown(CIRCLE)){
-              drivetrain.driveRobotCentric(0,0,1)
+              drivetrain.driveRobotCentric(0,0,1);
             }
             else if (gamepad1.isDown(SQUARE)){
-              drivetrain.driveRobotCentric(0,0,-1)
+              drivetrain.driveRobotCentric(0,0,-1);
             }
             // Telemetry
             detectedCargo = cargoDetection();
