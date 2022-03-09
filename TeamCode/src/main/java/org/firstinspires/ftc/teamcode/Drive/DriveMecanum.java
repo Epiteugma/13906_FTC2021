@@ -19,9 +19,6 @@ import com.arcrobotics.ftclib.hardware.motors.*;
 @TeleOp(name = "FTC 2022 Drive (Mecanum) Final", group = "FTC22")
 public class DriveMecanum extends LinearOpMode {
 
-
-    // duckSpinners
-    public boolean duckSpinnersEnabled = false;
     // power factors
     public double globalpowerfactor = 1.0;
 
@@ -119,9 +116,6 @@ public class DriveMecanum extends LinearOpMode {
 
         // initial box size
         collectorBoxHeight = cargoDetector.getDistance(DistanceUnit.CM);
-        // Collector
-
-        double duckMultiplier = 0;
 
         int lastClawPosition = arm.getCurrentPosition();
         arm.resetEncoder();
@@ -252,7 +246,7 @@ public class DriveMecanum extends LinearOpMode {
                 arm.resetEncoder();
             }
 
-            // INTAKE CODE
+            // INTAKE/COLLECTOR CODE
             // Collect
             if(gamepad2.isDown(GamepadKeys.Button.BACK)) {
                 collector.set(+globalpowerfactor + 0.15);
@@ -265,7 +259,6 @@ public class DriveMecanum extends LinearOpMode {
                 collector.stopMotor();
             }
 
-            // duckSpinners.set(-0.135 * duckMultiplier * globalpowerfactor);
             // DUCK SPINNER CODE
             if (gamepad1.getButton((GamepadKeys.Button.DPAD_RIGHT))){
                 duckSpinners.setInverted(true);
