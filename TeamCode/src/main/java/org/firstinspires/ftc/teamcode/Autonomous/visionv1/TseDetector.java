@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.autonomous.vision;
+package org.firstinspires.ftc.teamcode.Autonomous.visionv1;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.opencv.core.Core;
@@ -26,23 +26,21 @@ public class TseDetector extends OpenCvPipeline {
     private Location location;
 
     static final Rect LEFT_ROI = new Rect(
-            new Point(87, 100),
-            new Point(102, 127));
+            new Point(100, 500),
+            new Point(400, 800));
     static final Rect CENTER_ROI = new Rect(
-            new Point(167, 100),
-            new Point(182, 127));
+            new Point(500, 500),
+            new Point(800, 800));
     static final Rect RIGHT_ROI = new Rect(
-            new Point(247, 100),
-            new Point(262, 127));
-
-//    public TseDetector(Telemetry t) { telemetry = t; }
+            new Point(900, 500),
+            new Point(1200, 800));
 
     @Override
     public Mat processFrame(Mat input) {
         Imgproc.cvtColor(input, mat, Imgproc.COLOR_RGB2HSV);
         // TODO: change this to HSV values for the tse
-        Scalar lowHSV = new Scalar(22, 50, 70);
-        Scalar highHSV = new Scalar(30, 255, 255);
+        Scalar lowHSV = new Scalar(0, 20, 40);
+        Scalar highHSV = new Scalar(10, 255, 255);
 
         Core.inRange(mat, lowHSV, highHSV, mat);
 

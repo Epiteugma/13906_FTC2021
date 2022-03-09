@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.arcrobotics.ftclib.gamepad.*;
 import com.arcrobotics.ftclib.hardware.*;
 import com.arcrobotics.ftclib.hardware.motors.*;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 
 @TeleOp(name = "FTC 2022 Drive (Mecanum) Final", group = "FTC22")
 public class DriveMecanum extends LinearOpMode {
@@ -126,6 +127,8 @@ public class DriveMecanum extends LinearOpMode {
 
         // Colored telemetry (basically html)
         telemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
+
+        TouchSensor armTouch1 = hardwareMap.get(TouchSensor.class, "armTouch1");
 
         //END INIT CODE
 
@@ -287,13 +290,18 @@ public class DriveMecanum extends LinearOpMode {
               duckSpinnersPower = 0;
             }
             duckSpinners.set(duckSpinnersPower);
-            
+
+            // Check touchsensors to reset arm encoder
+            if (armTouch1.isPressed()){
+                arm.resetEncoder();
+            }
+
             // FULL SPEED NAVIGATION
             if (gamepad1.isDown(TRIANGLE)){
-              drivetrain.driveRobotCentric(1,0,0);
+              drivetrain.driveRobotCentric(0,1,0);
             }
             else if (gamepad1.isDown(CROSS)){
-              drivetrain.driveRobotCentric(-1,0,0);
+              drivetrain.driveRobotCentric(0,-1,0);
             }
             else if (gamepad1.isDown(CIRCLE)){
               drivetrain.driveRobotCentric(0,0,1);
@@ -305,16 +313,16 @@ public class DriveMecanum extends LinearOpMode {
 
             // Telemetry
             detectedCargo = cargoDetection();
-            if (!detectedCargo.equals("None") && prevDetectedCargo.equals("None")) {
+            if ((detectedCargo.equals("Cuber OR Duck") || detectedCargo.equals("Ball")) && prevDetectedCargo.equals("None")) {
                 // Beta stop the intake when freight is collected and vibrate the drivers' controllers to make them aware
-                collector.stopMotor();
+                // collector.stopMotor();
                 // Vibrate only the right part (means cube or duck)
                 if (detectedCargo.equals("Cuber OR Duck")) {
                     this.gamepad1.rumble(0,1,1000);
                     this.gamepad2.rumble(0,1,1000);
                 }
                 // Vibrate only the left part (means ball)
-                else if (detectedCargo.equals("Ball")) {
+                else {
                     this.gamepad1.rumble(1,0,1000);
                     this.gamepad2.rumble(1,0,1000);
                 }

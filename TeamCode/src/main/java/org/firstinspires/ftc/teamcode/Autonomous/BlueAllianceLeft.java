@@ -47,8 +47,8 @@ public class BlueAllianceLeft extends LinearOpMode {
 
 //        Detector detector = new Detector(hardwareMap);
 //        Detector.ElementPosition itemPos = detector.getElementPosition();
-//        telemetry.addData("Detected Cargo : ", robot.cargoDetection());
-//        telemetry.update();
+        telemetry.addData("Detected Cargo : ", robot.getTsePos());
+        telemetry.update();
         waitForStart();
 //        switch (itemPos) {
 //            case LEFT:
