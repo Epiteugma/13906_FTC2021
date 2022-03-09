@@ -273,13 +273,24 @@ public class DriveMecanum extends LinearOpMode {
                 duckSpinners.setInverted(false);
             }
             else if(gamepad1.isDown(GamepadKeys.Button.DPAD_UP)) {
-                duckSpinnersPower += 0.1;
+                duckSpinnersPower += 0.05;
             }
             else if(gamepad1.isDown(GamepadKeys.Button.DPAD_DOWN)) {
-                duckSpinnersPower -= 0.1;
+                duckSpinnersPower -= 0.05;
             }
             duckSpinners.set(duckSpinnersPower);
-
+            if (gamepad1.isDown(TRIANGLE)){
+              drivetrain.driveRobotCentric(1,0,0)
+            }
+            else if (gamepad1.isDown(CROSS)){
+              drivetrain.driveRobotCentric(-1,0,0)
+            }
+            else if (gamepad1.isDown(CIRCLE)){
+              drivetrain.driveRobotCentric(0,0,1)
+            }
+            else if (gamepad1.isDown(SQUARE)){
+              drivetrain.driveRobotCentric(0,0,-1)
+            }
             // Telemetry
             detectedCargo = cargoDetection();
             if (!detectedCargo.equals("None") && prevDetectedCargo.equals("None")) {
@@ -296,9 +307,6 @@ public class DriveMecanum extends LinearOpMode {
                     this.gamepad2.rumble(1,0,1000);
                 }
             }
-
-            if(duckMultiplier == 1) duckMultiplier = 0;
-            duckMultiplier += 0.1;
 
             telemetry.addData("Probably Detected Cargo: ", detectedCargo);
             telemetry.addData("Probably Prev Detected Cargo: ", prevDetectedCargo);
