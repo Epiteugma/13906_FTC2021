@@ -147,15 +147,21 @@ public class DriveMecanum extends LinearOpMode {
 
             // Driver vibration intercommunication
             if(gamepad1.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.2 || gamepad1.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.2) {
-              this.gamepad1.rumble(0,1,1000);
-              this.gamepad2.rumble(1,1,1000);
+              this.gamepad1.rumble(0,1,750);
+              this.gamepad2.rumble(1,1,750);
             }
             // GlobalPowerFactor manipulation
-            if(gamepad1.getButton(GamepadKeys.Button.RIGHT_BUMPER) || gamepad2.getButton(GamepadKeys.Button.RIGHT_BUMPER) && globalpowerfactor + 0.2 < 1) {
+            if(gamepad1.getButton(CIRCLE) || gamepad2.getButton(GamepadKeys.Button.RIGHT_BUMPER)) {
                 globalpowerfactor += 0.2;
             }
-            else if(gamepad1.getButton(GamepadKeys.Button.LEFT_BUMPER) || gamepad2.getButton(GamepadKeys.Button.LEFT_BUMPER) && globalpowerfactor - 0.2 >= 0.4) {
+            else if(gamepad1.getButton(SQUARE) || gamepad2.getButton(GamepadKeys.Button.LEFT_BUMPER)) {
                 globalpowerfactor -= 0.2;
+            }
+            if (globalpowerfactor >= 1){
+                globalpowerfactor = 1;
+            }
+            else if (globalpowerfactor <= 0.4){
+                globalpowerfactor = 0.4;
             }
 
             sidepower = gamepad1.getLeftX() * globalpowerfactor;
@@ -247,9 +253,9 @@ public class DriveMecanum extends LinearOpMode {
                     }
                     lastClawPosition = arm.getCurrentPosition();
                     // OLD now proportional???
-                    //armPositionalPower = 0.09;
+                    armPositionalPower = 0.09;
                     arm.setTargetPosition(lastClawPosition);
-                    armPositionalPower = +(+lastClawPosition / 450.0 /10.0);
+                    //armPositionalPower = +(+lastClawPosition / 450.0 /10.0);
                     if (!arm.atTargetPosition()) {
                         arm.set(armPositionalPower);
                     }
@@ -266,13 +272,18 @@ public class DriveMecanum extends LinearOpMode {
             // INTAKE / COLLECTOR CODE
             // Collect
             if(gamepad2.isDown(GamepadKeys.Button.BACK)) {
-                collector.set(+globalpowerfactor + 0.15);
+                collector.set(+globalpowerfactor + 0.1);
             } 
 
             // Release/Throw
             else if(gamepad2.isDown(GamepadKeys.Button.START)) {
-                collector.set(-globalpowerfactor - 0.05);
-            }
+                if (globalpowerfactor < 0.5){
+                    collector.set(-globalpowerfactor - 0.06);
+                }
+                else {
+                    collector.set(-globalpowerfactor + 0.39 );
+                }
+                }
             // Stop collector (no action)
             else {
                 collector.stopMotor();
@@ -286,10 +297,10 @@ public class DriveMecanum extends LinearOpMode {
                 duckSpinners.setInverted(false);
             }
             else if(gamepad1.isDown(GamepadKeys.Button.DPAD_UP)) {
-                duckSpinnersPower += 0.05;
+                duckSpinnersPower += 0.03;
             }
             else if(gamepad1.isDown(GamepadKeys.Button.DPAD_DOWN)) {
-                duckSpinnersPower -= 0.05;
+                duckSpinnersPower -= 0.03;
             }
             else if (gamepad1.getButton(SQUARE)){
               duckSpinnersPower = 0;
@@ -308,12 +319,12 @@ public class DriveMecanum extends LinearOpMode {
             else if (gamepad1.isDown(CROSS)){
               drivetrain.driveRobotCentric(0,-1,0);
             }
-            else if (gamepad1.isDown(CIRCLE)){
-              drivetrain.driveRobotCentric(0,0,1);
-            }
-            else if (gamepad1.isDown(SQUARE)){
-              drivetrain.driveRobotCentric(0,0,-1);
-            }
+//            else if (gamepad1.isDown(CIRCLE)){
+//              drivetrain.driveRobotCentric(0,0,1);
+//            }
+//            else if (gamepad1.isDown(SQUARE)){
+//              drivetrain.driveRobotCentric(0,0,-1);
+//            }
 
 
             // Telemetry
