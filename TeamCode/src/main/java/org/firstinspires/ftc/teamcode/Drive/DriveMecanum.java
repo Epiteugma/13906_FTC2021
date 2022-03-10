@@ -65,10 +65,13 @@ public class DriveMecanum extends LinearOpMode {
         }
     }
 
-    // Colo9r telemetry based on given hex code like html
-    public void cTelemetry(String Tag, String color,String msg){
+    // Colored telemetry based on given hex code like html
+    public void cTelemetry(String Tag,String tagColor, String color,String msg){
+        if (tagColor.equals("def")){
+            tagColor = "#e37b29";
+        }
         msg = msg.replaceAll("<","&lt").replaceAll(">","&gt;").replaceAll(" ","&nbsp;").replaceAll("\"","&quot").replaceAll("'","&apos;");
-        telemetry.addData(Tag, String.format("<span style=\"color:%s\">%s</span>",color,msg));
+        telemetry.addData(String.format("<span style=\"color:%s\">%s</span>",tagColor,Tag), String.format("<span style=\"color:%s\">%s</span>",color,msg));
     }
 
     @Override
@@ -150,7 +153,7 @@ public class DriveMecanum extends LinearOpMode {
             if(gamepad1.getButton(GamepadKeys.Button.RIGHT_BUMPER) || gamepad2.getButton(GamepadKeys.Button.RIGHT_BUMPER) && globalpowerfactor + 0.2 < 1) {
                 globalpowerfactor += 0.2;
             }
-            else if(gamepad1.getButton(GamepadKeys.Button.LEFT_BUMPER) || gamepad2.getButton(GamepadKeys.Button.LEFT_BUMPER) && globalpowerfactor - 0.2 >= 0.2) {
+            else if(gamepad1.getButton(GamepadKeys.Button.LEFT_BUMPER) || gamepad2.getButton(GamepadKeys.Button.LEFT_BUMPER) && globalpowerfactor - 0.2 >= 0.4) {
                 globalpowerfactor -= 0.2;
             }
 
@@ -242,9 +245,10 @@ public class DriveMecanum extends LinearOpMode {
                         arm.resetEncoder();
                     }
                     lastClawPosition = arm.getCurrentPosition();
-                    armPositionalPower = 0.09;
+                    // OLD now proportional???
+                    //armPositionalPower = 0.09;
                     arm.setTargetPosition(lastClawPosition);
-                    //armPositionalPower = +(+lastClawPosition / 275.0 /10.0);
+                    armPositionalPower = +(+lastClawPosition / 450.0 /10.0);
                     if (!arm.atTargetPosition()) {
                         arm.set(armPositionalPower);
                     }
@@ -291,7 +295,7 @@ public class DriveMecanum extends LinearOpMode {
             }
             duckSpinners.set(duckSpinnersPower);
 
-            // Check touchsensors to reset arm encoder
+            // Check touch sensors to reset arm encoder
             if (armTouch1.isPressed()){
                 arm.resetEncoder();
             }
@@ -334,21 +338,21 @@ public class DriveMecanum extends LinearOpMode {
             String green = "#11ff00";
             String orange = "#ff9900";
 
-            cTelemetry("Probably Detected Cargo: ",orange, detectedCargo);
-            cTelemetry("GlobalPowerFactor: ",blue, String.valueOf(globalpowerfactor));
-            cTelemetry("frontRight: ",blue, String.valueOf(frontRight.get()));
-            cTelemetry("frontLeft: ",blue, String.valueOf(frontLeft.get()));
-            cTelemetry("backRight: ",blue , String.valueOf(backRight.get()));
-            cTelemetry("backLeft: ",blue, String.valueOf(backLeft.get()));
-            cTelemetry("Arm: ",blue , String.valueOf(arm.get()));
-            cTelemetry("Arm ticks: ",green, String.valueOf(lastClawPosition));
-            cTelemetry("Arm positional power: ",blue, String.valueOf(armPositionalPower));
-            cTelemetry("Collector: ",blue, String.valueOf(collector.get()));
-            cTelemetry("DucksSpinners power: ",blue, String.valueOf(duckSpinners.get()));
-            cTelemetry("DucksSpinners power variable: ",yellow, String.valueOf(duckSpinnersPower));
-            cTelemetry("Initial Box Height: ",yellow, String.valueOf(collectorBoxHeight));
-            cTelemetry("Height of cargo: ",yellow, String.valueOf(collectorBoxHeight - currentCargoDistance));
-            cTelemetry("Probably Prev Detected Cargo: ",orange, prevDetectedCargo);
+            cTelemetry("Probably Detected Cargo: ","def",orange, detectedCargo);
+            cTelemetry("GlobalPowerFactor: ","def",blue, String.valueOf(globalpowerfactor));
+            cTelemetry("frontRight: ","def",blue, String.valueOf(frontRight.get()));
+            cTelemetry("frontLeft: ","def",blue, String.valueOf(frontLeft.get()));
+            cTelemetry("backRight: ","def",blue , String.valueOf(backRight.get()));
+            cTelemetry("backLeft: ","def",blue, String.valueOf(backLeft.get()));
+            cTelemetry("Arm: ","def",blue , String.valueOf(arm.get()));
+            cTelemetry("Arm ticks: ","def",green, String.valueOf(lastClawPosition));
+            cTelemetry("Arm positional power: ","def",blue, String.valueOf(armPositionalPower));
+            cTelemetry("Collector: ","def",blue, String.valueOf(collector.get()));
+            cTelemetry("DucksSpinners power: ","def",blue, String.valueOf(duckSpinners.get()));
+            cTelemetry("DucksSpinners power variable: ","def",yellow, String.valueOf(duckSpinnersPower));
+            cTelemetry("Initial Box Height: ","def",yellow, String.valueOf(collectorBoxHeight));
+            cTelemetry("Height of cargo: ","def",yellow, String.valueOf(collectorBoxHeight - currentCargoDistance));
+            cTelemetry("Probably Prev Detected Cargo: ","def",orange, prevDetectedCargo);
 
 
 //            telemetry.addData("Probably Detected Cargo: ", detectedCargo);

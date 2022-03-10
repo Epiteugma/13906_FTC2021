@@ -25,17 +25,26 @@ public class TseDetector extends OpenCvPipeline {
     Mat mat = new Mat();
     private Location location;
 
-    static final Rect LEFT_ROI = new Rect(
-            new Point(100, 500),
-            new Point(400, 800));
-    static final Rect CENTER_ROI = new Rect(
-            new Point(500, 500),
-            new Point(800, 800));
-    static final Rect RIGHT_ROI = new Rect(
-            new Point(900, 500),
-            new Point(1200, 800));
+//    static final Rect LEFT_ROI = new Rect(
+//            new Point(100, 500),
+//            new Point(400, 800));
+//    static final Rect CENTER_ROI = new Rect(
+//            new Point(500, 500),
+//            new Point(800, 800));
+//    static final Rect RIGHT_ROI = new Rect(
+//            new Point(900, 500),
+//            new Point(1200, 800));
 
-    @Override
+    static final Rect LEFT_ROI = new Rect(
+            new Point(5, 70),
+            new Point(85, 200));
+    static final Rect CENTER_ROI = new Rect(
+            new Point(120, 70),
+            new Point(200, 200));
+    static final Rect RIGHT_ROI = new Rect(
+            new Point(235, 70),
+            new Point(315, 200));
+
     public Mat processFrame(Mat input) {
         Imgproc.cvtColor(input, mat, Imgproc.COLOR_RGB2HSV);
         // TODO: change this to HSV values for the tse
