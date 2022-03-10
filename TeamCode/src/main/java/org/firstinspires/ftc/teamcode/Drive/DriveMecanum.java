@@ -24,6 +24,7 @@ public class DriveMecanum extends LinearOpMode {
     public double globalpowerfactor = 1.0;
 
     public double duckSpinnersPower = 0;
+    public double lastDuckSpinnersPower = 0.2;
 
     public double armPositionalPower = 0;
     public double armPower = Configurable.armPower;
@@ -302,8 +303,14 @@ public class DriveMecanum extends LinearOpMode {
             else if(gamepad1.isDown(GamepadKeys.Button.DPAD_DOWN)) {
                 duckSpinnersPower -= 0.03;
             }
-            else if (gamepad1.getButton(SQUARE)){
-              duckSpinnersPower = 0;
+            else if (gamepad1.getButton(SQUARE)) {
+                if (duckSpinners.get() > 0) {
+                    lastDuckSpinnersPower = duckSpinnersPower;
+                    duckSpinnersPower = 0;
+                }
+                else{
+                    duckSpinnersPower = lastDuckSpinnersPower;
+                }
             }
             duckSpinners.set(duckSpinnersPower);
 
