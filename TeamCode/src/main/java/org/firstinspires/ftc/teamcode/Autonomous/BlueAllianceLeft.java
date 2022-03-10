@@ -8,6 +8,8 @@ import com.arcrobotics.ftclib.hardware.motors.MotorGroup;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.Autonomous.visionv1.TseDetector;
+
 import java.util.Arrays;
 
 @Autonomous(name="Blue Alliance Left", group="FTC22")
@@ -47,19 +49,24 @@ public class BlueAllianceLeft extends LinearOpMode {
 
 //        Detector detector = new Detector(hardwareMap);
 //        Detector.ElementPosition itemPos = detector.getElementPosition();
-        telemetry.addData("Detected Cargo : ", robot.getTsePos());
+        TseDetector.Location itemPos = robot.getTsePos();
+        telemetry.addData("Detected Cargo: ", itemPos);
         telemetry.update();
         waitForStart();
-//        switch (itemPos) {
-//            case LEFT:
-//                robot.drive(Robot.Direction.LEFT, 0.5, 5000);
-//                break;
-//            case RIGHT:
-//                robot.strafe(Robot.Direction.LEFT, 0.5, 5000);
-//                break;
-//            case CENTER:
-        robot.drive(Robot.Direction.FORWARDS, 0.3, 100);
-                //break;
-//        }
+        robot.turn(Robot.Direction.RIGHT, 0.3, 90);
+        robot.drive(Robot.Direction.FORWARDS,0.3,100);
+        robot.turn(Robot.Direction.LEFT, 0.3, 90);
+        switch (itemPos) {
+            case LEFT:
+                robot.moveArm(Robot.Position.LOW,0.1);
+                break;
+            case CENTER:
+                robot.moveArm(Robot.Position.MID,0.1);
+                break;
+            case RIGHT:
+                robot.moveArm(Robot.Position.HIGH,0.1);
+                break;
+        }
+        robot.intake(Robot.Direction.OUT,0.5);
     }
 }

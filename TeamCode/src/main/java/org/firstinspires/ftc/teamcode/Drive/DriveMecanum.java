@@ -132,6 +132,7 @@ public class DriveMecanum extends LinearOpMode {
         telemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
 
         TouchSensor armTouch1 = hardwareMap.get(TouchSensor.class, "armTouch1");
+        TouchSensor armTouch2 = hardwareMap.get(TouchSensor.class, "armTouch2");
 
         //END INIT CODE
 
@@ -272,7 +273,7 @@ public class DriveMecanum extends LinearOpMode {
             else if(gamepad2.isDown(GamepadKeys.Button.START)) {
                 collector.set(-globalpowerfactor - 0.05);
             }
-            // Stop collector(no action)
+            // Stop collector (no action)
             else {
                 collector.stopMotor();
             }
@@ -296,7 +297,7 @@ public class DriveMecanum extends LinearOpMode {
             duckSpinners.set(duckSpinnersPower);
 
             // Check touch sensors to reset arm encoder
-            if (armTouch1.isPressed()){
+            if (armTouch1.isPressed() || armTouch2.isPressed()){
                 arm.resetEncoder();
             }
 

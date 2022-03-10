@@ -11,10 +11,6 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 //import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.Autonomous.visionv1.*;
-//import org.openftc.easyopencv.OpenCvCamera;
-//import org.openftc.easyopencv.OpenCvCameraFactory;
-//import org.openftc.easyopencv.OpenCvCameraRotation;
-//import org.openftc.easyopencv.OpenCvWebcam;
 
 // Item detector based on the ground tape
 import org.firstinspires.ftc.teamcode.Autonomous.visionv2.Detector;
@@ -75,7 +71,7 @@ public class Robot {
     public int currentTicks = 0;
 
     // Powers and error tolerance
-    public double driveErrorTolerance = 2; // in ticks
+    public double driveErrorTolerance = 20; // in ticks
     public double correctedCappedPower = 0;
     public double cappedPower = 0;
     public double frPower;
@@ -109,8 +105,6 @@ public class Robot {
         LEFT,
         FORWARDS,
         BACKWARDS,
-        UP,
-        DOWN,
         IN,
         OUT
     }
@@ -479,36 +473,36 @@ public class Robot {
         int lowPosition = -370;
         int midPosition = -1000;
         int highPosition = -1800;
-        arm.setPositionTolerance(2);
+        arm.setPositionTolerance(40);
         switch(pos) {
             case LOW:
-                if (lowPosition > lastClawPosition) {
-                    lowPosition = lowPosition + lastClawPosition;
-                }
-                else {
-                    lowPosition = lowPosition - lastClawPosition;
-                }
-                arm.setTargetPosition((int) (lowPosition * armTickPerRev));
+//                if (lowPosition > lastClawPosition) {
+//                    lowPosition = lowPosition + lastClawPosition;
+//                }
+//                else {
+//                    lowPosition = lowPosition - lastClawPosition;
+//                }
+                arm.setTargetPosition(lowPosition);
                 lastClawPosition = lowPosition;
                 break;
             case MID:
-                if (midPosition > lastClawPosition) {
-                    midPosition = midPosition + lastClawPosition;
-                }
-                else {
-                    midPosition = midPosition - lastClawPosition;
-                }
-                arm.setTargetPosition((int) (midPosition * armTickPerRev));
+//                if (midPosition > lastClawPosition) {
+//                    midPosition = midPosition + lastClawPosition;
+//                }
+//                else {
+//                    midPosition = midPosition - lastClawPosition;
+//                }
+                arm.setTargetPosition(midPosition);
                 lastClawPosition = midPosition;
                 break;
             case HIGH:
-                // No need to check if above it will never be above the highest possible position
-                highPosition = highPosition - lastClawPosition;
-                arm.setTargetPosition((int) (highPosition * armTickPerRev));
+//                // No need to check if above it will never be above the highest possible position
+//                highPosition = highPosition - lastClawPosition;
+                arm.setTargetPosition(highPosition);
                 lastClawPosition = highPosition;
                 break;
             case DOWN:
-                arm.setTargetPosition((int) (-lastClawPosition * armTickPerRev));
+                arm.setTargetPosition(-lastClawPosition);
                 break;
         }
         if (!collector.atTargetPosition()) {
