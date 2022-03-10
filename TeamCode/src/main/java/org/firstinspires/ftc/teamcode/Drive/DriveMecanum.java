@@ -304,7 +304,7 @@ public class DriveMecanum extends LinearOpMode {
                 duckSpinnersPower -= 0.03;
             }
             else if (gamepad1.getButton(SQUARE)) {
-                if (duckSpinners.get() > 0) {
+                if (duckSpinners.get() != 0) {
                     lastDuckSpinnersPower = duckSpinnersPower;
                     duckSpinnersPower = 0;
                 }
