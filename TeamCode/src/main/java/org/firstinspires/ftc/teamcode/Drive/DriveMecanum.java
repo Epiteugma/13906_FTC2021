@@ -196,10 +196,10 @@ public class DriveMecanum extends LinearOpMode {
                 }
             }
             // Capper up LEFT_TRIGGER AND DPAD_UP
-            else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0) {
+            else if(gamepad2.getButton(GamepadKeys.Button.START)) {
                 // if ( capperCurrentPosition < capperHighLimit){
                 capper.setRunMode(Motor.RunMode.RawPower);
-                capper.set(-gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) /2.5);
+                capper.set(-0.5);
                 // }
             }
             // Capper down LEFT_TRIGGER AND DPAD_DOWN
@@ -207,7 +207,7 @@ public class DriveMecanum extends LinearOpMode {
                 // if (capperCurrentPosition > capperLowLimit){
                 capper.setRunMode(Motor.RunMode.RawPower);
                 capper.set(gamepad2.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) /2.5);
-            // }
+                // }
             }
             else {
                 capper.stopMotor();
@@ -273,17 +273,12 @@ public class DriveMecanum extends LinearOpMode {
             // INTAKE / COLLECTOR CODE
             // Collect
             if(gamepad2.isDown(GamepadKeys.Button.BACK)) {
-                collector.set(+globalpowerfactor + 0.1);
+                collector.set(+globalpowerfactor + 0.2);
             } 
 
             // Release/Throw
-            else if(gamepad2.isDown(GamepadKeys.Button.START)) {
-                if (globalpowerfactor < 0.5){
-                    collector.set(-globalpowerfactor - 0.06);
-                }
-                else {
-                    collector.set(-globalpowerfactor + 0.39 );
-                }
+            else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0) {
+                    collector.set(gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER));
                 }
             // Stop collector (no action)
             else {
