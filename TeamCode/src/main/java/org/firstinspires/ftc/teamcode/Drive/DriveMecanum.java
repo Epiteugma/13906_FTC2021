@@ -152,10 +152,10 @@ public class DriveMecanum extends LinearOpMode {
               this.gamepad2.rumble(1,1,750);
             }
             // GlobalPowerFactor manipulation
-            if(gamepad1.getButton(CIRCLE) || gamepad2.getButton(GamepadKeys.Button.RIGHT_BUMPER)) {
+            if(gamepad1.getButton(GamepadKeys.Button.RIGHT_BUMPER) || gamepad2.getButton(GamepadKeys.Button.RIGHT_BUMPER)) {
                 globalpowerfactor += 0.2;
             }
-            else if(gamepad1.getButton(SQUARE) || gamepad2.getButton(GamepadKeys.Button.LEFT_BUMPER)) {
+            else if(gamepad1.getButton(GamepadKeys.Button.LEFT_BUMPER) || gamepad2.getButton(GamepadKeys.Button.LEFT_BUMPER)) {
                 globalpowerfactor -= 0.2;
             }
             if (globalpowerfactor >= 1){
@@ -278,7 +278,7 @@ public class DriveMecanum extends LinearOpMode {
 
             // Release/Throw
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0) {
-                    collector.set(gamepad.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER));
+                    collector.set(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER));
                 }
             // Stop collector (no action)
             else {
