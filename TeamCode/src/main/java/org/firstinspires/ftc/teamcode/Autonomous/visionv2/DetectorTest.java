@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode.Autonomous.visionv2;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 @TeleOp(name="Detector test-training", group="vision")
+@Disabled
 public class DetectorTest extends LinearOpMode {
     @Override
     public void runOpMode() {

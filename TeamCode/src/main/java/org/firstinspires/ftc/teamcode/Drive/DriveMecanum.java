@@ -17,15 +17,16 @@ import com.arcrobotics.ftclib.hardware.*;
 import com.arcrobotics.ftclib.hardware.motors.*;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
-@TeleOp(name = "FTC 2022 Drive (Mecanum) Final", group = "FTC22")
+@TeleOp(name = "TeleOp", group = "FTC22Tele")
 public class DriveMecanum extends LinearOpMode {
 
     // power factors
     public double globalpowerfactor = 1.0;
 
     public double duckSpinnersPower = 0;
-    public double lastDuckSpinnersPower = 0.2;
+    public double lastDuckSpinnersPower = 0.45;
 
+    public boolean armOvveriden = false;
     public double armPositionalPower = 0;
     public double armPower = Configurable.armPower;
     public int lowPosition = Configurable.lowPosition;
@@ -78,6 +79,8 @@ public class DriveMecanum extends LinearOpMode {
     @Override
     public void runOpMode() {
         // INIT CODE START HERE
+
+        double duckSpinnerPrevTime = 0;
 
         cargoDetector = new SensorRevTOFDistance(hardwareMap, "cargoDetector");
 
@@ -142,6 +145,9 @@ public class DriveMecanum extends LinearOpMode {
 
         // AFTER START CODE HERE
 
+        double globalPowerPrevTime1 = 0;
+        double globalPowerPrevTime2 = 0;
+
         while (opModeIsActive()) {
             // Orientation angles = IMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             heading = imu.getHeading();
@@ -152,10 +158,20 @@ public class DriveMecanum extends LinearOpMode {
               this.gamepad2.rumble(1,1,750);
             }
             // GlobalPowerFactor manipulation
-            if(gamepad1.getButton(GamepadKeys.Button.RIGHT_BUMPER) || gamepad2.getButton(GamepadKeys.Button.RIGHT_BUMPER)) {
+            if(gamepad1.getButton(GamepadKeys.Button.RIGHT_BUMPER) && System.currentTimeMillis() > globalPowerPrevTime1+200) {
+                globalPowerPrevTime1 = System.currentTimeMillis();
                 globalpowerfactor += 0.2;
             }
-            else if(gamepad1.getButton(GamepadKeys.Button.LEFT_BUMPER) || gamepad2.getButton(GamepadKeys.Button.LEFT_BUMPER)) {
+            if(gamepad2.getButton(GamepadKeys.Button.RIGHT_BUMPER) && System.currentTimeMillis() > globalPowerPrevTime2+200) {
+                globalPowerPrevTime2 = System.currentTimeMillis();
+                globalpowerfactor += 0.2;
+            }
+            if(gamepad1.getButton(GamepadKeys.Button.LEFT_BUMPER) && System.currentTimeMillis() > globalPowerPrevTime1+200) {
+                globalPowerPrevTime1 = System.currentTimeMillis();
+                globalpowerfactor -= 0.2;
+            }
+            if(gamepad2.getButton(GamepadKeys.Button.LEFT_BUMPER) && System.currentTimeMillis() > globalPowerPrevTime2+200) {
+                globalPowerPrevTime2 = System.currentTimeMillis();
                 globalpowerfactor -= 0.2;
             }
             if (globalpowerfactor >= 1){
@@ -182,7 +198,7 @@ public class DriveMecanum extends LinearOpMode {
             // Arm up DPAD_UP
             if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) {
                 arm.setRunMode(Motor.RunMode.PositionControl);
-                if (arm.getCurrentPosition() >= -1850) {
+                if (arm.getCurrentPosition() >= -1850 || armOvveriden) {
                     arm.setRunMode(Motor.RunMode.RawPower);
                     arm.set(-armPower);
                 }
@@ -190,7 +206,7 @@ public class DriveMecanum extends LinearOpMode {
             // Arm down DPAD_DOWN
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_DOWN)) {
                 arm.setRunMode(Motor.RunMode.PositionControl);
-                if (arm.getCurrentPosition() <= 0) {
+                if (arm.getCurrentPosition() <= 0 || armOvveriden) {
                     arm.setRunMode(Motor.RunMode.RawPower);
                     arm.set(armPower);
                 }
@@ -206,7 +222,7 @@ public class DriveMecanum extends LinearOpMode {
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0) {
                 // if (capperCurrentPosition > capperLowLimit){
                 capper.setRunMode(Motor.RunMode.RawPower);
-                capper.set(gamepad2.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) /2.5);
+                capper.set(gamepad2.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) /2.15);
                 // }
             }
             else {
@@ -251,6 +267,7 @@ public class DriveMecanum extends LinearOpMode {
                 else {
                     if (this.gamepad2.touchpad){
                         arm.resetEncoder();
+                        armOvveriden = false;
                     }
                     lastClawPosition = arm.getCurrentPosition();
                     // OLD now proportional???
@@ -267,7 +284,8 @@ public class DriveMecanum extends LinearOpMode {
                 if(gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) arm.set(-0.5);
                 else if(gamepad2.isDown(GamepadKeys.Button.DPAD_DOWN)) arm.set(0.5);
                 else arm.set(0);
-                arm.resetEncoder();
+                armOvveriden = true;
+                // arm.resetEncoder();
             }
 
             // INTAKE / COLLECTOR CODE
@@ -278,7 +296,7 @@ public class DriveMecanum extends LinearOpMode {
 
             // Release/Throw
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0) {
-                    collector.set(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER));
+                    collector.set(-0.8 * gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER));
                 }
             // Stop collector (no action)
             else {
@@ -298,7 +316,8 @@ public class DriveMecanum extends LinearOpMode {
             else if(gamepad1.isDown(GamepadKeys.Button.DPAD_DOWN)) {
                 duckSpinnersPower -= 0.03;
             }
-            else if (gamepad1.getButton(SQUARE)) {
+            else if (gamepad1.getButton(SQUARE) && duckSpinnerPrevTime+250 <= System.currentTimeMillis()) {
+                duckSpinnerPrevTime = System.currentTimeMillis();
                 if (duckSpinners.get() != 0) {
                     lastDuckSpinnersPower = duckSpinnersPower;
                     duckSpinnersPower = 0;
@@ -312,6 +331,7 @@ public class DriveMecanum extends LinearOpMode {
             // Check touch sensors to reset arm encoder
             if (armTouch1.isPressed() || armTouch2.isPressed()){
                 arm.resetEncoder();
+                armOvveriden = false;
             }
 
             // FULL SPEED NAVIGATION
@@ -348,42 +368,30 @@ public class DriveMecanum extends LinearOpMode {
 
             // New colored telemetry
             String blue = "#001dff";
+            String red = "#EF3F49";
             String yellow = "#e7ff00";
             String green = "#11ff00";
             String orange = "#ff9900";
 
             cTelemetry("Probably Detected Cargo: ","def",orange, detectedCargo);
-            cTelemetry("GlobalPowerFactor: ","def",blue, String.valueOf(globalpowerfactor));
-            cTelemetry("frontRight: ","def",blue, String.valueOf(frontRight.get()));
-            cTelemetry("frontLeft: ","def",blue, String.valueOf(frontLeft.get()));
-            cTelemetry("backRight: ","def",blue , String.valueOf(backRight.get()));
-            cTelemetry("backLeft: ","def",blue, String.valueOf(backLeft.get()));
-            cTelemetry("Arm: ","def",blue , String.valueOf(arm.get()));
+            cTelemetry("GlobalPowerFactor: ","def",red, String.valueOf(globalpowerfactor));
+            cTelemetry("frontRight: ","def",red, String.valueOf(frontRight.get()));
+            cTelemetry("frontLeft: ","def",red, String.valueOf(frontLeft.get()));
+            cTelemetry("backRight: ","def",red , String.valueOf(backRight.get()));
+            cTelemetry("backLeft: ","def",red, String.valueOf(backLeft.get()));
+            cTelemetry("Arm: ","def",red , String.valueOf(arm.get()));
             cTelemetry("Arm ticks: ","def",green, String.valueOf(lastClawPosition));
-            cTelemetry("Arm positional power: ","def",blue, String.valueOf(armPositionalPower));
-            cTelemetry("Collector: ","def",blue, String.valueOf(collector.get()));
-            cTelemetry("DucksSpinners power: ","def",blue, String.valueOf(duckSpinners.get()));
+            cTelemetry("Arm positional power: ","def",red, String.valueOf(armPositionalPower));
+            cTelemetry("Collector: ","def",red, String.valueOf(collector.get()));
+            cTelemetry("DucksSpinners power: ","def",red, String.valueOf(duckSpinners.get()));
             cTelemetry("DucksSpinners power variable: ","def",yellow, String.valueOf(duckSpinnersPower));
             cTelemetry("Initial Box Height: ","def",yellow, String.valueOf(collectorBoxHeight));
             cTelemetry("Height of cargo: ","def",yellow, String.valueOf(collectorBoxHeight - currentCargoDistance));
             cTelemetry("Probably Prev Detected Cargo: ","def",orange, prevDetectedCargo);
-
-
-//            telemetry.addData("Probably Detected Cargo: ", detectedCargo);
-//            telemetry.addData("Probably Prev Detected Cargo: ", prevDetectedCargo);
-//            telemetry.addData("GlobalPowerFactor: ", globalpowerfactor);
-//            telemetry.addData("frontRight: ", frontRight.get());
-//            telemetry.addData("frontLeft: ", frontLeft.get());
-//            telemetry.addData("backRight: ", backRight.get());
-//            telemetry.addData("backLeft: ", backLeft.get());
-//            telemetry.addData("Arm: ", arm.get());
-//            telemetry.addData("Arm ticks: ",lastClawPosition);
-//            telemetry.addData("Arm positional power: ",armPositionalPower);
-//            telemetry.addData("Collector: ", collector.get());
-//            telemetry.addData("DucksSpinners power variable: ", duckSpinnersPower);
-//            telemetry.addData("DucksSpinners power: ", duckSpinners.get());
-//            telemetry.addData("Initial Box Height: ", collectorBoxHeight);
-//            telemetry.addData("Height of cargo: ", collectorBoxHeight - currentCargoDistance);
+            cTelemetry("frontRight ticks: ","def",green, String.valueOf(frontRight.getCurrentPosition()));
+            cTelemetry("frontLeft ticks: ","def",green, String.valueOf(frontLeft.getCurrentPosition()));
+            cTelemetry("backRight ticks: ","def",green, String.valueOf(backRight.getCurrentPosition()));
+            cTelemetry("backLeft ticks: ","def",green, String.valueOf(backLeft.getCurrentPosition()));
             telemetry.update();
             prevDetectedCargo = detectedCargo;
         }

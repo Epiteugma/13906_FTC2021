@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Autonomous.visionv1;
 
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -13,7 +15,7 @@ import org.openftc.easyopencv.OpenCvPipeline;
 
 public class TseDetector extends OpenCvPipeline {
 
-    static double TRESHOLD = 0.6;
+    static double TRESHOLD = 0.2f;
 
     public enum Location {
         LEFT,
@@ -26,30 +28,34 @@ public class TseDetector extends OpenCvPipeline {
     private Location location;
 
 //    static final Rect LEFT_ROI = new Rect(
-//            new Point(100, 500),
-//            new Point(400, 800));
+//            new Point(25, 80),
+//            new Point(95, 190));
 //    static final Rect CENTER_ROI = new Rect(
-//            new Point(500, 500),
-//            new Point(800, 800));
+//            new Point(125, 80),
+//            new Point(195, 190));
 //    static final Rect RIGHT_ROI = new Rect(
-//            new Point(900, 500),
-//            new Point(1200, 800));
+//            new Point(230, 80),
+//            new Point(300, 190));
 
     static final Rect LEFT_ROI = new Rect(
-            new Point(5, 70),
-            new Point(85, 200));
+            new Point(0, 80),
+            new Point(106, 240)
+    );
     static final Rect CENTER_ROI = new Rect(
-            new Point(120, 70),
-            new Point(200, 200));
+            new Point(106, 80),
+            new Point(212, 240)
+    );
     static final Rect RIGHT_ROI = new Rect(
-            new Point(235, 70),
-            new Point(315, 200));
+            new Point(212, 80),
+            new Point(320, 240)
+    );
 
+    @Override
     public Mat processFrame(Mat input) {
         Imgproc.cvtColor(input, mat, Imgproc.COLOR_RGB2HSV);
         // TODO: change this to HSV values for the tse
-        Scalar lowHSV = new Scalar(0, 20, 40);
-        Scalar highHSV = new Scalar(10, 255, 255);
+        Scalar lowHSV = new Scalar(0, 75, 0);
+        Scalar highHSV = new Scalar(15, 255, 255);
 
         Core.inRange(mat, lowHSV, highHSV, mat);
 
@@ -83,11 +89,9 @@ public class TseDetector extends OpenCvPipeline {
             location = Location.RIGHT;
 //            telemetry.addData("Location", "RIGHT");
         }
-        else {
+        else if(itemCenter) {
             location = Location.CENTER;
-//            telemetry.addData("Location", "CENTER");
         }
-//        telemetry.update();
 
         //TODO: Check if it detects tse(change the hsv values)
 
@@ -101,7 +105,12 @@ public class TseDetector extends OpenCvPipeline {
         return mat;
     }
 
-    public Location getLocation() {
+    public Location getLocation(LinearOpMode opMode) {
+        while(true) {
+            if (location != null || opMode.isStopRequested()) {
+                break;
+            }
+        }
         return location;
     }
 }
