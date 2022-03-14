@@ -652,14 +652,16 @@ public class Robot {
 
     public void duckSpin(double power, long timeToSpin) {
         duckSpinners.setRunMode(Motor.RunMode.PositionControl);
-        duckSpinnersStartPos = duckSpinners.getCurrentPosition;
+        duckSpinnersStartPos = duckSpinners.getCurrentPosition();
         long timeMillis = System.currentTimeMillis();
         while(System.currentTimeMillis() < timeMillis+timeToSpin && linearOpMode.opModeIsActive()) {
-            if(duckSpinners.getCurrentPosition){
-              if(power > 0){
+            if(power > 0){
+              if(duckSpinnersStartPosition+30 <duckSpinners.getCurrentPosition()){
                 power += 0.03;
               }
-              else if (power < 0){
+            }
+            else if (power < 0){
+              if(duckSpinnersStartPosition-30 >duckSpinners.getCurrentPosition()){
                 power -= 0.03;
               }
             duckSpinners.set(power);
