@@ -26,7 +26,7 @@ public class DriveMecanum extends LinearOpMode {
     public double duckSpinnersPower = 0;
     public double lastDuckSpinnersPower = 0.45;
 
-    public boolean armOvveriden = false;
+    public boolean armOverride = false;
     public double armPositionalPower = 0;
     public double armPower = Configurable.armPower;
     public int lowPosition = Configurable.lowPosition;
@@ -89,23 +89,24 @@ public class DriveMecanum extends LinearOpMode {
         // Motors, servos initialization
         Motor duckSpinner1 = new Motor( hardwareMap, "duckSpinner1");
         Motor duckSpinner2 = new Motor( hardwareMap, "duckSpinner2");
+        duckSpinner1.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        duckSpinner2.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         MotorGroup duckSpinners = new MotorGroup(duckSpinner1, duckSpinner2);
+        duckSpinners.setRunMode(Motor.RunMode.RawPower);
         Motor arm = new Motor(hardwareMap, "arm");
+        arm.resetEncoder();
         Motor collector = new Motor(hardwareMap, "collector");
         CRServo capper = new CRServo(hardwareMap, "capper");
         Motor frontRight = new Motor(hardwareMap, "frontRight");
+        frontRight.setInverted(true);
         Motor frontLeft = new Motor(hardwareMap, "frontLeft");
         Motor backRight = new Motor(hardwareMap, "backRight");
         Motor backLeft = new Motor(hardwareMap, "backLeft");
 
-        frontRight.setInverted(true);
-        arm.resetEncoder();
-        duckSpinners.setRunMode(Motor.RunMode.RawPower);
-
-        backLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
-        backRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
-        frontLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        frontLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        backRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        backLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
 
         // IMU init.
         RevIMU imu = new RevIMU(hardwareMap);
@@ -198,7 +199,7 @@ public class DriveMecanum extends LinearOpMode {
             // Arm up DPAD_UP
             if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) {
                 arm.setRunMode(Motor.RunMode.PositionControl);
-                if (arm.getCurrentPosition() >= -1850 || armOvveriden) {
+                if (arm.getCurrentPosition() >= -1850 || armOverride) {
                     arm.setRunMode(Motor.RunMode.RawPower);
                     arm.set(-armPower);
                 }
@@ -206,7 +207,7 @@ public class DriveMecanum extends LinearOpMode {
             // Arm down DPAD_DOWN
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_DOWN)) {
                 arm.setRunMode(Motor.RunMode.PositionControl);
-                if (arm.getCurrentPosition() <= 0 || armOvveriden) {
+                if (arm.getCurrentPosition() <= 0 || armOverride) {
                     arm.setRunMode(Motor.RunMode.RawPower);
                     arm.set(armPower);
                 }
@@ -267,7 +268,7 @@ public class DriveMecanum extends LinearOpMode {
                 else {
                     if (this.gamepad2.touchpad){
                         arm.resetEncoder();
-                        armOvveriden = false;
+                        armOverride = false;
                     }
                     lastClawPosition = arm.getCurrentPosition();
                     // OLD now proportional???
@@ -284,7 +285,7 @@ public class DriveMecanum extends LinearOpMode {
                 if(gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) arm.set(-0.5);
                 else if(gamepad2.isDown(GamepadKeys.Button.DPAD_DOWN)) arm.set(0.5);
                 else arm.set(0);
-                armOvveriden = true;
+                armOverride = true;
                 // arm.resetEncoder();
             }
 
@@ -331,7 +332,7 @@ public class DriveMecanum extends LinearOpMode {
             // Check touch sensors to reset arm encoder
             if (armTouch1.isPressed() || armTouch2.isPressed()){
                 arm.resetEncoder();
-                armOvveriden = false;
+                armOverride = false;
             }
 
             // FULL SPEED NAVIGATION

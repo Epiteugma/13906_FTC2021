@@ -14,7 +14,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-//import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.Autonomous.visionv1.*;
 
 // Item detector based on the ground tape
@@ -48,9 +47,6 @@ public class Robot {
     SensorRevTOFDistance cargoDetector;
     double armPower = 0;
     boolean armHoldPosition = false;
-//    TouchSensor touchSensorSideRight;
-//    TouchSensor touchSensorSideLeft;
-//    TouchSensor touchSensorFrontLeft;
     
     // Tunable variables to tune from the dashboard, must be public and static so the dashboard can access them.
     // Always have to be in cm!!!
@@ -62,6 +58,7 @@ public class Robot {
     public static double driveGain = 0.05;
     public static double strafeGain = 0.125;
     public static double turnGain = 0.1;
+    public int duckSpinnersStartPos = 0;
     // Old Wheels
     // public static double wheelRadius = 7/2;
     // New wheels
@@ -127,32 +124,11 @@ public class Robot {
         DOWN(0);
 
         public final int label;
-        private Position(int label) {
+        Position(int label) {
             this.label = label;
         }
     }
-
-    private boolean atTargetPosition(Motor motor, double target) {
-        if(target < 0) target *= -1;
-        if(motor.getCurrentPosition() >= target) return true;
-        return false;
-    }
-
-//    public String inContact() {
-//        touchSensorSideRight = hardwareMap.get(TouchSensor.class, "rightSideTouch");
-//        touchSensorSideLeft = hardwareMap.get(TouchSensor.class, "leftSideTouch");
-//        touchSensorFrontLeft = hardwareMap.get(TouchSensor.class, "frontLeftTouch");
-//
-//        if (touchSensorSideLeft.isPressed()) {
-//            return "Left side";
-//        } else if (touchSensorSideRight.isPressed()) {
-//            return "Right side";
-//        } else if (touchSensorFrontLeft.isPressed()){
-//            return "Front side";
-//        } else {
-//            return "Not In Contact";
-//        }
-//    }
+    
     public double getIMUAngle(Axis axis) {
         double[] angles = imu.getAngles();
         switch(axis) {
@@ -189,33 +165,10 @@ public class Robot {
 //    }
 
     public TseDetector.Location getTsePos() {
-//        detector = new TseDetector();
-//        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-//        OpenCvWebcam webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
-//        webcam.setPipeline(detector);
-//        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-//            @Override
-//            public void onOpened() {
-//                webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
-//                FtcDashboard.getInstance().startCameraStream(webcam, 0);
-//            }
-//
-//            @Override
-//            public void onError(int errorCode) {
-//
-//            }
-//        });
 
-        TseDetector.Location location = detector.getLocation(linearOpMode);
-        return location;
+        return detector.getLocation(linearOpMode);
     }
-
-//    public Detector.ElementPosition getTsePos() {
-//        Detector.ElementPosition pos = new Detector(hardwareMap).getElementPosition();
-//        telemetry.addData("The shipping element is located at the ", pos);
-//        telemetry.update();
-//        return pos;
-//    }
+    
 
     private void HALT() {
         frontRight.stopMotor();
@@ -536,81 +489,6 @@ public class Robot {
         resetEncoders();
     }
 
-//    public void turn(Direction dir, double power, double degrees) {
-//        frPower = flPower = brPower = blPower = power;
-//        targetRotations = degrees / 360 * turnCircumference;
-//        targetTicks = targetRotations * driveTicksPerRev;
-//        resetEncoders();
-//        // setDriveTolerance(driveErrorTolerance, driveErrorTolerance, driveErrorTolerance, driveErrorTolerance);
-//        setDriveTargetPos(ticksToTurn, ticksToTurn, ticksToTurn, ticksToTurn);
-//        switch (dir){
-//            case LEFT:
-//                while (((frCurrentTicks < targetTicks && flCurrentTicks < targetTicks) || (brCurrentTicks < targetTicks && blCurrentTicks < targetTicks)) && linearOpMode.opModeIsActive()) {
-//                    if (frCurrentTicks >= targetTicks) {
-//                        frPower = 0;
-//                    }
-//                    if (flCurrentTicks >= targetTicks) {
-//                        flPower = 0;
-//                    }
-//                    if (brCurrentTicks >= targetTicks) {
-//                        brPower = 0;
-//                    }
-//                    if (blCurrentTicks >= targetTicks) {
-//                        blPower = 0;
-//                    }
-//                    setDrivePower(-frPower, -flPower, brPower, blPower);
-//                }
-//                break;
-//            case RIGHT:
-//                while (((frCurrentTicks < targetTicks && flCurrentTicks < targetTicks) || (brCurrentTicks < targetTicks && blCurrentTicks < targetTicks)) && linearOpMode.opModeIsActive()) {
-//                    if (frCurrentTicks >= targetTicks) {
-//                        frPower = 0;
-//                    }
-//                    if (flCurrentTicks >= targetTicks) {
-//                        flPower = 0;
-//                    }
-//                    if (brCurrentTicks >= targetTicks) {
-//                        brPower = 0;
-//                    }
-//                    if (blCurrentTicks >= targetTicks) {
-//                        blPower = 0;
-//                    }
-//                    setDrivePower(frPower, flPower, -brPower, -blPower);
-//                }
-//                break;
-//            }
-//        while (isMoving() && linearOpMode.opModeIsActive()) {
-//            telemetry.addData("Robot is turning ", String.valueOf(degrees), "to the ", dir, "with a power of ", power);
-//            telemetry.addData("Target Ticks to turn: ", ticksToTurn);
-//            telemetry.update();
-//        }
-//        telemetry.addData("Robot has turned", String.valueOf(degrees), "to the", dir);
-//        telemetry.update();
-//    }
-
-
-
-//    public void moveArm(int pos, double power) {
-//        //TODO: Calibrate the ticks needed for each of the 3 levels
-//        arm.setRunMode(Motor.RunMode.PositionControl);
-//        arm.resetEncoder();
-//        arm.setPositionTolerance(40);
-//        lastClawPosition = pos;
-//        arm.setTargetPosition(pos);
-////        if(arm.getCurrentPosition() > lastClawPosition){
-////            power = -power;
-////        }
-//        while (!arm.atTargetPosition()) {
-//            armPower = power;
-//            telemetry.addData("The arm is moving to ", lastClawPosition +" with a power of " + power);
-//            telemetry.addData("Arm Ticks: ", arm.getCurrentPosition());
-//            telemetry.update();
-//            arm.setRunMode(Motor.RunMode.PositionControl);
-//        }
-//        telemetry.addData("The arm has moved to the ", String.valueOf(pos), " from ", lastClawPosition);
-//        telemetry.update();
-//    }
-
     public void moveArm(int pos, double power) {
         arm.setTargetPosition(pos);
         armPower = power;
@@ -655,17 +533,17 @@ public class Robot {
         duckSpinnersStartPos = duckSpinners.getCurrentPosition();
         long timeMillis = System.currentTimeMillis();
         while(System.currentTimeMillis() < timeMillis+timeToSpin && linearOpMode.opModeIsActive()) {
-            if(power > 0){
-              if(duckSpinnersStartPosition+30 <duckSpinners.getCurrentPosition()){
-                power += 0.03;
-              }
+            if (power > 0) {
+                if (duckSpinnersStartPos + 30 < duckSpinners.getCurrentPosition()) {
+                    power += 0.03;
+                }
+            } else if (power < 0) {
+                if (duckSpinnersStartPos - 30 > duckSpinners.getCurrentPosition()) {
+                    power -= 0.03;
+                }
+                duckSpinners.set(power);
             }
-            else if (power < 0){
-              if(duckSpinnersStartPosition-30 >duckSpinners.getCurrentPosition()){
-                power -= 0.03;
-              }
-            duckSpinners.set(power);
-            }
+        }
         duckSpinners.set(0);
     }
 
