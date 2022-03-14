@@ -52,47 +52,25 @@ public class BlueAllianceRightWarehouse extends LinearOpMode {
         TseDetector.Location itemPos = robot.getTsePos();
         telemetry.addData("Detected Cargo: ", itemPos);
         telemetry.update();
-        robot.drive(Robot.Direction.FORWARDS,0.8,20);
-        if(itemPos.equals(TseDetector.Location.RIGHT)) {
-            robot.turn(0.8, 40);
-            robot.drive(Robot.Direction.FORWARDS,0.6,39);
-            robot.moveArm(Robot.Position.HIGH.label,0.08);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 10);
+        robot.turn(0.8, 90);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 55);
+        robot.turn(0.8, 0);
+        robot.drive(Robot.Direction.BACKWARDS, 0.8, 0.01); // UNKNOWN BUG!!!
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 24);
+        switch (itemPos) {
+            case LEFT: robot.moveArm(Robot.Position.LOW.label, 0.5); break;
+            case RIGHT: robot.moveArm(Robot.Position.HIGH.label, 0.5); break;
+            case CENTER: robot.moveArm(Robot.Position.MID.label, 0.5); break;
         }
-        else if(itemPos.equals(TseDetector.Location.LEFT)) {
-            robot.turn(0.8, 70);
-            robot.drive(Robot.Direction.FORWARDS,0.8,65);
-            robot.turn(0.8, -5);
-            robot.moveArm(Robot.Position.LOW.label,0.08);
-        }
-        // CENTER
-        else {
-            robot.turn(0.8, 65);
-            robot.drive(Robot.Direction.FORWARDS,0.6,45);
-            robot.turn(0.8, 26);
-            robot.drive(Robot.Direction.FORWARDS,0.6,5);
-            robot.moveArm(Robot.Position.MID.label,0.08);
-        }
-        robot.intake(Robot.Direction.OUT,0.5);
-        robot.turn(0.8,0);
-        if(itemPos.equals(TseDetector.Location.RIGHT)) {
-            robot.drive(Robot.Direction.BACKWARDS,0.8,33);
-            robot.moveArm(Robot.Position.DOWN.label,0.1);
-            robot.turn(0.8,90);
-            robot.drive(Robot.Direction.BACKWARDS,0.8,140);
-        }
-        else {
-            robot.drive(Robot.Direction.BACKWARDS,0.8,25);
-            robot.moveArm(Robot.Position.DOWN.label,0.1);
-            robot.turn(0.8,90);
-            robot.drive(Robot.Direction.BACKWARDS,0.8,120);
-        }
-        robot.drive(Robot.Direction.BACKWARDS,0.8,100);
-        robot.turn(0.3,138);
-        robot.duckSpin(-0.45,5500);
-        robot.drive(Robot.Direction.BACKWARDS,0.8,2);
-        robot.turn(0.8,100);
-        robot.moveArm(Robot.Position.HIGH.label, 0.1);
-        robot.turn(0.8,90);
-        robot.drive(Robot.Direction.FORWARDS,1,230);
+        robot.intake(Robot.Direction.OUT, 0.8);
+        robot.drive(Robot.Direction.BACKWARDS, 0.8, 18);
+        robot.turn(0.8, 90);
+        robot.drive(Robot.Direction.BACKWARDS, 0.8, 127);
+        robot.turn(0.8, 135);
+        robot.duckSpin(0.55, 3000);
+        robot.turn(0.8, 107);
+        robot.moveArm(Robot.Position.HIGH.label, 0.5);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 230);
     }
 }
