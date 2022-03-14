@@ -651,12 +651,19 @@ public class Robot {
     }
 
     public void duckSpin(double power, long timeToSpin) {
-        duckSpinners.setRunMode(Motor.RunMode.RawPower);
-        // TODO: calibrate time to spin.
+        duckSpinners.setRunMode(Motor.RunMode.PositionControl);
+        duckSpinnersStartPos = duckSpinners.getCurrentPosition;
         long timeMillis = System.currentTimeMillis();
         while(System.currentTimeMillis() < timeMillis+timeToSpin && linearOpMode.opModeIsActive()) {
+            if(duckSpinners.getCurrentPosition){
+              if(power > 0){
+                power += 0.03;
+              }
+              else if (power < 0){
+                power -= 0.03;
+              }
             duckSpinners.set(power);
-        }
+            }
         duckSpinners.set(0);
     }
 
