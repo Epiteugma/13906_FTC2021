@@ -5,6 +5,7 @@ import android.util.Log;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.hardware.RevIMU;
+import com.arcrobotics.ftclib.hardware.SensorColor;
 import com.arcrobotics.ftclib.hardware.SensorRevTOFDistance;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorGroup;
@@ -42,9 +43,10 @@ public class Robot {
     Motor backLeft;
     Motor collector;
     Motor arm;
-    MotorGroup duckSpinners;
+    Motor duckSpinner;
     RevIMU imu;
-    SensorRevTOFDistance cargoDetector;
+    SensorColor cargoDetector;
+    SensorRevTOFDistance frontDistance;
     double armPower = 0;
     boolean armHoldPosition = false;
     
@@ -62,10 +64,11 @@ public class Robot {
     // Old Wheels
     // public static double wheelRadius = 7/2;
     // New wheels
-    public static double wheelRadius = 15/2;
+    public static double wheelRadius = 7.5;
     public static double wheelCircumference = 2 * Math.PI * wheelRadius;
     public static double centerToWheel = 21;
-    public static double turnCircumference = 2 * Math.PI * centerToWheel;
+//    public static double turnCircumference = 2 * Math.PI * centerToWheel;
+    public static double normalFullPowerVelocity = 2700;
 
     // Ticks Angles and positions
     public int lastClawPosition = 0;
@@ -92,12 +95,17 @@ public class Robot {
     public int brCurrentTicks;
     public int blCurrentTicks;
 
+    // Barriers distance to wall
+    public static double afterBarriers = 500;
+    public static double beforeBarriers = 800;
+
+
     // cargoDetector
     public String detectedCargo = "None";
     public double cubeHeight= 5.08;
     public double ballHeight = 6.99;
     public double duckHeight = 5.4;
-    public double currentCargoDistance = 0;
+    public int[] color;
     public double collectorBoxHeight = 15;
 
     private Telemetry telemetry;
@@ -120,7 +128,7 @@ public class Robot {
     public enum Position {
         LOW(-470),
         MID(-1100),
-        HIGH(-1800),
+        HIGH(-1700),
         DOWN(0);
 
         public final int label;
@@ -141,6 +149,19 @@ public class Robot {
         }
         return 0;
     }
+
+//    public double getIMUAccel(Axis axis) {
+//        doubl angles = imu.getHeading();
+//        switch(axis) {
+//            case X:
+//                return angles[0];
+//            case Y:
+//                return angles[1];
+//            case Z:
+//                return angles[2];
+//        }
+//        return 0;
+//    }
 
     // OLD!!!
 //    public DuckDetector.Location getDuckPos() {
@@ -170,7 +191,7 @@ public class Robot {
     }
     
 
-    private void HALT() {
+    public void HALT() {
         frontRight.stopMotor();
         backRight.stopMotor();
         frontLeft.stopMotor();
@@ -209,10 +230,46 @@ public class Robot {
     }
 
     public void setDrivePower(double frPower, double flPower, double brPower, double blPower) {
+        runOnPower();
         frontRight.set(frPower);
         frontLeft.set(flPower);
         backRight.set(brPower);
         backLeft.set(blPower);
+    }
+
+    public boolean overCargo(){
+//        while(linearOpMode.opModeIsActive()) {
+//            Log.i("Distance from the ground(OverCargo): ", String.valueOf(getIMUAngle(Axis.Y)));
+//        }
+        if(getIMUAngle(Axis.Y) > 3){
+            Log.i("Over Cargo: ","true");
+        }
+        else{
+            Log.i("Over Cargo: ","false");
+        }
+        return getIMUAngle(Axis.Y) > 3;
+    }
+
+//    public void AutoCollect(double initialHeight,double power){
+//        if(linearOpMode.opModeIsActive()){
+//            if (!cargoDetection().equals("None") && !overCargo(initialHeight)) {
+//                collector.set(1);
+//                this.setAllDrivePower(power);
+//            }
+//            else{
+//                while(overCargo(initialHeight)){
+//                    this.setAllDrivePower(-power);
+//                }
+//            }
+//        }
+//    }
+
+    public void setAllDriveTargetPos(double pos){
+        setDriveTargetPos(pos,pos,pos,pos);
+    }
+
+    public void setAllDrivePower(double power) {
+        setDrivePower(power, power, power, power);
     }
 
 //    public void strafe(Direction dir, double power, double targetDistance) {
@@ -349,6 +406,13 @@ public class Robot {
         backRight.setPositionTolerance(brtolerance);
         backLeft.setPositionTolerance(bltolerance);
     }
+
+//    public void driveOverTheBarrier(double lastAccel, double power){
+//        double currentAccel = this.getIMUAngle(Axis.Y);
+//        while (currentAccel < lastAccel){
+//            this.setAllDrivePower(power);
+//        }
+//    }
 
     public void drive(Direction dir, double power, double targetDistance) {
         Log.i("Autonomous", "Drive called. " + dir.name());
@@ -490,12 +554,11 @@ public class Robot {
     }
 
     public void moveArm(int pos, double power) {
+        power = 0.08;
         arm.setTargetPosition(pos);
         armPower = power;
         while (!arm.atTargetPosition()) {}
-        try {
-            Thread.sleep(100);
-        } catch (Exception ignored) {}
+        this.pause(100);
     }
 
     public void intake(Direction dir, double power) {
@@ -523,38 +586,80 @@ public class Robot {
             }
         }
         collector.set(0);
-//        try {
-//            Thread.sleep(500);
-//        } catch (InterruptedException ignored) {}
+    }
+
+    public void pause(long time) {
+        try {
+            Thread.sleep(time);
+        } catch (InterruptedException ignored) {}
     }
 
     public void duckSpin(double power, long timeToSpin) {
-        duckSpinners.setRunMode(Motor.RunMode.PositionControl);
-        duckSpinnersStartPos = duckSpinners.getCurrentPosition();
+//        duckSpinner.setRunMode(Motor.RunMode.PositionControl);
+        //duckSpinnersStartPos = duckSpinner.getCurrentPosition();
         long timeMillis = System.currentTimeMillis();
         while(System.currentTimeMillis() < timeMillis+timeToSpin && linearOpMode.opModeIsActive()) {
-            if (power > 0) {
-                if (duckSpinnersStartPos + 30 < duckSpinners.getCurrentPosition()) {
-                    power += 0.03;
-                }
-            } else if (power < 0) {
-                if (duckSpinnersStartPos - 30 > duckSpinners.getCurrentPosition()) {
-                    power -= 0.03;
-                }
-                duckSpinners.set(power);
-            }
+//            if (power > 0) {
+//                if (duckSpinnersStartPos < duckSpinner.getCurrentPosition()) {
+//                    power += 0.03;
+//                }
+//            }
+//            else if (power < 0) {
+//                if (duckSpinnersStartPos < duckSpinner.getCurrentPosition()) {
+//                    power -= 0.03;
+//                }
+//            }
+//            duckSpinner.setRunMode(Motor.RunMode.RawPower);
+            duckSpinner.set(power);
+            telemetry.addData("Duck Spinner Power: ", String.valueOf(power));
+            telemetry.update();
         }
-        duckSpinners.set(0);
+        duckSpinner.setRunMode(Motor.RunMode.RawPower);
+        duckSpinner.set(0);
+    }
+
+    public double getVelocity(){
+        double frVelo = frontRight.getCorrectedVelocity();
+        double flVelo = frontLeft.getCorrectedVelocity();
+        double brVelo = backRight.getCorrectedVelocity();
+        double blVelo = backLeft.getCorrectedVelocity();
+        double averageVelo = (frVelo + flVelo + brVelo + blVelo)/4;
+//        telemetry.addData("Current Velocity: ",averageVelo);
+//        telemetry.update();
+        return averageVelo;
+    }
+
+    public void driverOverBarriers(Direction dir,double power){
+        Log.i("CurrentDistance: ", String.valueOf(frontDistance.getDistance(DistanceUnit.CM)));
+        switch(dir) {
+            case FORWARDS:
+                while (frontDistance.getDistance(DistanceUnit.CM) > afterBarriers) {
+                    Log.i("Forwards Current Distance: ", String.valueOf(frontDistance.getDistance(DistanceUnit.CM)));
+                    this.drive(dir, power,5);
+//                    this.turn(1,-90);
+                }
+                break;
+            case BACKWARDS:
+                while (frontDistance.getDistance(DistanceUnit.CM) < beforeBarriers) {
+                    Log.i("Backwards Current Distance: ", String.valueOf(frontDistance.getDistance(DistanceUnit.CM)));
+                    this.setDrivePower(-power, -power, -power, -power);
+                }
+                break;
+        }
+        this.HALT();
+        Log.i("CurrentDistance: ", String.valueOf(frontDistance.getDistance(DistanceUnit.CM)));
     }
 
     public String cargoDetection(){
         // Cargo detection
-        // The less the distance from the ground subtraction the higher object we are possessing
-        currentCargoDistance = cargoDetector.getDistance(DistanceUnit.CM);
-        if (6.5 < collectorBoxHeight - currentCargoDistance && collectorBoxHeight - currentCargoDistance < 9) {
+        color = cargoDetector.getARGB();
+        Log.i("Color 1: ", String.valueOf(color[1]));
+        Log.i("Color 2: ", String.valueOf(color[2]));
+        Log.i("Color 3: ", String.valueOf(color[3]));
+        if (color[1] > 210 && color[2] > 160 && 110 < color[3] && color[3] < 160) {
             return "Ball";
         }
-        else if(3.5 < collectorBoxHeight - currentCargoDistance && collectorBoxHeight - currentCargoDistance < 6) {
+        else if(190 < color[1] && color[1] > 200 && 160 < color[2] && color[2] > 170 && 100 < color[3] && color[3] > 110) {
             return "Cube OR Duck";
         }
         else {
@@ -591,10 +696,11 @@ public class Robot {
         frontRight = (Motor)motors.get(3);
         arm = (Motor) motors.get(4);
         collector = (Motor) motors.get(5);
-        duckSpinners = (MotorGroup) motors.get(6);
+        duckSpinner = (Motor) motors.get(6);
         imu = (RevIMU) motors.get(7);
         imu.init();
-        cargoDetector = (SensorRevTOFDistance) motors.get(8);
+        cargoDetector = (SensorColor) motors.get(8);
+        frontDistance = (SensorRevTOFDistance) motors.get(9);
 
         // Set the zero power behavior of the motors.
         // We don't want them to slide after every trajectory or else we will lose accuracy.
@@ -602,6 +708,8 @@ public class Robot {
         frontLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+
+//        duckSpinner.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
 
         // Run using encoders!!!
         arm.setRunMode(Motor.RunMode.PositionControl);

@@ -1,8 +1,9 @@
 package org.firstinspires.ftc.teamcode.Drive;
 
 // Navigation and IMU
+import android.util.Log;
+
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 // Sensors , Motors and Opmode
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -24,7 +25,7 @@ public class DriveMecanum extends LinearOpMode {
     public double globalpowerfactor = 1.0;
 
     public double duckSpinnersPower = 0;
-    public double lastDuckSpinnersPower = 0.45;
+    public double lastDuckSpinnersPower = 0.25;
 
     public boolean armOverride = false;
     public double armPositionalPower = 0;
@@ -48,18 +49,20 @@ public class DriveMecanum extends LinearOpMode {
     public double cubeHeight= 5.08;
     public double ballHeight = 6.99;
     public double duckHeight = 5.4;
-    public double currentCargoDistance = 0;
+    public int[] color;
     public double collectorBoxHeight = 0;
-    SensorRevTOFDistance cargoDetector = null;
+    SensorColor cargoDetector = null;
 
     public String cargoDetection(){
         // Cargo detection
-        // The less the distance from the ground subtraction the higher object we are possessing
-        currentCargoDistance = cargoDetector.getDistance(DistanceUnit.CM);
-        if (3.45 < collectorBoxHeight - currentCargoDistance && collectorBoxHeight - currentCargoDistance < 7.5) {
+        color = cargoDetector.getARGB();
+        Log.i("Color 1: ", String.valueOf(color[1]));
+        Log.i("Color 2: ", String.valueOf(color[2]));
+        Log.i("Color 3: ", String.valueOf(color[3]));
+        if (color[1] > 210 && color[2] > 160 && 110 < color[3] && color[3] < 160) {
             return "Ball";
         }
-        else if(1 < collectorBoxHeight - currentCargoDistance && collectorBoxHeight - currentCargoDistance < 3.45) {
+        else if(190 < color[1] && color[1] > 200 && 160 < color[2] && color[2] > 170 && 100 < color[3] && color[3] > 110) {
             return "Cube OR Duck";
         }
         else {
@@ -82,7 +85,7 @@ public class DriveMecanum extends LinearOpMode {
 
         double duckSpinnerPrevTime = 0;
 
-        cargoDetector = new SensorRevTOFDistance(hardwareMap, "cargoDetector");
+        cargoDetector = new SensorColor(hardwareMap, "cargoDetector");
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
@@ -91,8 +94,8 @@ public class DriveMecanum extends LinearOpMode {
         Motor duckSpinner2 = new Motor( hardwareMap, "duckSpinner2");
         duckSpinner1.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         duckSpinner2.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
-        MotorGroup duckSpinners = new MotorGroup(duckSpinner1, duckSpinner2);
-        duckSpinners.setRunMode(Motor.RunMode.RawPower);
+        duckSpinner1.setRunMode(Motor.RunMode.RawPower);
+        duckSpinner2.setRunMode(Motor.RunMode.RawPower);
         Motor arm = new Motor(hardwareMap, "arm");
         arm.resetEncoder();
         Motor collector = new Motor(hardwareMap, "collector");
@@ -127,8 +130,8 @@ public class DriveMecanum extends LinearOpMode {
         GamepadKeys.Button TRIANGLE = GamepadKeys.Button.Y;
         GamepadKeys.Button SQUARE = GamepadKeys.Button.X;
 
-        // initial box size
-        collectorBoxHeight = cargoDetector.getDistance(DistanceUnit.CM);
+//        // initial box size
+//        collectorBoxHeight = cargoDetector.getDistance(DistanceUnit.CM);
 
         int lastClawPosition = arm.getCurrentPosition();
         arm.resetEncoder();
@@ -216,14 +219,14 @@ public class DriveMecanum extends LinearOpMode {
             else if(gamepad2.getButton(GamepadKeys.Button.START)) {
                 // if ( capperCurrentPosition < capperHighLimit){
                 capper.setRunMode(Motor.RunMode.RawPower);
-                capper.set(-0.5);
+                capper.set(-0.2);
                 // }
             }
             // Capper down LEFT_TRIGGER AND DPAD_DOWN
             else if(gamepad2.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0) {
                 // if (capperCurrentPosition > capperLowLimit){
                 capper.setRunMode(Motor.RunMode.RawPower);
-                capper.set(gamepad2.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) /2.15);
+                capper.set(gamepad2.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) /2.5);
                 // }
             }
             else {
@@ -306,10 +309,12 @@ public class DriveMecanum extends LinearOpMode {
 
             // DUCK SPINNER CODE
             if (gamepad1.getButton((GamepadKeys.Button.DPAD_RIGHT))){
-                duckSpinners.setInverted(true);
+                duckSpinner1.setInverted(true);
+                duckSpinner2.setInverted(true);
             }
             else if (gamepad1.getButton((GamepadKeys.Button.DPAD_LEFT))){
-                duckSpinners.setInverted(false);
+                duckSpinner1.setInverted(true);
+                duckSpinner2.setInverted(true);
             }
             else if(gamepad1.isDown(GamepadKeys.Button.DPAD_UP)) {
                 duckSpinnersPower += 0.03;
@@ -319,7 +324,7 @@ public class DriveMecanum extends LinearOpMode {
             }
             else if (gamepad1.getButton(SQUARE) && duckSpinnerPrevTime+250 <= System.currentTimeMillis()) {
                 duckSpinnerPrevTime = System.currentTimeMillis();
-                if (duckSpinners.get() != 0) {
+                if (duckSpinner1.get() != 0) {
                     lastDuckSpinnersPower = duckSpinnersPower;
                     duckSpinnersPower = 0;
                 }
@@ -327,7 +332,9 @@ public class DriveMecanum extends LinearOpMode {
                     duckSpinnersPower = lastDuckSpinnersPower;
                 }
             }
-            duckSpinners.set(duckSpinnersPower);
+            duckSpinner1.set(duckSpinnersPower);
+            duckSpinner2.set(duckSpinnersPower);
+
 
             // Check touch sensors to reset arm encoder
             if (armTouch1.isPressed() || armTouch2.isPressed()){
@@ -384,10 +391,10 @@ public class DriveMecanum extends LinearOpMode {
             cTelemetry("Arm ticks: ","def",green, String.valueOf(lastClawPosition));
             cTelemetry("Arm positional power: ","def",red, String.valueOf(armPositionalPower));
             cTelemetry("Collector: ","def",red, String.valueOf(collector.get()));
-            cTelemetry("DucksSpinners power: ","def",red, String.valueOf(duckSpinners.get()));
+            cTelemetry("DucksSpinners power: ","def",red, String.valueOf((duckSpinner1.get() + duckSpinner2.get())/2));
             cTelemetry("DucksSpinners power variable: ","def",yellow, String.valueOf(duckSpinnersPower));
             cTelemetry("Initial Box Height: ","def",yellow, String.valueOf(collectorBoxHeight));
-            cTelemetry("Height of cargo: ","def",yellow, String.valueOf(collectorBoxHeight - currentCargoDistance));
+            cTelemetry("Height of cargo: ","def",yellow, String.valueOf(color));
             cTelemetry("Probably Prev Detected Cargo: ","def",orange, prevDetectedCargo);
             cTelemetry("frontRight ticks: ","def",green, String.valueOf(frontRight.getCurrentPosition()));
             cTelemetry("frontLeft ticks: ","def",green, String.valueOf(frontLeft.getCurrentPosition()));

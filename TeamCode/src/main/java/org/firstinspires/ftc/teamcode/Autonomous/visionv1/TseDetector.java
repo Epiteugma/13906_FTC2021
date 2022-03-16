@@ -10,6 +10,8 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
+
+import java.util.Arrays;
 // import org.firstinspires.ftc.teamcode.vision.Location;
 
 
@@ -38,15 +40,15 @@ public class TseDetector extends OpenCvPipeline {
 //            new Point(300, 190));
 
     static final Rect LEFT_ROI = new Rect(
-            new Point(0, 80),
+            new Point(0, 95),
             new Point(106, 240)
     );
     static final Rect CENTER_ROI = new Rect(
-            new Point(106, 80),
+            new Point(106, 95),
             new Point(212, 240)
     );
     static final Rect RIGHT_ROI = new Rect(
-            new Point(212, 80),
+            new Point(212, 95),
             new Point(320, 240)
     );
 
@@ -54,8 +56,8 @@ public class TseDetector extends OpenCvPipeline {
     public Mat processFrame(Mat input) {
         Imgproc.cvtColor(input, mat, Imgproc.COLOR_RGB2HSV);
         // TODO: change this to HSV values for the tse
-        Scalar lowHSV = new Scalar(0, 75, 0);
-        Scalar highHSV = new Scalar(15, 255, 255);
+        Scalar lowHSV = new Scalar(5, 155, 0);
+        Scalar highHSV = new Scalar(12, 255, 255);
 
         Core.inRange(mat, lowHSV, highHSV, mat);
 
@@ -77,20 +79,17 @@ public class TseDetector extends OpenCvPipeline {
 //        telemetry.addData("Right percentage", Math.round(rightValue * 100) + "%");
 //        telemetry.addData("Center percentage", Math.round(centerValue * 100) + "%");
 
-        boolean itemLeft = leftValue > TRESHOLD;
-        boolean itemRight = rightValue > TRESHOLD;
-        boolean itemCenter = centerValue > TRESHOLD;
+//        boolean itemLeft = leftValue > TRESHOLD;
+//        boolean itemRight = rightValue > TRESHOLD;
+//        boolean itemCenter = centerValue > TRESHOLD;
 
-        if (itemLeft) {
-            location = Location.LEFT;
-//            telemetry.addData("Location", "LEFT");
-        }
-        else if (itemRight) {
-            location = Location.RIGHT;
-//            telemetry.addData("Location", "RIGHT");
-        }
-        else if(itemCenter) {
-            location = Location.CENTER;
+        double[] values = { leftValue, centerValue, rightValue };
+
+        Arrays.sort(values);
+        if(values[2] > TRESHOLD) {
+            if(leftValue == values[2]) location = Location.LEFT;
+            else if(rightValue == values[2]) location = Location.RIGHT;
+            else if(centerValue == values[2]) location = Location.CENTER;
         }
 
         //TODO: Check if it detects tse(change the hsv values)

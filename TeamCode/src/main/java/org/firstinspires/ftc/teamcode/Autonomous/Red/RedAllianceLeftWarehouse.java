@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.Autonomous.Red;
 
 import com.arcrobotics.ftclib.hardware.RevIMU;
+import com.arcrobotics.ftclib.hardware.SensorColor;
 import com.arcrobotics.ftclib.hardware.SensorRevTOFDistance;
 import com.arcrobotics.ftclib.hardware.motors.CRServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
@@ -23,16 +24,20 @@ public class RedAllianceLeftWarehouse extends LinearOpMode {
     Motor frontLeft;
     Motor backRight;
     Motor backLeft;
+    Motor duckSpinner1;
+    Motor duckSpinner2;
     MotorGroup duckSpinners;
     RevIMU imu;
-    SensorRevTOFDistance cargoDetector;
+    SensorColor cargoDetector;
+    SensorRevTOFDistance frontDistance;
 
     private void initHardware() {
         // Motors, servos, distance sensor and IMU
         imu = new RevIMU(hardwareMap);
-        cargoDetector = new SensorRevTOFDistance(hardwareMap, "cargoDetector");
-        Motor duckSpinner1 = new Motor( hardwareMap, "duckSpinner1");
-        Motor duckSpinner2 = new Motor( hardwareMap, "duckSpinner2");
+        cargoDetector = new SensorColor(hardwareMap, "cargoDetector");
+        frontDistance = new SensorRevTOFDistance(hardwareMap,"frontDistance");
+        duckSpinner1 = new Motor( hardwareMap, "duckSpinner1"); // Left
+        duckSpinner2 = new Motor( hardwareMap, "duckSpinner2"); // Right
         duckSpinners = new MotorGroup(duckSpinner1, duckSpinner2);
         arm = new Motor(hardwareMap, "arm");
         collector = new Motor(hardwareMap, "collector");
@@ -44,9 +49,9 @@ public class RedAllianceLeftWarehouse extends LinearOpMode {
     }
 
     @Override
-    public void runOpMode() {
+    public void runOpMode(){
         initHardware();
-        Robot robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, arm, collector, duckSpinners, imu, cargoDetector), this);
+        Robot robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, arm, collector, duckSpinner2, imu, cargoDetector,frontDistance), this);
 
         waitForStart();
         TseDetector.Location itemPos = robot.getTsePos();
@@ -54,23 +59,25 @@ public class RedAllianceLeftWarehouse extends LinearOpMode {
         telemetry.update();
         robot.drive(Robot.Direction.FORWARDS, 0.8, 10);
         robot.turn(0.8, -90);
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 55);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 53);
         robot.turn(0.8, 0);
         robot.drive(Robot.Direction.BACKWARDS, 0.8, 0.01); // UNKNOWN BUG!!!
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 24);
         switch (itemPos) {
             case LEFT: robot.moveArm(Robot.Position.LOW.label, 0.5); break;
             case RIGHT: robot.moveArm(Robot.Position.HIGH.label, 0.5); break;
             case CENTER: robot.moveArm(Robot.Position.MID.label, 0.5); break;
         }
-        robot.intake(Robot.Direction.OUT, 0.8);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 22);
+        robot.turn(0.8, 0);
+        robot.intake(Robot.Direction.OUT, 0.65);
         robot.drive(Robot.Direction.BACKWARDS, 0.8, 18);
+        robot.moveArm(Robot.Position.DOWN.label, 0.5);
         robot.turn(0.8, -90);
         robot.drive(Robot.Direction.BACKWARDS, 0.8, 127);
-        robot.turn(0.8, -135);
-        robot.duckSpin(0.55, 3000);
-        robot.turn(0.8, -107);
+        robot.turn(0.8, -145);
+        robot.duckSpin(0.35, 3000);
+        robot.turn(0.8, -103);
         robot.moveArm(Robot.Position.HIGH.label, 0.5);
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 230);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 260);
     }
 }

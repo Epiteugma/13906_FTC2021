@@ -91,15 +91,13 @@ public class BlueAllianceLeft extends LinearOpMode {
             robot.drive(Robot.Direction.BACKWARDS, 1, 20);
             robot.turn(1, 90);
             robot.moveArm(Robot.Position.MID.label, 0.08);
-            robot.drive(Robot.Direction.FORWARDS, 1, 80);
+            robot.drive(Robot.Direction.FORWARDS, 1, 120);
             robot.moveArm(Robot.Position.DOWN.label, 0.08);
-            double startTime = System.currentTimeMillis();
             while(robot.cargoDetection().equals("None") && opModeIsActive()) {
-                if(System.currentTimeMillis() > startTime+3000) {
-                    startTime = System.currentTimeMillis();
+                if(robot.overCargo()) {
                     robot.drive(Robot.Direction.BACKWARDS, 1, 25);
                 }
-                double speed = 0.4;
+                double speed = 0.3;
                 collector.set(1);
                 frontLeft.set(speed);
                 frontRight.set(speed);
@@ -120,10 +118,9 @@ public class BlueAllianceLeft extends LinearOpMode {
 
             if(secondsRemaining < 7) break;
 
-            int distanceUntilCollected = (int) (((frontRight.getCurrentPosition() + frontLeft.getCurrentPosition() + backRight.getCurrentPosition() + backLeft.getCurrentPosition())/4)*wheelCircumference/driveTicksPerRev);
             robot.turn(1, 90);
             robot.moveArm(Robot.Position.HIGH.label, 0.08);
-            robot.drive(Robot.Direction.BACKWARDS, 1, distanceUntilCollected);
+            robot.drive(Robot.Direction.BACKWARDS, 1, 80);
             robot.turn(1, -30);
             robot.drive(Robot.Direction.FORWARDS, 1, 40);
             robot.moveArm(Robot.Position.HIGH.label, 0.08);
