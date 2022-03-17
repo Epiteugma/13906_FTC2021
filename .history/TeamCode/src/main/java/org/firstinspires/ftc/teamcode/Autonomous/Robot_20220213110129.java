@@ -568,7 +568,7 @@ public class Robot {
         initIMU();
 
         // Fix all the directions of the motors.
-        frontRight.setInverted(true);
+        
         backRight.setInverted(true);
 
         // Set the zero power behavior of the motors.

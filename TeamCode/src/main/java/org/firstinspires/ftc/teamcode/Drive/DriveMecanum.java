@@ -4,6 +4,8 @@ package org.firstinspires.ftc.teamcode.Drive;
 import android.util.Log;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.opencv.core.Scalar;
 
 // Sensors , Motors and Opmode
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -17,6 +19,8 @@ import com.arcrobotics.ftclib.gamepad.*;
 import com.arcrobotics.ftclib.hardware.*;
 import com.arcrobotics.ftclib.hardware.motors.*;
 import com.qualcomm.robotcore.hardware.TouchSensor;
+
+import java.util.Arrays;
 
 @TeleOp(name = "TeleOp", group = "FTC22Tele")
 public class DriveMecanum extends LinearOpMode {
@@ -49,25 +53,104 @@ public class DriveMecanum extends LinearOpMode {
     public double cubeHeight= 5.08;
     public double ballHeight = 6.99;
     public double duckHeight = 5.4;
-    public int[] color;
+    public float[] color;
+    public int[] rgb;
     public double collectorBoxHeight = 0;
-    SensorColor cargoDetector = null;
+    SensorColor cargoDetector;
+    SensorRevTOFDistance frontDistance;
+
+    private boolean isInRange(float[] HSV, Scalar low, Scalar high) {
+        double lowH = low.val[0];
+        double lowS = low.val[1];
+        double lowV = low.val[2];
+
+        double highH = high.val[0];
+        double highS = high.val[1];
+        double highV = high.val[2];
+
+        boolean H = lowH < HSV[0] && HSV[0] > highH;
+        boolean S = lowS < HSV[1] && HSV[1] > highS;
+        boolean V = lowV < HSV[2] && HSV[2] > highV;
+
+        return H && S && V;
+    }
+
+    public float cmax;
+    public float cmin;
+    public float diff;
+
+    private float[] rgbToHSV(int rO, int gO, int bO) {
+
+        float r = (float) rO / 255;
+        float g = (float) gO / 255;
+        float b = (float) bO / 255;
+
+        float h = -1;
+        float s = -1;
+        float v = -1;
+
+        cmax = Math.max(r, Math.max(g, b));
+        cmin = Math.min(r, Math.min(g, b));
+        diff = cmax - cmin;
+
+        if(cmax == cmin) {
+            h = 0;
+        }
+        else if(cmax == r) {
+            h = (60 * ((g-b) / diff) + 360) % 360;
+        }
+        else if(cmax == g) {
+            h = (60 * ((b-r) / diff) + 120) % 120;
+        }
+        else if(cmax == b) {
+            h = (60 * ((r-g) / diff) + 240) % 240;
+        }
+
+        if(cmax == 0) {
+            s = 0;
+        } else {
+            s = diff / cmax * 100;
+        }
+
+        v = cmax * 100;
+
+        return new float[]{h, s, v};
+    }
 
     public String cargoDetection(){
         // Cargo detection
-        color = cargoDetector.getARGB();
-        Log.i("Color 1: ", String.valueOf(color[1]));
-        Log.i("Color 2: ", String.valueOf(color[2]));
-        Log.i("Color 3: ", String.valueOf(color[3]));
-        if (color[1] > 210 && color[2] > 160 && 110 < color[3] && color[3] < 160) {
-            return "Ball";
-        }
-        else if(190 < color[1] && color[1] > 200 && 160 < color[2] && color[2] > 170 && 100 < color[3] && color[3] > 110) {
+        int[] vals = cargoDetector.getARGB();
+        int red = vals[1];
+        int green = vals[2];
+        int blue = vals[3];
+        float[] hsvValues = {0x0F, 0x0F, 0x0F};
+        rgb = new int[]{ red, green, blue };
+        color = rgbToHSV(red, green, blue);
+        Scalar lowCubeHSV = new Scalar(35, 100, 0);
+        Scalar highCubeHSV = new Scalar(40, 255, 255);
+        Scalar lowBallHSV = new Scalar(40, 0, 0);
+        Scalar highBallHSV = new Scalar(45, 255, 255);
+
+        if(isInRange(color, lowCubeHSV, highCubeHSV)) {
             return "Cube OR Duck";
         }
-        else {
-            return "None";
+        else if(isInRange(color, lowBallHSV, highBallHSV)) {
+            return "Ball";
         }
+        else return "None";
+
+//        Log.i("Color 0: ", String.valueOf(color[0]));
+//        Log.i("Color 1: ", String.valueOf(color[1]));
+//        Log.i("Color 2: ", String.valueOf(color[2]));
+//        if (color[0] > 34 && color[0] < 36 && 0 < color[1] && color[1] < 0.45 && 0.9 < color[2] && color[2] < 1.3) {
+//            return "Ball";
+//        }
+//        else if(color[0] > 32 && color[0] < 35 && 0.45 < color[1] && color[1] < 1 && 0.9 < color[2] && color[2] < 1.5) {
+//            return "Cube OR Duck";
+//        }
+//        else {
+//            return "None";
+//        }
     }
 
     // Colored telemetry based on given hex code like html
@@ -86,6 +169,7 @@ public class DriveMecanum extends LinearOpMode {
         double duckSpinnerPrevTime = 0;
 
         cargoDetector = new SensorColor(hardwareMap, "cargoDetector");
+        frontDistance = new SensorRevTOFDistance(hardwareMap,"frontDistance");
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
@@ -101,7 +185,7 @@ public class DriveMecanum extends LinearOpMode {
         Motor collector = new Motor(hardwareMap, "collector");
         CRServo capper = new CRServo(hardwareMap, "capper");
         Motor frontRight = new Motor(hardwareMap, "frontRight");
-        frontRight.setInverted(true);
+        
         Motor frontLeft = new Motor(hardwareMap, "frontLeft");
         Motor backRight = new Motor(hardwareMap, "backRight");
         Motor backLeft = new Motor(hardwareMap, "backLeft");
@@ -236,6 +320,7 @@ public class DriveMecanum extends LinearOpMode {
                         armPositionalPower = 0.45;
                         arm.setTargetPosition(lastClawPosition);
                         while (!arm.atTargetPosition()) {
+                            if(gamepad2.getButton(SQUARE)) break;
                             sidepower = gamepad1.getLeftX() * globalpowerfactor;
                             forwardpower = gamepad1.getLeftY() * globalpowerfactor;
                             turnpower = gamepad1.getRightX() * globalpowerfactor;
@@ -248,6 +333,7 @@ public class DriveMecanum extends LinearOpMode {
                     armPositionalPower = 0.4;
                     arm.setTargetPosition(lastClawPosition);
                     while (!arm.atTargetPosition()) {
+                        if(gamepad2.getButton(SQUARE)) break;
                         sidepower = gamepad1.getLeftX() * globalpowerfactor;
                         forwardpower = gamepad1.getLeftY() * globalpowerfactor;
                         turnpower = gamepad1.getRightX() * globalpowerfactor;
@@ -260,6 +346,7 @@ public class DriveMecanum extends LinearOpMode {
                     armPositionalPower = 0.35;
                     arm.setTargetPosition(lastClawPosition);
                     while (!arm.atTargetPosition()) {
+                        if(gamepad2.getButton(SQUARE)) break;
                         sidepower = gamepad1.getLeftX() * globalpowerfactor;
                         forwardpower = gamepad1.getLeftY() * globalpowerfactor;
                         turnpower = gamepad1.getRightX() * globalpowerfactor;
@@ -313,8 +400,8 @@ public class DriveMecanum extends LinearOpMode {
                 duckSpinner2.setInverted(true);
             }
             else if (gamepad1.getButton((GamepadKeys.Button.DPAD_LEFT))){
-                duckSpinner1.setInverted(true);
-                duckSpinner2.setInverted(true);
+                duckSpinner1.setInverted(false);
+                duckSpinner2.setInverted(false);
             }
             else if(gamepad1.isDown(GamepadKeys.Button.DPAD_UP)) {
                 duckSpinnersPower += 0.03;
@@ -394,12 +481,14 @@ public class DriveMecanum extends LinearOpMode {
             cTelemetry("DucksSpinners power: ","def",red, String.valueOf((duckSpinner1.get() + duckSpinner2.get())/2));
             cTelemetry("DucksSpinners power variable: ","def",yellow, String.valueOf(duckSpinnersPower));
             cTelemetry("Initial Box Height: ","def",yellow, String.valueOf(collectorBoxHeight));
-            cTelemetry("Height of cargo: ","def",yellow, String.valueOf(color));
+            cTelemetry("Cargo RGB colors: ", "def", yellow, rgb[0] + " " + rgb[1] + " " + rgb[2]);
+            Log.i("Cargo hsv:" ,color[0] + " "+color[1] + " " + color[2]);
             cTelemetry("Probably Prev Detected Cargo: ","def",orange, prevDetectedCargo);
             cTelemetry("frontRight ticks: ","def",green, String.valueOf(frontRight.getCurrentPosition()));
             cTelemetry("frontLeft ticks: ","def",green, String.valueOf(frontLeft.getCurrentPosition()));
             cTelemetry("backRight ticks: ","def",green, String.valueOf(backRight.getCurrentPosition()));
             cTelemetry("backLeft ticks: ","def",green, String.valueOf(backLeft.getCurrentPosition()));
+            cTelemetry("Front distance: ","def",yellow,String.valueOf(frontDistance.getDistance(DistanceUnit.CM)));
             telemetry.update();
             prevDetectedCargo = detectedCargo;
         }

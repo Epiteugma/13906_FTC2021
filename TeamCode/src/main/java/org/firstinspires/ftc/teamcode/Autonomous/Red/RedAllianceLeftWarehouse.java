@@ -59,7 +59,7 @@ public class RedAllianceLeftWarehouse extends LinearOpMode {
         telemetry.update();
         robot.drive(Robot.Direction.FORWARDS, 0.8, 10);
         robot.turn(0.8, -90);
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 53);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 63);
         robot.turn(0.8, 0);
         robot.drive(Robot.Direction.BACKWARDS, 0.8, 0.01); // UNKNOWN BUG!!!
         switch (itemPos) {
@@ -67,17 +67,17 @@ public class RedAllianceLeftWarehouse extends LinearOpMode {
             case RIGHT: robot.moveArm(Robot.Position.HIGH.label, 0.5); break;
             case CENTER: robot.moveArm(Robot.Position.MID.label, 0.5); break;
         }
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 22);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 35);
         robot.turn(0.8, 0);
         robot.intake(Robot.Direction.OUT, 0.65);
-        robot.drive(Robot.Direction.BACKWARDS, 0.8, 18);
+        robot.drive(Robot.Direction.BACKWARDS, 0.8, 30);
         robot.moveArm(Robot.Position.DOWN.label, 0.5);
         robot.turn(0.8, -90);
-        robot.drive(Robot.Direction.BACKWARDS, 0.8, 127);
+        robot.drive(Robot.Direction.BACKWARDS, 0.8, 145);
         robot.turn(0.8, -145);
-        robot.duckSpin(0.35, 3000);
+        robot.duckSpin(0.3, 6000);
         robot.turn(0.8, -103);
         robot.moveArm(Robot.Position.HIGH.label, 0.5);
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 260);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 270);
     }
 }

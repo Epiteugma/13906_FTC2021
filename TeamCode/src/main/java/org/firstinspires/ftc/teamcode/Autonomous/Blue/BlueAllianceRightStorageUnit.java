@@ -78,12 +78,11 @@ public class BlueAllianceRightStorageUnit extends LinearOpMode {
         robot.intake(Robot.Direction.OUT, 0.65);
         robot.drive(Robot.Direction.BACKWARDS, 0.4, 25);
         robot.moveArm(Robot.Position.DOWN.label, 0.08);
-        robot.turn(0.8, -95);
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 135);
-        robot.duckSpin(-0.4, 5500);
-        robot.turn(1, -12);
+        robot.turn(0.8, -92);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 127);
+        robot.duckSpin(-0.25, 5000);
+        robot.turn(1, 0);
         robot.drive(Robot.Direction.BACKWARDS, 0.8, 0.01); // UNKNOWN BUG!!!
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 35);
-        robot.turn(1, -5);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 45);
     }
 }

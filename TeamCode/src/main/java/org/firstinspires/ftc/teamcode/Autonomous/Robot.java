@@ -8,7 +8,6 @@ import com.arcrobotics.ftclib.hardware.RevIMU;
 import com.arcrobotics.ftclib.hardware.SensorColor;
 import com.arcrobotics.ftclib.hardware.SensorRevTOFDistance;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.arcrobotics.ftclib.hardware.motors.MotorGroup;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -17,9 +16,8 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Autonomous.visionv1.*;
 
-// Item detector based on the ground tape
-import org.firstinspires.ftc.teamcode.Autonomous.visionv2.Detector;
 import org.firstinspires.ftc.teamcode.events.EventDispatcher;
+import org.opencv.core.Scalar;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
@@ -67,7 +65,7 @@ public class Robot {
     public static double wheelRadius = 7.5;
     public static double wheelCircumference = 2 * Math.PI * wheelRadius;
     public static double centerToWheel = 21;
-//    public static double turnCircumference = 2 * Math.PI * centerToWheel;
+    public static double turnCircumference = 2 * Math.PI * centerToWheel;
     public static double normalFullPowerVelocity = 2700;
 
     // Ticks Angles and positions
@@ -81,7 +79,7 @@ public class Robot {
     public int currentTicks = 0;
 
     // Powers and error tolerance
-    public double driveErrorTolerance = 20; // in ticks
+    public double driveErrorTolerance = 5; // in ticks
     public double correctedCappedPower = 0;
     public double cappedPower = 0;
     public double frPower;
@@ -96,8 +94,8 @@ public class Robot {
     public int blCurrentTicks;
 
     // Barriers distance to wall
-    public static double afterBarriers = 500;
-    public static double beforeBarriers = 800;
+    public static double afterBarriers = 55;
+    public static double beforeBarriers = 819;
 
 
     // cargoDetector
@@ -105,7 +103,7 @@ public class Robot {
     public double cubeHeight= 5.08;
     public double ballHeight = 6.99;
     public double duckHeight = 5.4;
-    public int[] color;
+    public float[] color;
     public double collectorBoxHeight = 15;
 
     private Telemetry telemetry;
@@ -204,10 +202,10 @@ public class Robot {
 
     public void resetEncoders() {
         // Fix all the directions of the motors.
+        frontRight.setInverted(true);
 //        frontLeft.setInverted(true);
-//        backLeft.setInverted(true);
-        // frontRight.setInverted(true);
         backRight.setInverted(true);
+//        backLeft.setInverted(true);
         frontRight.resetEncoder();
         frontLeft.resetEncoder();
         backRight.resetEncoder();
@@ -272,89 +270,6 @@ public class Robot {
         setDrivePower(power, power, power, power);
     }
 
-//    public void strafe(Direction dir, double power, double targetDistance) {
-//        targetRotations = targetDistance / wheelCircumference;
-//        targetTicks = targetRotations * driveTicksPerRev;
-//        targetAngle = getIMUAngle(Axis.X);
-//        resetEncoders();
-//        setDriveTolerance(driveErrorTolerance, driveErrorTolerance, driveErrorTolerance, driveErrorTolerance);
-//        switch (dir) {
-//            case LEFT:
-//                setDriveTargetPos(targetTicks, -targetTicks, -targetTicks, targetTicks);
-//                while ((frCurrentTicks <= targetTicks || flCurrentTicks <= targetTicks || brCurrentTicks <= targetTicks || blCurrentTicks <= targetTicks) && linearOpMode.opModeIsActive()) {
-//                    currentAngle = getIMUAngle(Axis.X);
-//                    correction = (targetAngle - currentAngle) * strafeGain;
-//                    cappedPower = Range.clip(power, -1, 1);
-//                    correctedCappedPower = Range.clip(power - correction, -1, 1);
-//                    frPower = brPower = correctedCappedPower;
-//                    flPower = blPower = cappedPower;
-//                    frCurrentTicks = frontRight.getCurrentPosition();
-//                    flCurrentTicks = frontLeft.getCurrentPosition();
-//                    brCurrentTicks = backRight.getCurrentPosition();
-//                    blCurrentTicks = backLeft.getCurrentPosition();
-//                    if (frCurrentTicks >= targetTicks) {
-//                        frPower = 0;
-//                    }
-//                    if (flCurrentTicks >= targetTicks) {
-//                        flPower = 0;
-//                    }
-//                    if (brCurrentTicks >= targetTicks) {
-//                        brPower = 0;
-//                    }
-//                    if (blCurrentTicks >= targetTicks) {
-//                        blPower = 0;
-//                    }
-//                    setDrivePower(-frPower, flPower, brPower, -blPower);
-//                    telemetry.addData("Correction: ", correction);
-//                    telemetry.addData("Current Angle: ", currentAngle);
-//                    telemetry.addData("Current Power: ", "FR: " + frPower + " FL: " + flPower + " BR: " + brPower + " BL: " + blPower);
-//                    telemetry.addData("Current Ticks: ", "FR: "+ frCurrentTicks + " FL: " + flCurrentTicks + " BR: " + brCurrentTicks + " BL: " + blCurrentTicks);
-//                    telemetry.addData("Target Ticks: ", (int) targetTicks);
-//                    telemetry.addData("Robot is moving: ", String.valueOf(dir), " with a power of ", power, " for ", targetDistance + "cm");
-//                    telemetry.update();
-//                }
-//                break;
-//            case RIGHT:
-//                setDriveTargetPos(-targetTicks, targetTicks, -targetTicks, targetTicks);
-//                while ((frCurrentTicks <= targetTicks || flCurrentTicks <= targetTicks || brCurrentTicks <= targetTicks || blCurrentTicks <= targetTicks) && linearOpMode.opModeIsActive()) {
-//                    currentAngle = getIMUAngle(Axis.X);
-//                    correction = (targetAngle - currentAngle) * strafeGain;
-//                    cappedPower = -Range.clip(power, -1, 1);
-//                    correctedCappedPower = -Range.clip(power - correction, -1, 1);
-//                    frPower = brPower = correctedCappedPower;
-//                    flPower = blPower = cappedPower;
-//                    frCurrentTicks = frontRight.getCurrentPosition();
-//                    flCurrentTicks = frontLeft.getCurrentPosition();
-//                    brCurrentTicks = backRight.getCurrentPosition();
-//                    blCurrentTicks = backLeft.getCurrentPosition();
-//                    if (frCurrentTicks >= targetTicks) {
-//                        frPower = 0;
-//                    }
-//                    if (flCurrentTicks >= targetTicks) {
-//                        flPower = 0;
-//                    }
-//                    if (brCurrentTicks >= targetTicks) {
-//                        brPower = 0;
-//                    }
-//                    if (blCurrentTicks >= targetTicks) {
-//                        blPower = 0;
-//                    }
-//                    setDrivePower(frPower, -flPower, -brPower, blPower);
-//                    telemetry.addData("Correction: ", correction);
-//                    telemetry.addData("Current Angle: ", currentAngle);
-//                    telemetry.addData("Current Power: ", correctedCappedPower + " " + cappedPower + " " + -correctedCappedPower + " " + -cappedPower);
-//                    telemetry.addData("Current Ticks: ", currentTicks);
-//                    telemetry.addData("Target Ticks: ", (int) targetTicks);
-//                    telemetry.addData("Robot is moving: ", String.valueOf(dir), " with a power of ", power, " for ", targetDistance);
-//                    telemetry.update();
-//                    break;
-//                }
-//                HALT();
-//                telemetry.addData("Robot has strafed: ", String.valueOf(targetDistance), " ", dir);
-//                telemetry.update();
-//        }
-//    }
-
     public void strafe(Direction dir, double power, double targetDistance) {
         targetRotations = targetDistance / wheelCircumference;
         targetTicks = targetRotations * driveTicksPerRev;
@@ -376,13 +291,13 @@ public class Robot {
         }
 
         while((!frontRight.atTargetPosition() || !frontLeft.atTargetPosition() || !backRight.atTargetPosition() || !backLeft.atTargetPosition()) && linearOpMode.opModeIsActive()) {
-            if(frontRight.getCurrentPosition() >= targetTicks){
+            if(frontRight.atTargetPosition()){
                 frPower = 0;
             }
             if(frontLeft.atTargetPosition()){
                 flPower = 0;
             }
-            if(backRight.getCurrentPosition() >= targetTicks){
+            if(backRight.atTargetPosition()){
                 brPower = 0;
             }
             if(backLeft.atTargetPosition()){
@@ -406,13 +321,6 @@ public class Robot {
         backRight.setPositionTolerance(brtolerance);
         backLeft.setPositionTolerance(bltolerance);
     }
-
-//    public void driveOverTheBarrier(double lastAccel, double power){
-//        double currentAccel = this.getIMUAngle(Axis.Y);
-//        while (currentAccel < lastAccel){
-//            this.setAllDrivePower(power);
-//        }
-//    }
 
     public void drive(Direction dir, double power, double targetDistance) {
         Log.i("Autonomous", "Drive called. " + dir.name());
@@ -527,8 +435,9 @@ public class Robot {
             telemetry.addData("Current Angle: ",currentAngle);
             telemetry.addData("ranges: ", rangeMin + " " + rangeMax);
             telemetry.update();
-        } while (!(rangeMin < currentAngle && rangeMax > currentAngle));
-        this.finalTurn(0.1,degrees)
+        }
+        while (!(rangeMin < currentAngle && rangeMax > currentAngle));
+//        this.finalTurn(0.1,degrees);
         resetEncoders();
         HALT();
     }
@@ -655,18 +564,21 @@ public class Robot {
     }
 
     public void driverOverBarriers(Direction dir,double power){
-        Log.i("CurrentDistance: ", String.valueOf(frontDistance.getDistance(DistanceUnit.CM)));
+        double currentDistance = frontDistance.getDistance(DistanceUnit.CM);
+        Log.i("CurrentDistance: ", String.valueOf(currentDistance));
         switch(dir) {
             case FORWARDS:
-                while (frontDistance.getDistance(DistanceUnit.CM) > afterBarriers) {
-                    Log.i("Forwards Current Distance: ", String.valueOf(frontDistance.getDistance(DistanceUnit.CM)));
-                    this.drive(dir, power,5);
-//                    this.turn(1,-90);
+                while (currentDistance > afterBarriers) {
+                    currentDistance = frontDistance.getDistance(DistanceUnit.CM);
+                    Log.i("Forwards Current Distance: ", String.valueOf(currentDistance));
+                    this.setDrivePower(power, power, power, power);
                 }
                 break;
             case BACKWARDS:
-                while (frontDistance.getDistance(DistanceUnit.CM) < beforeBarriers) {
+                while (currentDistance < beforeBarriers) {
+                    currentDistance = frontDistance.getDistance(DistanceUnit.CM);
                     Log.i("Backwards Current Distance: ", String.valueOf(frontDistance.getDistance(DistanceUnit.CM)));
+//                    this.drive(dir, power,30);
                     this.setDrivePower(-power, -power, -power, -power);
                 }
                 break;
@@ -675,16 +587,86 @@ public class Robot {
         Log.i("CurrentDistance: ", String.valueOf(frontDistance.getDistance(DistanceUnit.CM)));
     }
 
+    private boolean isInRange(float[] HSV, Scalar low, Scalar high) {
+        double lowH = low.val[0];
+        double lowS = low.val[1];
+        double lowV = low.val[2];
+
+        double highH = high.val[0];
+        double highS = high.val[1];
+        double highV = high.val[2];
+
+        boolean H = lowH < HSV[0] && HSV[0] > highH;
+        boolean S = lowS < HSV[1] && HSV[1] > highS;
+        boolean V = lowV < HSV[2] && HSV[2] > highV;
+
+        return H && S && V;
+    }
+
+    private float[] rgbToHSV(int r, int g, int b) {
+        r /= 255;
+        g /= 255;
+        b /= 255;
+
+        float h = 0;
+        float s = 0;
+        float v = 0;
+
+        float cmax = Math.max(r, Math.max(g, b));
+        float cmin = Math.min(r, Math.min(g, b));
+        float diff = cmax - cmin;
+
+        if(cmax == cmin) {
+            h = 0;
+        }
+        else if(cmax == r) {
+            h = (60 * ((g-b) / diff) + 360) % 360;
+        }
+        else if(cmax == g) {
+            h = (60 * ((b-r) / diff) + 120) % 120;
+        }
+        else if(cmax == b) {
+            h = (60 * ((r-g) / diff) + 240) % 240;
+        }
+
+        if(cmax == 0) {
+            s = 0;
+        } else {
+            s = diff / cmax * 100;
+        }
+
+        v = cmax * 100;
+
+        return new float[]{h, s, v};
+    }
+
     public String cargoDetection(){
         // Cargo detection
-        color = cargoDetector.getARGB();
-        Log.i("Color 1: ", String.valueOf(color[1]));
-        Log.i("Color 2: ", String.valueOf(color[2]));
-        Log.i("Color 3: ", String.valueOf(color[3]));
-        if (color[1] > 210 && color[2] > 160 && 110 < color[3] && color[3] < 160) {
+        int red = cargoDetector.red();
+        int green = cargoDetector.green();
+        int blue = cargoDetector.blue();
+        float[] hsvValues = {0x0F, 0x0F, 0x0F};
+        color = rgbToHSV(red, green, blue);
+//        Scalar lowCubeHSV = new Scalar(50, 100, 0);
+//        Scalar highCubeHSV = new Scalar(70, 255, 255);
+//        Scalar lowBallHSV = new Scalar(0, 0, 0);
+//        Scalar highBallHSV = new Scalar(0, 0, 255);
+//
+//        if(isInRange(color, lowCubeHSV, highCubeHSV)) {
+//            return "Cube OR Duck";
+//        }
+//        else if(isInRange(color, lowBallHSV, highBallHSV)) {
+//            return "Ball";
+//        }
+//        else return "None";
+
+//        Log.i("Color 0: ", String.valueOf(color[0]));
+//        Log.i("Color 1: ", String.valueOf(color[1]));
+//        Log.i("Color 2: ", String.valueOf(color[2]));
+        if (color[0] > 34 && color[0] < 36 && 0 < color[1] && color[1] < 0.45 && 0.9 < color[2] && color[2] < 1.3) {
             return "Ball";
         }
-        else if(190 < color[1] && color[1] > 200 && 160 < color[2] && color[2] > 170 && 100 < color[3] && color[3] > 110) {
+        else if(color[0] > 32 && color[0] < 35 && 0.45 < color[1] && color[1] < 1 && 0.9 < color[2] && color[2] < 1.5) {
             return "Cube OR Duck";
         }
         else {

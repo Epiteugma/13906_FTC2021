@@ -78,11 +78,11 @@ public class BlueAllianceRightWarehouse extends LinearOpMode {
         robot.intake(Robot.Direction.OUT, 0.65);
         robot.drive(Robot.Direction.BACKWARDS, 0.4, 25);
         robot.moveArm(Robot.Position.DOWN.label, 0.08);
-        robot.turn(0.8, -95);
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 135);
-        robot.duckSpin(-0.4, 5500);
+        robot.turn(0.8, -92);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 127);
+        robot.duckSpin(-0.25, 5500);
         robot.turn(0.8, 85);
         robot.moveArm(Robot.Position.HIGH.label, 0.5);
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 260);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 270);
     }
 }

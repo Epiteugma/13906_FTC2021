@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode.Autonomous.Red;
 
-import static org.firstinspires.ftc.teamcode.Autonomous.Robot.driveTicksPerRev;
-import static org.firstinspires.ftc.teamcode.Autonomous.Robot.wheelCircumference;
-
 import com.arcrobotics.ftclib.hardware.RevIMU;
 import com.arcrobotics.ftclib.hardware.SensorColor;
 import com.arcrobotics.ftclib.hardware.SensorRevTOFDistance;
@@ -11,7 +8,6 @@ import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorGroup;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 
 import org.firstinspires.ftc.teamcode.Autonomous.Robot;
 import org.firstinspires.ftc.teamcode.Autonomous.visionv1.TseDetector;
@@ -35,7 +31,6 @@ public class RedAllianceRight extends LinearOpMode {
     SensorColor cargoDetector;
     SensorRevTOFDistance frontDistance;
 
-    int cubeCounter = 0;
     double secondsRemaining = 30;
     double opModeStartTime = System.currentTimeMillis();
 
@@ -62,7 +57,6 @@ public class RedAllianceRight extends LinearOpMode {
         Robot robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, arm, collector, duckSpinner2, imu, cargoDetector,frontDistance), this);
 
         waitForStart();
-        robot.cargoDetection();
         TseDetector.Location itemPos = robot.getTsePos();
         telemetry.addData("Detected Cargo: ", itemPos);
         telemetry.update();
@@ -74,7 +68,7 @@ public class RedAllianceRight extends LinearOpMode {
         }).start();
         robot.drive(Robot.Direction.FORWARDS, 0.8, 10);
         robot.turn(0.8, 90);
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 70);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 58);
         robot.turn(0.8, 0);
         switch (itemPos) {
             case LEFT: robot.moveArm(Robot.Position.LOW.label, 0.5); break;
@@ -82,46 +76,48 @@ public class RedAllianceRight extends LinearOpMode {
             case CENTER: robot.moveArm(Robot.Position.MID.label, 0.5); break;
         }
         robot.drive(Robot.Direction.BACKWARDS, 0.08, 0.01); // UNKNOWN BUG!!!
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 65);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 38);
         robot.intake(Robot.Direction.OUT, 0.65);
-        while (opModeIsActive()) {
-            robot.turn(1, 0);
-            robot.drive(Robot.Direction.BACKWARDS, 1, 15);
-            robot.turn(1, -90);
-            robot.moveArm(Robot.Position.MID.label, 0.08);
-            // robot.drive(Robot.Direction.FORWARDS, 1, 80); // just before the barriers
-            robot.driverOverBarriers(Robot.Direction.FORWARDS,1);
-//            robot.pause(10000);
-            robot.moveArm(Robot.Position.DOWN.label, 0.08);
-            while(robot.cargoDetection().equals("None") && opModeIsActive()) {
-                if(robot.overCargo()) {
-                    robot.drive(Robot.Direction.BACKWARDS, 1, 25);
-                }
-                double speed = 0.3;
-                collector.set(1);
-                robot.setAllDrivePower(speed);
-            }
-            robot.HALT();
-
-            if(secondsRemaining < 7) break;
-
-            telemetry.addData("Cube counter:", cubeCounter);
-            telemetry.addData("Cube score counter:", cubeCounter*6);
-            telemetry.addData("Seconds remaining:", secondsRemaining);
-            telemetry.addData("Seconds running:", 30-secondsRemaining);
-            telemetry.addData("Collected: ", robot.cargoDetection());
-            telemetry.update();
-
-            robot.driverOverBarriers(Robot.Direction.FORWARDS,1);
-            robot.moveArm(Robot.Position.MID.label, 0.08);
-            robot.turn(1, -90);
-            robot.drive(Robot.Direction.BACKWARDS, 1, 80);
-            robot.turn(1, 0);
-            robot.drive(Robot.Direction.FORWARDS, 1, 60);
-            robot.moveArm(Robot.Position.HIGH.label, 0.08);
-            robot.intake(Robot.Direction.OUT, 0.65);
-
-            cubeCounter++;
-        }
+        robot.turn(1, 0);
+        robot.drive(Robot.Direction.BACKWARDS, 1, 43);
+        robot.turn(1, -90);
+        robot.moveArm(Robot.Position.MID.label, 0.08);
+        robot.drive(Robot.Direction.FORWARDS, 1, 140);
+//            robot.pause(3000);
+//            robot.driverOverBarriers(Robot.Direction.FORWARDS,1);
+////            robot.pause(3000);
+//            robot.moveArm(Robot.Position.DOWN.label, 0.08);
+//            while(robot.cargoDetection().equals("None") && opModeIsActive()) {
+//                if(robot.overCargo()) {
+//                    robot.drive(Robot.Direction.BACKWARDS, 1, 25);
+//                    robot.turn(1,45);
+//                    robot.pause(3000);
+//                }
+//                double speed = 0.3;
+//                collector.set(1);
+//                robot.setAllDrivePower(speed);
+//            }
+//            robot.HALT();
+//
+////            if(secondsRemaining < 7) break;
+//
+//            telemetry.addData("Cube counter:", cubeCounter);
+//            telemetry.addData("Cube score counter:", cubeCounter*6);
+//            telemetry.addData("Seconds remaining:", secondsRemaining);
+//            telemetry.addData("Seconds running:", 30-secondsRemaining);
+//            telemetry.addData("Just Collected: ", robot.cargoDetection());
+//            telemetry.update();
+//
+//            robot.moveArm(Robot.Position.MID.label, 0.08);
+//            robot.turn(1, -90);
+//            robot.driverOverBarriers(Robot.Direction.BACKWARDS,1);
+//            robot.drive(Robot.Direction.BACKWARDS, 1, 120);
+//            robot.turn(1, 0);
+//            robot.moveArm(Robot.Position.HIGH.label, 0.08);
+//            robot.drive(Robot.Direction.FORWARDS, 1, 60);
+//            robot.intake(Robot.Direction.OUT, 0.65);
+//
+//            cubeCounter++;
+//        }
     }
 }
