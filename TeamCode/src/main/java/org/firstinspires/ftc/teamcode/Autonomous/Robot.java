@@ -528,6 +528,31 @@ public class Robot {
             telemetry.addData("ranges: ", rangeMin + " " + rangeMax);
             telemetry.update();
         } while (!(rangeMin < currentAngle && rangeMax > currentAngle));
+        this.finalTurn(0.1,degrees)
+        resetEncoders();
+        HALT();
+    }
+    
+       public void finalTurn(double power, double degrees) {
+
+        Log.i("Autonomous", "Turn called. " + degrees + "deg");
+
+        runOnPower();
+        double tolerance = 0;
+        targetAngle = degrees;
+        if(targetAngle > 180) targetAngle -= 360;
+        double rangeMin = targetAngle-tolerance/2;
+        double rangeMax = targetAngle+tolerance/2;
+
+        do {
+            currentAngle = getIMUAngle(Axis.X);
+            if(targetAngle - currentAngle > 0) setDrivePower(power, -power, power, -power);
+            else setDrivePower(-power, power, -power, power);
+            telemetry.addData("Target Angle: ",targetAngle);
+            telemetry.addData("Current Angle: ",currentAngle);
+            telemetry.addData("ranges: ", rangeMin + " " + rangeMax);
+            telemetry.update();
+        } while (!(rangeMin < currentAngle && rangeMax > currentAngle));
         resetEncoders();
         HALT();
     }
