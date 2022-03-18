@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.Autonomous.visionv1.TseDetector;
 
 import java.util.Arrays;
 
-@Autonomous(name="Red Alliance Right", group="FTC22Auto_Ware_Red")
+@Autonomous(name="Red Right", group="FTC22Auto_Ware_Red")
 public class RedAllianceRight extends LinearOpMode {
 
     Motor arm;
@@ -68,7 +68,7 @@ public class RedAllianceRight extends LinearOpMode {
         }).start();
         robot.drive(Robot.Direction.FORWARDS, 0.8, 10);
         robot.turn(0.8, 90);
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 58);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 57);
         robot.turn(0.8, 0);
         switch (itemPos) {
             case LEFT: robot.moveArm(Robot.Position.LOW.label, 0.5); break;
@@ -76,48 +76,25 @@ public class RedAllianceRight extends LinearOpMode {
             case CENTER: robot.moveArm(Robot.Position.MID.label, 0.5); break;
         }
         robot.drive(Robot.Direction.BACKWARDS, 0.08, 0.01); // UNKNOWN BUG!!!
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 38);
-        robot.intake(Robot.Direction.OUT, 0.65);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 35);
         robot.turn(1, 0);
-        robot.drive(Robot.Direction.BACKWARDS, 1, 43);
+        switch (itemPos) {
+            case LEFT: robot.intake(Robot.Direction.OUT, 0.5); break;
+            case RIGHT: switch (itemPos) {
+            case LEFT: robot.intake(Robot.Direction.OUT, robot.intakeLowSpeed); break;
+            case RIGHT: robot.intake(Robot.Direction.OUT, robot.intakeHighSpeed); break;
+            case CENTER: robot.intake(Robot.Direction.OUT, robot.intakeMidSpeed); break;
+        } break;
+            case CENTER: switch (itemPos) {
+            case LEFT: robot.intake(Robot.Direction.OUT, robot.intakeLowSpeed); break;
+            case RIGHT: robot.intake(Robot.Direction.OUT, robot.intakeHighSpeed); break;
+            case CENTER: robot.intake(Robot.Direction.OUT, robot.intakeMidSpeed); break;
+        } break;
+        }
+        robot.turn(1, 0);
+        robot.drive(Robot.Direction.BACKWARDS, 1, 25);
         robot.turn(1, -90);
         robot.moveArm(Robot.Position.MID.label, 0.08);
-        robot.drive(Robot.Direction.FORWARDS, 1, 140);
-//            robot.pause(3000);
-//            robot.driverOverBarriers(Robot.Direction.FORWARDS,1);
-////            robot.pause(3000);
-//            robot.moveArm(Robot.Position.DOWN.label, 0.08);
-//            while(robot.cargoDetection().equals("None") && opModeIsActive()) {
-//                if(robot.overCargo()) {
-//                    robot.drive(Robot.Direction.BACKWARDS, 1, 25);
-//                    robot.turn(1,45);
-//                    robot.pause(3000);
-//                }
-//                double speed = 0.3;
-//                collector.set(1);
-//                robot.setAllDrivePower(speed);
-//            }
-//            robot.HALT();
-//
-////            if(secondsRemaining < 7) break;
-//
-//            telemetry.addData("Cube counter:", cubeCounter);
-//            telemetry.addData("Cube score counter:", cubeCounter*6);
-//            telemetry.addData("Seconds remaining:", secondsRemaining);
-//            telemetry.addData("Seconds running:", 30-secondsRemaining);
-//            telemetry.addData("Just Collected: ", robot.cargoDetection());
-//            telemetry.update();
-//
-//            robot.moveArm(Robot.Position.MID.label, 0.08);
-//            robot.turn(1, -90);
-//            robot.driverOverBarriers(Robot.Direction.BACKWARDS,1);
-//            robot.drive(Robot.Direction.BACKWARDS, 1, 120);
-//            robot.turn(1, 0);
-//            robot.moveArm(Robot.Position.HIGH.label, 0.08);
-//            robot.drive(Robot.Direction.FORWARDS, 1, 60);
-//            robot.intake(Robot.Direction.OUT, 0.65);
-//
-//            cubeCounter++;
-//        }
+        robot.drive(Robot.Direction.FORWARDS, 1, 160);
     }
 }

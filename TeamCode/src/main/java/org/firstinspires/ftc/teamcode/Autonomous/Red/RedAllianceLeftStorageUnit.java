@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.Autonomous.visionv1.TseDetector;
 
 import java.util.Arrays;
 
-@Autonomous(name="Red Alliance Left Storage Unit", group="FTC22Auto_Store")
+@Autonomous(name="Red Left Storage Unit", group="FTC22Auto_Store")
 public class RedAllianceLeftStorageUnit extends LinearOpMode {
 
     Motor arm;
@@ -67,17 +67,22 @@ public class RedAllianceLeftStorageUnit extends LinearOpMode {
             case RIGHT: robot.moveArm(Robot.Position.HIGH.label, 0.5); break;
             case CENTER: robot.moveArm(Robot.Position.MID.label, 0.5); break;
         }
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 35);
-        robot.turn(0.8, 0);
-        robot.intake(Robot.Direction.OUT, 0.65);
-        robot.drive(Robot.Direction.BACKWARDS, 0.8, 30);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 40);
+        robot.turn(1, 0);
+        switch (itemPos) {
+            case LEFT: robot.intake(Robot.Direction.OUT, robot.intakeLowSpeed); break;
+            case RIGHT: robot.intake(Robot.Direction.OUT, robot.intakeHighSpeed); break;
+            case CENTER: robot.intake(Robot.Direction.OUT, robot.intakeMidSpeed); break;
+        }
+        robot.drive(Robot.Direction.BACKWARDS, 0.8, 35);
         robot.moveArm(Robot.Position.DOWN.label, 0.5);
         robot.turn(0.8, -90);
         robot.drive(Robot.Direction.BACKWARDS, 0.8, 145);
         robot.turn(0.8, -145);
-        robot.duckSpin(0.3, 5000);
-        robot.turn(0.8, 5);
+        robot.duckSpin(0.25, 4000);
+        robot.turn(1, 0);
         robot.drive(Robot.Direction.BACKWARDS, 0.8, 0.01); // UNKNOWN BUG!!!
         robot.drive(Robot.Direction.FORWARDS, 0.8, 47);
+        robot.turn(1, 0);
     }
 }

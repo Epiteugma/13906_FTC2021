@@ -17,7 +17,7 @@ import java.util.Arrays;
 
 public class TseDetector extends OpenCvPipeline {
 
-    static double TRESHOLD = 0.2f;
+    static double TRESHOLD = 0.15f;
 
     public enum Location {
         LEFT,
@@ -40,15 +40,15 @@ public class TseDetector extends OpenCvPipeline {
 //            new Point(300, 190));
 
     static final Rect LEFT_ROI = new Rect(
-            new Point(0, 95),
+            new Point(0, 100),
             new Point(106, 240)
     );
     static final Rect CENTER_ROI = new Rect(
-            new Point(106, 95),
+            new Point(106, 100),
             new Point(212, 240)
     );
     static final Rect RIGHT_ROI = new Rect(
-            new Point(212, 95),
+            new Point(212, 100),
             new Point(320, 240)
     );
 

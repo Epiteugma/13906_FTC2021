@@ -53,11 +53,49 @@ public class DriveMecanum extends LinearOpMode {
     public double cubeHeight= 5.08;
     public double ballHeight = 6.99;
     public double duckHeight = 5.4;
-    public float[] color;
-    public int[] rgb;
+    public float[] hsvValues = {0F, 0F, 0F};
+//    public int[] rgb;
     public double collectorBoxHeight = 0;
     SensorColor cargoDetector;
     SensorRevTOFDistance frontDistance;
+
+    public String rgbToHex(int red, int green, int blue) {
+        String hex = "#";
+        try {
+            char[] letters = {'A', 'B', 'C', 'D', 'E', 'F'};
+            int red1 = (int) Math.floor(red / 16);
+            int red2 = red % 16;
+            int blue1 = (int) Math.floor(blue / 16);
+            int blue2 = blue % 16;
+            int green1 = (int) Math.floor(green / 16);
+            int green2 = green % 16;
+
+            if (red1 > 9) {
+                hex += letters[red1 - 10];
+            } else hex += String.valueOf(red1);
+
+            if (red2 > 9) {
+                hex += letters[red2 - 10];
+            } else hex += String.valueOf(red2);
+
+            if (green1 > 9) {
+                hex += letters[green1 - 10];
+            } else hex += String.valueOf(green1);
+
+            if (green2 > 9) {
+                hex += letters[green2 - 10];
+            } else hex += String.valueOf(green2);
+
+            if (blue1 > 9) {
+                hex += letters[blue1 - 10];
+            } else hex += String.valueOf(blue1);
+
+            if (blue2 > 9) {
+                hex += letters[blue2 - 10];
+            } else hex += String.valueOf(blue2);
+        } catch (Exception ignored) { hex += "000"; }
+        return hex;
+    }
 
     private boolean isInRange(float[] HSV, Scalar low, Scalar high) {
         double lowH = low.val[0];
@@ -78,6 +116,7 @@ public class DriveMecanum extends LinearOpMode {
     public float cmax;
     public float cmin;
     public float diff;
+    public float[] rgb = {0, 0, 0};
 
     private float[] rgbToHSV(int rO, int gO, int bO) {
 
@@ -123,18 +162,17 @@ public class DriveMecanum extends LinearOpMode {
         int red = vals[1];
         int green = vals[2];
         int blue = vals[3];
-        float[] hsvValues = {0x0F, 0x0F, 0x0F};
-        rgb = new int[]{ red, green, blue };
-        color = rgbToHSV(red, green, blue);
+        rgb = new float[]{ red, green, blue };
+        cargoDetector.RGBtoHSV(red, green, blue, hsvValues);
         Scalar lowCubeHSV = new Scalar(35, 100, 0);
         Scalar highCubeHSV = new Scalar(40, 255, 255);
         Scalar lowBallHSV = new Scalar(40, 0, 0);
         Scalar highBallHSV = new Scalar(45, 255, 255);
 
-        if(isInRange(color, lowCubeHSV, highCubeHSV)) {
+        if(isInRange(hsvValues, lowCubeHSV, highCubeHSV)) {
             return "Cube OR Duck";
         }
-        else if(isInRange(color, lowBallHSV, highBallHSV)) {
+        else if(isInRange(hsvValues, lowBallHSV, highBallHSV)) {
             return "Ball";
         }
         else return "None";
@@ -272,7 +310,13 @@ public class DriveMecanum extends LinearOpMode {
             sidepower = gamepad1.getLeftX() * globalpowerfactor;
             forwardpower = gamepad1.getLeftY() * globalpowerfactor;
             turnpower = gamepad1.getRightX() * globalpowerfactor;
+
+            if(imu.getAngles()[1] > 9.5 && forwardpower > 0) {
+                forwardpower = 0;
+            }
+
             drivetrain.driveRobotCentric(sidepower, forwardpower, turnpower);
+
 
             // Arm predefined positions
             arm.setRunMode(Motor.RunMode.PositionControl);
@@ -324,6 +368,9 @@ public class DriveMecanum extends LinearOpMode {
                             sidepower = gamepad1.getLeftX() * globalpowerfactor;
                             forwardpower = gamepad1.getLeftY() * globalpowerfactor;
                             turnpower = gamepad1.getRightX() * globalpowerfactor;
+                            if(imu.getAngles()[1] > 9.5 && forwardpower > 0) {
+                                forwardpower = 0;
+                            }
                             drivetrain.driveRobotCentric(sidepower, forwardpower, turnpower);
                             arm.set(armPositionalPower);
                         }
@@ -337,6 +384,9 @@ public class DriveMecanum extends LinearOpMode {
                         sidepower = gamepad1.getLeftX() * globalpowerfactor;
                         forwardpower = gamepad1.getLeftY() * globalpowerfactor;
                         turnpower = gamepad1.getRightX() * globalpowerfactor;
+                        if(imu.getAngles()[1] > 9.5 && forwardpower > 0) {
+                            forwardpower = 0;
+                        }
                         drivetrain.driveRobotCentric(sidepower, forwardpower, turnpower);
                         arm.set(armPositionalPower);
                     }
@@ -350,6 +400,9 @@ public class DriveMecanum extends LinearOpMode {
                         sidepower = gamepad1.getLeftX() * globalpowerfactor;
                         forwardpower = gamepad1.getLeftY() * globalpowerfactor;
                         turnpower = gamepad1.getRightX() * globalpowerfactor;
+                        if(imu.getAngles()[1] > 9.5 && forwardpower > 0) {
+                            forwardpower = 0;
+                        }
                         drivetrain.driveRobotCentric(sidepower, forwardpower, turnpower);
                         arm.set(armPositionalPower);
                     }
@@ -481,14 +534,16 @@ public class DriveMecanum extends LinearOpMode {
             cTelemetry("DucksSpinners power: ","def",red, String.valueOf((duckSpinner1.get() + duckSpinner2.get())/2));
             cTelemetry("DucksSpinners power variable: ","def",yellow, String.valueOf(duckSpinnersPower));
             cTelemetry("Initial Box Height: ","def",yellow, String.valueOf(collectorBoxHeight));
-            cTelemetry("Cargo RGB colors: ", "def", yellow, rgb[0] + " " + rgb[1] + " " + rgb[2]);
-            Log.i("Cargo hsv:" ,color[0] + " "+color[1] + " " + color[2]);
+//            cTelemetry("Cargo RGB colors: ", "def", yellow, rgb[0] + " " + rgb[1] + " " + rgb[2]);
+            cTelemetry("Color sensor", "def", rgbToHex((int)rgb[0], (int)rgb[1], (int)rgb[2]), "\n■■■\n■■■\n■■■");
+            Log.i("Cargo hsv:" ,hsvValues[0] + " "+ hsvValues[1] + " " + hsvValues[2]);
             cTelemetry("Probably Prev Detected Cargo: ","def",orange, prevDetectedCargo);
             cTelemetry("frontRight ticks: ","def",green, String.valueOf(frontRight.getCurrentPosition()));
             cTelemetry("frontLeft ticks: ","def",green, String.valueOf(frontLeft.getCurrentPosition()));
             cTelemetry("backRight ticks: ","def",green, String.valueOf(backRight.getCurrentPosition()));
             cTelemetry("backLeft ticks: ","def",green, String.valueOf(backLeft.getCurrentPosition()));
             cTelemetry("Front distance: ","def",yellow,String.valueOf(frontDistance.getDistance(DistanceUnit.CM)));
+            cTelemetry("XYZ: ", "def", yellow, imu.getAngles()[0] + " " + imu.getAngles()[1] + " " + imu.getAngles()[2]);
             telemetry.update();
             prevDetectedCargo = detectedCargo;
         }

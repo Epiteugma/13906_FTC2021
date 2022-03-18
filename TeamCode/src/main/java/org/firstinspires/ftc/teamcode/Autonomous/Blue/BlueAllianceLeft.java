@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.Autonomous.visionv1.TseDetector;
 
 import java.util.Arrays;
 
-@Autonomous(name="Blue Alliance Left", group="FTC22Auto_Ware_Blue")
+@Autonomous(name="Blue Left", group="FTC22Auto_Ware_Blue")
 public class BlueAllianceLeft extends LinearOpMode {
 
     Motor arm;
@@ -60,15 +60,9 @@ public class BlueAllianceLeft extends LinearOpMode {
         TseDetector.Location itemPos = robot.getTsePos();
         telemetry.addData("Detected Cargo: ", itemPos);
         telemetry.update();
-        new Thread(() -> {
-            while (opModeIsActive()) {
-                double secondsSinceStart = Math.floor((System.currentTimeMillis() - opModeStartTime) / 1000);
-                secondsRemaining = 30 - secondsSinceStart;
-            }
-        }).start();
         robot.drive(Robot.Direction.FORWARDS, 0.8, 10);
         robot.turn(0.8, -90);
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 53);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 57);
         robot.turn(0.8, 0);
         switch (itemPos) {
             case LEFT:
@@ -82,12 +76,17 @@ public class BlueAllianceLeft extends LinearOpMode {
                 break;
         }
         robot.drive(Robot.Direction.BACKWARDS, 0.08, 0.01); // UNKNOWN BUG!!!
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 43);
-        robot.intake(Robot.Direction.OUT, 0.65);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 35);
         robot.turn(1, 0);
-        robot.drive(Robot.Direction.BACKWARDS, 1, 33);
+        switch (itemPos) {
+            case LEFT: robot.intake(Robot.Direction.OUT, robot.intakeLowSpeed); break;
+            case RIGHT: robot.intake(Robot.Direction.OUT, robot.intakeHighSpeed); break;
+            case CENTER: robot.intake(Robot.Direction.OUT, robot.intakeMidSpeed); break;
+        }
+        robot.turn(1, 0);
+        robot.drive(Robot.Direction.BACKWARDS, 1, 25);
         robot.turn(1, 90);
         robot.moveArm(Robot.Position.MID.label, 0.08);
-        robot.drive(Robot.Direction.FORWARDS, 1, 140);
+        robot.drive(Robot.Direction.FORWARDS, 1, 160);
     }
 }

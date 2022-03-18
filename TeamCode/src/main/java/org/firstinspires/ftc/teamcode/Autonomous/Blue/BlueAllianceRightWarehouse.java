@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.Autonomous.visionv1.TseDetector;
 
 import java.util.Arrays;
 
-@Autonomous(name="Blue Alliance Right Warehouse", group="FTC22Auto_Ware_Blue")
+@Autonomous(name="Blue Right Warehouse", group="FTC22Auto_Ware_Blue")
 public class BlueAllianceRightWarehouse extends LinearOpMode {
 
     Motor arm;
@@ -59,7 +59,7 @@ public class BlueAllianceRightWarehouse extends LinearOpMode {
         telemetry.update();
         robot.drive(Robot.Direction.FORWARDS, 0.8, 10);
         robot.turn(0.8, 90);
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 53);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 55);
         robot.turn(0.8, 0);
         robot.drive(Robot.Direction.BACKWARDS, 0.8, 0.01); // UNKNOWN BUG!!!
         switch (itemPos) {
@@ -74,15 +74,20 @@ public class BlueAllianceRightWarehouse extends LinearOpMode {
                 break;
         }
         robot.drive(Robot.Direction.FORWARDS, 0.8, 33);
-        robot.turn(0.5, -5);
-        robot.intake(Robot.Direction.OUT, 0.65);
+        robot.turn(0.5, 0);
+        switch (itemPos) {
+            case LEFT: robot.intake(Robot.Direction.OUT, robot.intakeLowSpeed); break;
+            case RIGHT: robot.intake(Robot.Direction.OUT, robot.intakeHighSpeed); break;
+            case CENTER: robot.intake(Robot.Direction.OUT, robot.intakeMidSpeed); break;
+        }
         robot.drive(Robot.Direction.BACKWARDS, 0.4, 25);
         robot.moveArm(Robot.Position.DOWN.label, 0.08);
         robot.turn(0.8, -92);
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 127);
-        robot.duckSpin(-0.25, 5500);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 125);
+        robot.turn(0.8, -90);
+        robot.duckSpin(-0.275, 4000);
         robot.turn(0.8, 85);
         robot.moveArm(Robot.Position.HIGH.label, 0.5);
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 270);
+        robot.drive(Robot.Direction.FORWARDS, 1, 270);
     }
 }

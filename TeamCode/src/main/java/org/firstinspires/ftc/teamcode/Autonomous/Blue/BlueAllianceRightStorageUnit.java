@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.Autonomous.visionv1.TseDetector;
 
 import java.util.Arrays;
 
-@Autonomous(name = "Blue Alliance Right Storage Unit", group="FTC22Auto_Store")
+@Autonomous(name = "Blue Right Storage Unit", group="FTC22Auto_Store")
 public class BlueAllianceRightStorageUnit extends LinearOpMode {
 
     Motor arm;
@@ -59,7 +59,7 @@ public class BlueAllianceRightStorageUnit extends LinearOpMode {
         telemetry.update();
         robot.drive(Robot.Direction.FORWARDS, 0.8, 10);
         robot.turn(0.8, 90);
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 53);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 55);
         robot.turn(0.8, 0);
         robot.drive(Robot.Direction.BACKWARDS, 0.8, 0.01); // UNKNOWN BUG!!!
         switch (itemPos) {
@@ -74,15 +74,21 @@ public class BlueAllianceRightStorageUnit extends LinearOpMode {
                 break;
         }
         robot.drive(Robot.Direction.FORWARDS, 0.8, 33);
-        robot.turn(0.5, -5);
-        robot.intake(Robot.Direction.OUT, 0.65);
+        robot.turn(0.5, 0);
+        switch (itemPos) {
+            case LEFT: robot.intake(Robot.Direction.OUT, robot.intakeLowSpeed); break;
+            case RIGHT: robot.intake(Robot.Direction.OUT, robot.intakeHighSpeed); break;
+            case CENTER: robot.intake(Robot.Direction.OUT, robot.intakeMidSpeed); break;
+        }
         robot.drive(Robot.Direction.BACKWARDS, 0.4, 25);
         robot.moveArm(Robot.Position.DOWN.label, 0.08);
-        robot.turn(0.8, -92);
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 127);
-        robot.duckSpin(-0.25, 5000);
+        robot.turn(0.8, -93);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 125);
+        robot.turn(0.8, -90);
+        robot.duckSpin(-0.275, 4000);
         robot.turn(1, 0);
         robot.drive(Robot.Direction.BACKWARDS, 0.8, 0.01); // UNKNOWN BUG!!!
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 45);
+        robot.drive(Robot.Direction.FORWARDS, 0.45, 50);
+        robot.turn(1, 0);
     }
 }

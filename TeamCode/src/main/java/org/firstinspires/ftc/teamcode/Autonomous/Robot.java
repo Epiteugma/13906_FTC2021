@@ -103,8 +103,13 @@ public class Robot {
     public double cubeHeight= 5.08;
     public double ballHeight = 6.99;
     public double duckHeight = 5.4;
-    public float[] color;
     public double collectorBoxHeight = 15;
+
+    public double intakeLowSpeed = 0.5;
+    public double intakeMidSpeed = 0.65;
+    public double intakeHighSpeed = 0.65;
+
+
 
     private Telemetry telemetry;
 
@@ -247,20 +252,6 @@ public class Robot {
         }
         return getIMUAngle(Axis.Y) > 3;
     }
-
-//    public void AutoCollect(double initialHeight,double power){
-//        if(linearOpMode.opModeIsActive()){
-//            if (!cargoDetection().equals("None") && !overCargo(initialHeight)) {
-//                collector.set(1);
-//                this.setAllDrivePower(power);
-//            }
-//            else{
-//                while(overCargo(initialHeight)){
-//                    this.setAllDrivePower(-power);
-//                }
-//            }
-//        }
-//    }
 
     public void setAllDriveTargetPos(double pos){
         setDriveTargetPos(pos,pos,pos,pos);
@@ -646,32 +637,32 @@ public class Robot {
         int green = cargoDetector.green();
         int blue = cargoDetector.blue();
         float[] hsvValues = {0x0F, 0x0F, 0x0F};
-        color = rgbToHSV(red, green, blue);
-//        Scalar lowCubeHSV = new Scalar(50, 100, 0);
-//        Scalar highCubeHSV = new Scalar(70, 255, 255);
-//        Scalar lowBallHSV = new Scalar(0, 0, 0);
-//        Scalar highBallHSV = new Scalar(0, 0, 255);
-//
-//        if(isInRange(color, lowCubeHSV, highCubeHSV)) {
-//            return "Cube OR Duck";
-//        }
-//        else if(isInRange(color, lowBallHSV, highBallHSV)) {
-//            return "Ball";
-//        }
-//        else return "None";
+        cargoDetector.RGBtoHSV(red, green, blue, hsvValues);
+        Scalar lowCubeHSV = new Scalar(50, 100, 0);
+        Scalar highCubeHSV = new Scalar(70, 255, 255);
+        Scalar lowBallHSV = new Scalar(0, 0, 0);
+        Scalar highBallHSV = new Scalar(0, 0, 255);
+
+        if(isInRange(hsvValues, lowCubeHSV, highCubeHSV)) {
+            return "Cube OR Duck";
+        }
+        else if(isInRange(hsvValues, lowBallHSV, highBallHSV)) {
+            return "Ball";
+        }
+        else return "None";
 
 //        Log.i("Color 0: ", String.valueOf(color[0]));
 //        Log.i("Color 1: ", String.valueOf(color[1]));
 //        Log.i("Color 2: ", String.valueOf(color[2]));
-        if (color[0] > 34 && color[0] < 36 && 0 < color[1] && color[1] < 0.45 && 0.9 < color[2] && color[2] < 1.3) {
-            return "Ball";
-        }
-        else if(color[0] > 32 && color[0] < 35 && 0.45 < color[1] && color[1] < 1 && 0.9 < color[2] && color[2] < 1.5) {
-            return "Cube OR Duck";
-        }
-        else {
-            return "None";
-        }
+//        if (color[0] > 34 && color[0] < 36 && 0 < color[1] && color[1] < 0.45 && 0.9 < color[2] && color[2] < 1.3) {
+//            return "Ball";
+//        }
+//        else if(color[0] > 32 && color[0] < 35 && 0.45 < color[1] && color[1] < 1 && 0.9 < color[2] && color[2] < 1.5) {
+//            return "Cube OR Duck";
+//        }
+//        else {
+//            return "None";
+//        }
     }
 
     // Class constructor.
