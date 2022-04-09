@@ -482,7 +482,7 @@ public class Robot {
         power = 0.08;
         arm.setTargetPosition(pos);
         armPower = power;
-        while (!arm.atTargetPosition()) {}
+        while (!arm.atTargetPosition() && linearOpMode.opModeIsActive()) {}
         this.pause(100);
     }
 

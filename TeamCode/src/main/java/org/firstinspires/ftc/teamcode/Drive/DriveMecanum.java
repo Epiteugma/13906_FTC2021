@@ -18,6 +18,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.arcrobotics.ftclib.gamepad.*;
 import com.arcrobotics.ftclib.hardware.*;
 import com.arcrobotics.ftclib.hardware.motors.*;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import java.util.Arrays;
@@ -222,8 +223,8 @@ public class DriveMecanum extends LinearOpMode {
         arm.resetEncoder();
         Motor collector = new Motor(hardwareMap, "collector");
         CRServo capper = new CRServo(hardwareMap, "capper");
+
         Motor frontRight = new Motor(hardwareMap, "frontRight");
-        
         Motor frontLeft = new Motor(hardwareMap, "frontLeft");
         Motor backRight = new Motor(hardwareMap, "backRight");
         Motor backLeft = new Motor(hardwareMap, "backLeft");
@@ -232,6 +233,11 @@ public class DriveMecanum extends LinearOpMode {
         frontLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+
+        frontRight.setInverted(true);
+        frontLeft.setInverted(true);
+        backLeft.setInverted(true);
+        backRight.setInverted(true);
 
         // IMU init.
         RevIMU imu = new RevIMU(hardwareMap);
@@ -311,12 +317,45 @@ public class DriveMecanum extends LinearOpMode {
             forwardpower = gamepad1.getLeftY() * globalpowerfactor;
             turnpower = gamepad1.getRightX() * globalpowerfactor;
 
+//            if(sidepower == 0 && forwardpower == 0 && turnpower == 0){
+//                backLeft.stopMotor();
+//                backRight.stopMotor();
+//                frontLeft.stopMotor();
+//                frontRight.stopMotor();
+//                backLeft.setRunMode(Motor.RunMode.PositionControl);
+//                backRight.setRunMode(Motor.RunMode.PositionControl);
+//                frontLeft.setRunMode(Motor.RunMode.PositionControl);
+//                frontRight.setRunMode(Motor.RunMode.PositionControl);
+//                int targetPos = (backLeft.getCurrentPosition() + backRight.getCurrentPosition() + frontLeft.getCurrentPosition() + frontRight.getCurrentPosition())/4;
+//                backLeft.motor.setTargetPosition(targetPos);
+//                backRight.motor.setTargetPosition(targetPos);
+//                frontLeft.motor.setTargetPosition(targetPos);
+//                frontRight.motor.setTargetPosition(targetPos);
+//                    if(!backLeft.atTargetPosition()){
+//                        backLeft.set(0.1);
+//                    }
+//                    if(!backLeft.atTargetPosition()){
+//                        backLeft.set(0.1);
+//                    }
+//                    if(!frontLeft.atTargetPosition()){
+//                        frontLeft.set(0.1);
+//                    }
+//                    if(!frontRight.atTargetPosition()){
+//                        frontRight.set(0.1);
+//                    }
+//            }
+//            else{
+//                backLeft.setRunMode(Motor.RunMode.RawPower);
+//                backRight.setRunMode(Motor.RunMode.RawPower);
+//                frontLeft.setRunMode(Motor.RunMode.RawPower);
+//                frontRight.setRunMode(Motor.RunMode.RawPower);
+//            }
+
             if(imu.getAngles()[1] > 9.5 && forwardpower > 0) {
                 forwardpower = 0;
             }
 
             drivetrain.driveRobotCentric(sidepower, forwardpower, turnpower);
-
 
             // Arm predefined positions
             arm.setRunMode(Motor.RunMode.PositionControl);
@@ -361,7 +400,7 @@ public class DriveMecanum extends LinearOpMode {
                 capper.stopMotor();
                 if (gamepad2.getButton(CROSS)) {
                         lastClawPosition = lowPosition;
-                        armPositionalPower = 0.45;
+                        armPositionalPower = 0.08;
                         arm.setTargetPosition(lastClawPosition);
                         while (!arm.atTargetPosition()) {
                             if(gamepad2.getButton(SQUARE)) break;
@@ -371,13 +410,12 @@ public class DriveMecanum extends LinearOpMode {
                             if(imu.getAngles()[1] > 9.5 && forwardpower > 0) {
                                 forwardpower = 0;
                             }
-                            drivetrain.driveRobotCentric(sidepower, forwardpower, turnpower);
-                            arm.set(armPositionalPower);
+                            drivetrain.driveRobotCentric(sidepower, forwardpower, turnpower);                            arm.set(armPositionalPower);
                         }
                     }
                 else if (gamepad2.getButton(CIRCLE)) {
                     lastClawPosition = midPosition;
-                    armPositionalPower = 0.4;
+                    armPositionalPower = 0.08;
                     arm.setTargetPosition(lastClawPosition);
                     while (!arm.atTargetPosition()) {
                         if(gamepad2.getButton(SQUARE)) break;
@@ -387,13 +425,12 @@ public class DriveMecanum extends LinearOpMode {
                         if(imu.getAngles()[1] > 9.5 && forwardpower > 0) {
                             forwardpower = 0;
                         }
-                        drivetrain.driveRobotCentric(sidepower, forwardpower, turnpower);
-                        arm.set(armPositionalPower);
+                        drivetrain.driveRobotCentric(sidepower, forwardpower, turnpower);                        arm.set(armPositionalPower);
                     }
                 }
                 else if (gamepad2.getButton(TRIANGLE)) {
                     lastClawPosition = highPosition;
-                    armPositionalPower = 0.35;
+                    armPositionalPower = 0.5;
                     arm.setTargetPosition(lastClawPosition);
                     while (!arm.atTargetPosition()) {
                         if(gamepad2.getButton(SQUARE)) break;
@@ -403,8 +440,7 @@ public class DriveMecanum extends LinearOpMode {
                         if(imu.getAngles()[1] > 9.5 && forwardpower > 0) {
                             forwardpower = 0;
                         }
-                        drivetrain.driveRobotCentric(sidepower, forwardpower, turnpower);
-                        arm.set(armPositionalPower);
+                        drivetrain.driveRobotCentric(sidepower, forwardpower, turnpower);                        arm.set(armPositionalPower);
                     }
                 }
                 // ARM KEEP POSITION!!!
@@ -415,7 +451,7 @@ public class DriveMecanum extends LinearOpMode {
                     }
                     lastClawPosition = arm.getCurrentPosition();
                     // OLD now proportional???
-                    armPositionalPower = 0.09;
+                    armPositionalPower = 0.13;
                     arm.setTargetPosition(lastClawPosition);
                     //armPositionalPower = +(+lastClawPosition / 450.0 /10.0);
                     if (!arm.atTargetPosition()) {

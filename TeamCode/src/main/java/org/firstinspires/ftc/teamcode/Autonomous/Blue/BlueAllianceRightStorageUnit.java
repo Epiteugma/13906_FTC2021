@@ -83,8 +83,8 @@ public class BlueAllianceRightStorageUnit extends LinearOpMode {
         robot.drive(Robot.Direction.BACKWARDS, 0.4, 25);
         robot.moveArm(Robot.Position.DOWN.label, 0.08);
         robot.turn(0.8, -93);
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 125);
-        robot.turn(0.8, -90);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 127);
+        robot.turn(0.8, -92);
         robot.duckSpin(-0.275, 4000);
         robot.turn(1, 0);
         robot.drive(Robot.Direction.BACKWARDS, 0.8, 0.01); // UNKNOWN BUG!!!
