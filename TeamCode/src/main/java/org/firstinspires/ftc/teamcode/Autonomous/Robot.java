@@ -129,7 +129,7 @@ public class Robot {
     }
 
     public enum Position {
-        LOW(-470),
+        LOW(-500),
         MID(-1100),
         HIGH(-1700),
         DOWN(0);
