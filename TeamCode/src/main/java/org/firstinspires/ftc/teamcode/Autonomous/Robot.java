@@ -409,7 +409,7 @@ public class Robot {
         backLeft.setRunMode(Motor.RunMode.RawPower);
     }
 
-    //. GOD function!!!
+    // GOD function!!!
     public void turn(double power, double degrees) {
         Log.i("Autonomous", "Turn called. " + degrees + "deg");
         runOnPower();
