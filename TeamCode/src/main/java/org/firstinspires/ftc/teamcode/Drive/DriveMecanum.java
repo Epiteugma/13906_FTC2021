@@ -19,6 +19,7 @@ import com.arcrobotics.ftclib.gamepad.*;
 import com.arcrobotics.ftclib.hardware.*;
 import com.arcrobotics.ftclib.hardware.motors.*;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import java.util.Arrays;
@@ -30,7 +31,7 @@ public class DriveMecanum extends LinearOpMode {
     GamepadEx g1ex;
 
     // power factors
-    public double globalpowerfactor = 1;
+    public double globalpowerfactor = 0.7;
 
     public double duckSpinnersPower = 0;
     public double lastDuckSpinnersPower = 0.25;
@@ -54,144 +55,159 @@ public class DriveMecanum extends LinearOpMode {
     // cargoDetector
     public String detectedCargo = "None";
     public String prevDetectedCargo = "None";
-    public double cubeHeight= 5.08;
+    public double cubeHeight = 5.08;
     public double ballHeight = 6.99;
     public double duckHeight = 5.4;
-    public float[] hsvValues = {0F, 0F, 0F};
+//    public float[] hsvValues = {0F, 0F, 0F};
 //    public int[] rgb;
     public double collectorBoxHeight = 0;
-    SensorColor cargoDetector;
+    DistanceSensor cargoDetector;
+//    SensorColor cargoDetector;
 
-    public String rgbToHex(int red, int green, int blue) {
-        String hex = "#";
-        try {
-            char[] letters = {'A', 'B', 'C', 'D', 'E', 'F'};
-            int red1 = (int) Math.floor(red / 16);
-            int red2 = red % 16;
-            int blue1 = (int) Math.floor(blue / 16);
-            int blue2 = blue % 16;
-            int green1 = (int) Math.floor(green / 16);
-            int green2 = green % 16;
+//    public String rgbToHex(int red, int green, int blue) {
+//        String hex = "#";
+//        try {
+//            char[] letters = {'A', 'B', 'C', 'D', 'E', 'F'};
+//            int red1 = (int) Math.floor(red / 16);
+//            int red2 = red % 16;
+//            int blue1 = (int) Math.floor(blue / 16);
+//            int blue2 = blue % 16;
+//            int green1 = (int) Math.floor(green / 16);
+//            int green2 = green % 16;
+//
+//            if (red1 > 9) {
+//                hex += letters[red1 - 10];
+//            } else hex += String.valueOf(red1);
+//
+//            if (red2 > 9) {
+//                hex += letters[red2 - 10];
+//            } else hex += String.valueOf(red2);
+//
+//            if (green1 > 9) {
+//                hex += letters[green1 - 10];
+//            } else hex += String.valueOf(green1);
+//
+//            if (green2 > 9) {
+//                hex += letters[green2 - 10];
+//            } else hex += String.valueOf(green2);
+//
+//            if (blue1 > 9) {
+//                hex += letters[blue1 - 10];
+//            } else hex += String.valueOf(blue1);
+//
+//            if (blue2 > 9) {
+//                hex += letters[blue2 - 10];
+//            } else hex += String.valueOf(blue2);
+//        } catch (Exception ignored) { hex += "000"; }
+//        return hex;
+//    }
 
-            if (red1 > 9) {
-                hex += letters[red1 - 10];
-            } else hex += String.valueOf(red1);
+//    private boolean isInRange(float[] HSV, Scalar low, Scalar high) {
+//        double lowH = low.val[0];
+//        double lowS = low.val[1];
+//        double lowV = low.val[2];
+//
+//        double highH = high.val[0];
+//        double highS = high.val[1];
+//        double highV = high.val[2];
+//
+//        boolean H = lowH < HSV[0] && HSV[0] > highH;
+//        boolean S = lowS < HSV[1] && HSV[1] > highS;
+//        boolean V = lowV < HSV[2] && HSV[2] > highV;
+//
+//        return H && S && V;
+//    }
 
-            if (red2 > 9) {
-                hex += letters[red2 - 10];
-            } else hex += String.valueOf(red2);
+//    public float cmax;
+//    public float cmin;
+//    public float diff;
+//    public float[] rgb = {0, 0, 0};
 
-            if (green1 > 9) {
-                hex += letters[green1 - 10];
-            } else hex += String.valueOf(green1);
-
-            if (green2 > 9) {
-                hex += letters[green2 - 10];
-            } else hex += String.valueOf(green2);
-
-            if (blue1 > 9) {
-                hex += letters[blue1 - 10];
-            } else hex += String.valueOf(blue1);
-
-            if (blue2 > 9) {
-                hex += letters[blue2 - 10];
-            } else hex += String.valueOf(blue2);
-        } catch (Exception ignored) { hex += "000"; }
-        return hex;
-    }
-
-    private boolean isInRange(float[] HSV, Scalar low, Scalar high) {
-        double lowH = low.val[0];
-        double lowS = low.val[1];
-        double lowV = low.val[2];
-
-        double highH = high.val[0];
-        double highS = high.val[1];
-        double highV = high.val[2];
-
-        boolean H = lowH < HSV[0] && HSV[0] > highH;
-        boolean S = lowS < HSV[1] && HSV[1] > highS;
-        boolean V = lowV < HSV[2] && HSV[2] > highV;
-
-        return H && S && V;
-    }
-
-    public float cmax;
-    public float cmin;
-    public float diff;
-    public float[] rgb = {0, 0, 0};
-
-    private float[] rgbToHSV(int rO, int gO, int bO) {
-
-        float r = (float) rO / 255;
-        float g = (float) gO / 255;
-        float b = (float) bO / 255;
-
-        float h = -1;
-        float s = -1;
-        float v = -1;
-
-        cmax = Math.max(r, Math.max(g, b));
-        cmin = Math.min(r, Math.min(g, b));
-        diff = cmax - cmin;
-
-        if(cmax == cmin) {
-            h = 0;
-        }
-        else if(cmax == r) {
-            h = (60 * ((g-b) / diff) + 360) % 360;
-        }
-        else if(cmax == g) {
-            h = (60 * ((b-r) / diff) + 120) % 120;
-        }
-        else if(cmax == b) {
-            h = (60 * ((r-g) / diff) + 240) % 240;
-        }
-
-        if(cmax == 0) {
-            s = 0;
-        } else {
-            s = diff / cmax * 100;
-        }
-
-        v = cmax * 100;
-
-        return new float[]{h, s, v};
-    }
-
-    public String cargoDetection(){
-        // Cargo detection
-        int[] vals = cargoDetector.getARGB();
-        int red = vals[1];
-        int green = vals[2];
-        int blue = vals[3];
-        rgb = new float[]{ red, green, blue };
-        cargoDetector.RGBtoHSV(red, green, blue, hsvValues);
-        Scalar lowCubeHSV = new Scalar(35, 100, 0);
-        Scalar highCubeHSV = new Scalar(40, 255, 255);
-        Scalar lowBallHSV = new Scalar(40, 0, 0);
-        Scalar highBallHSV = new Scalar(45, 255, 255);
-
-        if(isInRange(hsvValues, lowCubeHSV, highCubeHSV)) {
-            return "Cube OR Duck";
-        }
-        else if(isInRange(hsvValues, lowBallHSV, highBallHSV)) {
-            return "Ball";
-        }
-        else return "None";
-
-//        Log.i("Color 0: ", String.valueOf(color[0]));
-//        Log.i("Color 1: ", String.valueOf(color[1]));
-//        Log.i("Color 2: ", String.valueOf(color[2]));
-//        if (color[0] > 34 && color[0] < 36 && 0 < color[1] && color[1] < 0.45 && 0.9 < color[2] && color[2] < 1.3) {
-//            return "Ball";
+//    private float[] rgbToHSV(int rO, int gO, int bO) {
+//
+//        float r = (float) rO / 255;
+//        float g = (float) gO / 255;
+//        float b = (float) bO / 255;
+//
+//        float h = -1;
+//        float s = -1;
+//        float v = -1;
+//
+//        cmax = Math.max(r, Math.max(g, b));
+//        cmin = Math.min(r, Math.min(g, b));
+//        diff = cmax - cmin;
+//
+//        if(cmax == cmin) {
+//            h = 0;
 //        }
-//        else if(color[0] > 32 && color[0] < 35 && 0.45 < color[1] && color[1] < 1 && 0.9 < color[2] && color[2] < 1.5) {
+//        else if(cmax == r) {
+//            h = (60 * ((g-b) / diff) + 360) % 360;
+//        }
+//        else if(cmax == g) {
+//            h = (60 * ((b-r) / diff) + 120) % 120;
+//        }
+//        else if(cmax == b) {
+//            h = (60 * ((r-g) / diff) + 240) % 240;
+//        }
+//
+//        if(cmax == 0) {
+//            s = 0;
+//        } else {
+//            s = diff / cmax * 100;
+//        }
+//
+//        v = cmax * 100;
+//
+//        return new float[]{h, s, v};
+//    }
+
+//    public String cargoDetection(){
+//        // Cargo detection
+//        int[] vals = cargoDetector.getARGB();
+//        int red = vals[1];
+//        int green = vals[2];
+//        int blue = vals[3];
+//        rgb = new float[]{ red, green, blue };
+//        cargoDetector.RGBtoHSV(red, green, blue, hsvValues);
+//        Scalar lowCubeHSV = new Scalar(35, 100, 0);
+//        Scalar highCubeHSV = new Scalar(40, 255, 255);
+//        Scalar lowBallHSV = new Scalar(40, 0, 0);
+//        Scalar highBallHSV = new Scalar(45, 255, 255);
+//
+//        if(isInRange(hsvValues, lowCubeHSV, highCubeHSV)) {
 //            return "Cube OR Duck";
 //        }
-//        else {
-//            return "None";
+//        else if(isInRange(hsvValues, lowBallHSV, highBallHSV)) {
+//            return "Ball";
 //        }
+//        else return "None";
+//
+////        Log.i("Color 0: ", String.valueOf(color[0]));
+////        Log.i("Color 1: ", String.valueOf(color[1]));
+////        Log.i("Color 2: ", String.valueOf(color[2]));
+////        if (color[0] > 34 && color[0] < 36 && 0 < color[1] && color[1] < 0.45 && 0.9 < color[2] && color[2] < 1.3) {
+////            return "Ball";
+////        }
+////        else if(color[0] > 32 && color[0] < 35 && 0.45 < color[1] && color[1] < 1 && 0.9 < color[2] && color[2] < 1.5) {
+////            return "Cube OR Duck";
+////        }
+////        else {
+////            return "None";
+////        }
+//    }
+
+    public String cargoDetection() {
+        double distanceToObject = cargoDetector.getDistance(DistanceUnit.CM);
+        double objectHeight = collectorBoxHeight - distanceToObject;
+        double threshold = 0.5;
+
+        if(duckHeight-threshold < objectHeight && objectHeight < duckHeight+threshold) {
+            return "Cube OR Duck";
+        } else if(cubeHeight-threshold < objectHeight && objectHeight < cubeHeight+threshold) {
+            return "Cube OR Duck";
+        } else if(ballHeight-threshold < objectHeight && objectHeight < ballHeight+threshold) {
+            return "Ball";
+        } else return "None";
     }
 
     // Colored telemetry based on given hex code like html
@@ -213,10 +229,10 @@ public class DriveMecanum extends LinearOpMode {
         telemetry.addData("turnpower: ",turnpower);
 
         if(imu.getAngles()[1] > 9.5 && forwardpower < 0) {
-            forwardpower = 0;
+            forwardpower = -0.25;
         }
 
-        drivetrain.driveRobotCentric(sidepower, -forwardpower, -turnpower);
+        drivetrain.driveRobotCentric(-sidepower, -forwardpower, -turnpower);
     }
 
     @Override
@@ -225,7 +241,9 @@ public class DriveMecanum extends LinearOpMode {
 
         double duckSpinnerPrevTime = 0;
 
-        cargoDetector = new SensorColor(hardwareMap, "cargoDetector");
+//        cargoDetector = new SensorColor(hardwareMap, "cargoDetector");
+        cargoDetector = hardwareMap.get(DistanceSensor.class, "cargoDetector");
+        collectorBoxHeight = cargoDetector.getDistance(DistanceUnit.CM);
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
@@ -345,7 +363,7 @@ public class DriveMecanum extends LinearOpMode {
             // Arm up DPAD_UP
             if(gamepad2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) == 0 && gamepad2.isDown(GamepadKeys.Button.DPAD_UP)) {
                 arm.setRunMode(Motor.RunMode.PositionControl);
-                if (arm.getCurrentPosition() >= -1850 || armOverride) {
+                if (arm.getCurrentPosition() > -1700 || armOverride) {
                     arm.setRunMode(Motor.RunMode.RawPower);
                     arm.set(-armPower);
                 }
@@ -481,10 +499,10 @@ public class DriveMecanum extends LinearOpMode {
 
             // FULL SPEED NAVIGATION
             if (gamepad1.isDown(TRIANGLE)){
-              drivetrain.driveRobotCentric(0,1,0);
+              drivetrain.driveRobotCentric(0,-1,0);
             }
             else if (gamepad1.isDown(CROSS)){
-              drivetrain.driveRobotCentric(0,-1,0);
+              drivetrain.driveRobotCentric(0,1,0);
             }
 //            else if (gamepad1.isDown(CIRCLE)){
 //              drivetrain.driveRobotCentric(0,0,1);
@@ -532,8 +550,8 @@ public class DriveMecanum extends LinearOpMode {
             cTelemetry("DucksSpinners power variable: ","def",yellow, String.valueOf(duckSpinnersPower));
             cTelemetry("Initial Box Height: ","def",yellow, String.valueOf(collectorBoxHeight));
 //            cTelemetry("Cargo RGB colors: ", "def", yellow, rgb[0] + " " + rgb[1] + " " + rgb[2]);
-            cTelemetry("Color sensor", "def", rgbToHex((int)rgb[0], (int)rgb[1], (int)rgb[2]), "\n■■■\n■■■\n■■■");
-            Log.i("Cargo hsv:" ,hsvValues[0] + " "+ hsvValues[1] + " " + hsvValues[2]);
+//            cTelemetry("Color sensor", "def", rgbToHex((int)rgb[0], (int)rgb[1], (int)rgb[2]), "\n■■■\n■■■\n■■■");
+//            Log.i("Cargo hsv:" ,hsvValues[0] + " "+ hsvValues[1] + " " + hsvValues[2]);
             cTelemetry("Probably Prev Detected Cargo: ","def",orange, prevDetectedCargo);
             cTelemetry("frontRight ticks: ","def",green, String.valueOf(frontRight.getCurrentPosition()));
             cTelemetry("frontLeft ticks: ","def",green, String.valueOf(frontLeft.getCurrentPosition()));
