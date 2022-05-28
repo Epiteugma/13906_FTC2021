@@ -13,11 +13,11 @@ public class MecanumDriveTrain {
         init(frontLeft, frontRight, backLeft, backRight);
     }
 
-    public void driveRobotCentric(double forwardPower, double strafePower, double sidePower) {
-        motors[0].setPower(-1 * (forwardPower - sidePower - strafePower));
-        motors[1].setPower(forwardPower + sidePower + strafePower);
-        motors[2].setPower(-1 * (forwardPower - sidePower + strafePower));
-        motors[3].setPower(forwardPower + sidePower - strafePower);
+    public void driveRobotCentric(double forwardPower, double sidePower, double strafePower) {
+        motors[0].setPower(forwardPower - sidePower - strafePower); // front left
+        motors[1].setPower(forwardPower + sidePower + strafePower); // front right
+        motors[2].setPower(forwardPower - sidePower + strafePower); // back left
+        motors[3].setPower(forwardPower + sidePower - strafePower); // back right
     }
 
     public void driveFieldCentric(double forwardPower, double sidePower, double strafePower, double robotAngle) {
@@ -30,9 +30,9 @@ public class MecanumDriveTrain {
         double relativeForwardPower = yValue * Math.abs(yValue);
         double relativeStrafePower = xValue * Math.abs(xValue);
 
-        motors[0].setPower(-1 * (relativeForwardPower - sidePower - relativeStrafePower));
+        motors[0].setPower(relativeForwardPower - sidePower - relativeStrafePower);
         motors[1].setPower(relativeForwardPower + sidePower + relativeStrafePower);
-        motors[2].setPower(-1 * (relativeForwardPower - sidePower + relativeStrafePower));
+        motors[2].setPower(relativeForwardPower - sidePower + relativeStrafePower);
         motors[3].setPower(relativeForwardPower + sidePower - relativeStrafePower);
 
 //        throw new NotImplementedError();

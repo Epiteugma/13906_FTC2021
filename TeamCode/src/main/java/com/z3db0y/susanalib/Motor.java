@@ -25,7 +25,15 @@ public class Motor {
     public Motor(HardwareMap hardwareMap, String deviceName) {
         this.motor = hardwareMap.get(DcMotor.class, deviceName);
         this.direction = Direction.FORWARD;
+        this.motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this.motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
+
+    public void setZeroPowerBehavior(DcMotor.ZeroPowerBehavior behavior) {
+        this.motor.setZeroPowerBehavior(behavior);
+    }
+
+    public DcMotor.ZeroPowerBehavior getZeroPowerBehavior() { return this.motor.getZeroPowerBehavior(); }
 
     public void setDirection(Direction dir) {
         this.direction = dir;
@@ -56,7 +64,7 @@ public class Motor {
     }
 
     public double getPower() {
-        return this.power * this.direction.getMultiplier();
+        return this.power;
     }
 
     public void setHoldPosition(boolean hold) {
@@ -76,7 +84,9 @@ public class Motor {
         this.motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         this.setPower(power);
 
-        while(this.getPosition() != ticks) {}
+        while(Math.abs(this.getPosition()) < Math.abs(ticks)) {
+            System.out.println(this.getPosition());
+        }
         this.setPower(0);
     }
 

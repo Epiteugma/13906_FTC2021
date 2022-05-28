@@ -26,6 +26,8 @@ public class Mecanum2 extends LinearOpMode {
         backLeft = new Motor(hardwareMap, "backLeft");
         backRight = new Motor(hardwareMap, "backRight");
         imu = hardwareMap.get(BNO055IMU.class, "imu");
+        backLeft.setDirection(Motor.Direction.REVERSE);
+        frontRight.setDirection(Motor.Direction.REVERSE);
     }
 
     @Override

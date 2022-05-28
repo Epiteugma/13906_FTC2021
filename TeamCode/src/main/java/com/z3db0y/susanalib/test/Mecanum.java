@@ -20,6 +20,8 @@ public class Mecanum extends LinearOpMode {
         frontRight = new Motor(hardwareMap, "frontRight");
         backLeft = new Motor(hardwareMap, "backLeft");
         backRight = new Motor(hardwareMap, "backRight");
+        backLeft.setDirection(Motor.Direction.REVERSE);
+        frontRight.setDirection(Motor.Direction.REVERSE);
     }
 
     @Override
