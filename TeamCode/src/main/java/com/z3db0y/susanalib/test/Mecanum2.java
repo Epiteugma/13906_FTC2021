@@ -1,6 +1,7 @@
 package com.z3db0y.susanalib.test;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.z3db0y.susanalib.MecanumDriveTrain;
@@ -10,7 +11,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 
-//@Disabled
+@Disabled
 @TeleOp(name = "Mecanum Field Centric Test", group = "SusanaLib")
 public class Mecanum2 extends LinearOpMode {
 

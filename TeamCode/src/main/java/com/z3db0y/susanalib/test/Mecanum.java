@@ -1,12 +1,14 @@
 package com.z3db0y.susanalib.test;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.z3db0y.susanalib.MecanumDriveTrain;
 import com.z3db0y.susanalib.Motor;
 
-//@Disabled
+@Disabled
 @TeleOp(name = "Mecanum Robot Centric Test", group = "SusanaLib")
 public class Mecanum extends LinearOpMode {
 
@@ -33,6 +35,8 @@ public class Mecanum extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) {
             driveTrain.driveRobotCentric(gamepad1.left_stick_y, gamepad1.right_stick_x, gamepad1.left_stick_x);
+            telemetry.addData("Powers: ", String.valueOf(frontLeft.getPower()) + String.valueOf(frontRight.getPower()) + String.valueOf(backLeft.getPower()) + String.valueOf(backRight.getPower()));
+            telemetry.update();
         }
     }
 

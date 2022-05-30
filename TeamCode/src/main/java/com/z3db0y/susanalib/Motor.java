@@ -1,6 +1,7 @@
 package com.z3db0y.susanalib;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Motor {
@@ -94,5 +95,21 @@ public class Motor {
         this.motor.setTargetPosition(ticks);
         this.motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         this.setPower(power);
+    }
+
+    public void setTargetPosition(int ticks) {
+        this.motor.setTargetPosition(ticks);
+    }
+
+    public int getTargetPosition() {
+        return this.motor.getTargetPosition();
+    }
+
+    public int getCurrentPosition() {
+        return this.motor.getCurrentPosition();
+    }
+
+    public double getVelocity() {
+        return ((DcMotorEx)this.motor).getVelocity();
     }
 }

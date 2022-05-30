@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.z3db0y.susanalib.Motor;
 
-//@Disabled
+@Disabled
 @TeleOp(name = "Run to Position Test", group = "SusanaLib")
 public class RunToPosition extends LinearOpMode {
     Motor motor;
