@@ -5,7 +5,6 @@ import android.util.Log;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.arcrobotics.ftclib.hardware.RevIMU;
-import com.arcrobotics.ftclib.hardware.SensorColor;
 import com.arcrobotics.ftclib.hardware.SensorRevTOFDistance;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -52,7 +51,7 @@ public class Robot {
     // Tunable variables to tune from the dashboard, must be public and static so the dashboard can access them.
     // Always have to be in cm!!!
     // Constants and ratios
-    public static double driveGearRatio = 20.0/10.0;
+    public static double driveGearRatio = 12;
     public static double driveTicksPerRev = 1120.0 * driveGearRatio;
     public static double armTickPerRev = 1120.0;
     // TODO: adjust gain (almost done)
@@ -208,8 +207,8 @@ public class Robot {
 
     public void resetEncoders() {
         // Fix all the directions of the motors.
-        frontRight.setInverted(true);
-//        frontLeft.setInverted(true);
+//        frontRight.setInverted(true);
+        frontLeft.setInverted(true);
         backRight.setInverted(true);
 //        backLeft.setInverted(true);
         frontRight.resetEncoder();

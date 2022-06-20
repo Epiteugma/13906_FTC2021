@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.Autonomous.Blue;
 
 import com.arcrobotics.ftclib.hardware.RevIMU;
-import com.arcrobotics.ftclib.hardware.SensorColor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.arcrobotics.ftclib.hardware.SensorRevTOFDistance;
 import com.arcrobotics.ftclib.hardware.motors.CRServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
@@ -24,21 +24,17 @@ public class BlueAllianceRightWarehouse extends LinearOpMode {
     Motor frontLeft;
     Motor backRight;
     Motor backLeft;
-    Motor duckSpinner1;
-    Motor duckSpinner2;
-    MotorGroup duckSpinners;
+    Motor duckSpinner;
+    
     RevIMU imu;
-    SensorColor cargoDetector;
+    DistanceSensor cargoDetector;
     SensorRevTOFDistance frontDistance;
 
     private void initHardware() {
         // Motors, servos, distance sensor and IMU
         imu = new RevIMU(hardwareMap);
-        cargoDetector = new SensorColor(hardwareMap, "cargoDetector");
-        frontDistance = new SensorRevTOFDistance(hardwareMap,"frontDistance");
-        duckSpinner1 = new Motor( hardwareMap, "duckSpinner1");
-        duckSpinner2 = new Motor( hardwareMap, "duckSpinner2");
-        duckSpinners = new MotorGroup(duckSpinner1, duckSpinner2);
+        cargoDetector = hardwareMap.get(DistanceSensor.class, "cargoDetector");
+        duckSpinner = new Motor(hardwareMap, "duckSpinner");
         arm = new Motor(hardwareMap, "arm");
         collector = new Motor(hardwareMap, "collector");
         capper= new CRServo(hardwareMap, "capper");
@@ -51,7 +47,7 @@ public class BlueAllianceRightWarehouse extends LinearOpMode {
     @Override
     public void runOpMode(){
         initHardware();
-        Robot robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, arm, collector, duckSpinner2, imu, cargoDetector, frontDistance), this);
+        Robot robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, arm, collector, duckSpinner, imu, cargoDetector, frontDistance), this);
 
         waitForStart();
         TseDetector.Location itemPos = robot.getTsePos();

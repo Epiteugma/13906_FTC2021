@@ -56,7 +56,6 @@ public class Motor {
         this.motor.setMode(this.runMode);
         this.power = power;
         this.motor.setPower(power * this.direction.getMultiplier());
-
         if(this.getPower() == 0 && this.holdPosition) {
             this.motor.setTargetPosition(this.motor.getCurrentPosition());
             this.motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);

@@ -62,7 +62,7 @@ public class DriveMecanum extends LinearOpMode {
 //    public int[] rgb;
     public double collectorBoxHeight = 0;
     DistanceSensor cargoDetector;
-//    SensorColor cargoDetector;
+//    DistanceSensor cargoDetector;
 
 //    public String rgbToHex(int red, int green, int blue) {
 //        String hex = "#";
@@ -241,7 +241,7 @@ public class DriveMecanum extends LinearOpMode {
 
         double duckSpinnerPrevTime = 0;
 
-//        cargoDetector = new SensorColor(hardwareMap, "cargoDetector");
+//        cargoDetector = hardwareMap.get(DistanceSensor.class, "cargoDetector");
         cargoDetector = hardwareMap.get(DistanceSensor.class, "cargoDetector");
         collectorBoxHeight = cargoDetector.getDistance(DistanceUnit.CM);
 

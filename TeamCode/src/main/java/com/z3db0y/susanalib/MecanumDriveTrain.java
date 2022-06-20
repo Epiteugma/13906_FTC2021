@@ -2,8 +2,13 @@ package com.z3db0y.susanalib;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 
 import java.util.Arrays;
 
@@ -19,8 +24,8 @@ public class MecanumDriveTrain {
     }
 
     public void driveRobotCentric(double forwardPower, double sidePower, double strafePower) {
-        motors[0].setPower(forwardPower - sidePower - strafePower); // front left
-        motors[1].setPower(forwardPower + sidePower + strafePower); // front right
+        motors[0].setPower(forwardPower - sidePower - strafePower*0.9); // front left
+        motors[1].setPower(forwardPower + sidePower + strafePower*0.9); // front right
         motors[2].setPower(forwardPower - sidePower + strafePower); // back left
         motors[3].setPower(forwardPower + sidePower - strafePower); // back right
     }
@@ -56,7 +61,9 @@ public class MecanumDriveTrain {
             motor.setTargetPosition(targetPositions[i]);
             motor.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
             motor.setPower(power);
+            Logger.addData(motor.getDirection());
         }
+        Logger.update();
         while(
                 Math.abs(motors[0].getCurrentPosition()) < Math.abs(targetPositions[0]) ||
                 Math.abs(motors[1].getCurrentPosition()) < Math.abs(targetPositions[1]) ||
@@ -66,6 +73,75 @@ public class MecanumDriveTrain {
         for (Motor motor : motors) {
             motor.setPower(0);
             motor.setRunMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
+    }
+
+    public enum Side {
+        LEFT(-1), RIGHT(1);
+
+        private final int multiplier;
+        Side(int multiplier) {
+            this.multiplier = multiplier;
+        }
+
+        public int getMultiplier() {
+            return multiplier;
+        }
+    }
+
+    public void strafe(Side side, int relativeTicks, double power) {
+        int[] targetPositions = new int[]{
+                motors[0].getCurrentPosition()-relativeTicks*side.getMultiplier(),
+                motors[1].getCurrentPosition()+relativeTicks*side.getMultiplier(),
+                motors[2].getCurrentPosition()-relativeTicks*side.getMultiplier(),
+                motors[3].getCurrentPosition()+relativeTicks* side.getMultiplier()
+        };
+        for(int i = 0; i < targetPositions.length; i++) {
+            Motor motor = motors[i];
+            motor.setTargetPosition(targetPositions[i]);
+            motor.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
+            motor.setPower(power);
+        }
+
+        while(
+                Math.abs(motors[0].getCurrentPosition()) < Math.abs(targetPositions[0]) ||
+                        Math.abs(motors[1].getCurrentPosition()) < Math.abs(targetPositions[1]) ||
+                        Math.abs(motors[2].getCurrentPosition()) < Math.abs(targetPositions[2]) ||
+                        Math.abs(motors[3].getCurrentPosition()) < Math.abs(targetPositions[3])
+        ) {}
+        for (Motor motor : motors) {
+            motor.setPower(0);
+            motor.setRunMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
+    }
+
+    private double getCurrentAngle(BNO055IMU imu, AxesOrder order) {
+        double currentAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, order, AngleUnit.DEGREES).firstAngle;
+        if(currentAngle < 0) currentAngle = 360 + currentAngle;
+        Logger.addData(currentAngle);
+        Logger.update();
+        return currentAngle;
+    }
+
+    public void turn(double relativeAngle, double power, BNO055IMU imu, AxesOrder order) {
+        double currentAngle = getCurrentAngle(imu, order);
+        double threshold = 1;
+        Motor.Direction direction = Motor.Direction.REVERSE;
+
+        if(relativeAngle > 0) direction = Motor.Direction.FORWARD;
+
+        double targetAngle = currentAngle + relativeAngle;
+        while(targetAngle > 360) targetAngle -= 360;
+
+        for(int i = 0; i < motors.length; i++) {
+            if(i % 2 == 0) motors[i].setPower(power * direction.getMultiplier());
+            else motors[i].setPower(-power * direction.getMultiplier());
+        }
+
+        while(getCurrentAngle(imu, order) < targetAngle - threshold/2 || getCurrentAngle(imu, order) > targetAngle + threshold/2) {}
+
+        for(Motor motor : motors) {
+            motor.setPower(0);
         }
     }
 }
