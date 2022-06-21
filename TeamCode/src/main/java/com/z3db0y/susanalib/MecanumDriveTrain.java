@@ -139,7 +139,7 @@ public class MecanumDriveTrain {
         }
 
         while (
-                getCurrentAngle(imu, order) < (targetAngle - threshold/2) ||
+                getCurrentAngle(imu, order) < (targetAngle - threshold/2) &&
                 getCurrentAngle(imu, order) > (targetAngle + threshold/2)
         ) {}
 
