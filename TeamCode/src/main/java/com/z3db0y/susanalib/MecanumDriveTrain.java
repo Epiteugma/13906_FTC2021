@@ -121,14 +121,16 @@ public class MecanumDriveTrain {
 
     private double getCurrentAngle(BNO055IMU imu, AxesOrder order) {
         double currentAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, order, AngleUnit.DEGREES).firstAngle;
-        if(currentAngle < 0) currentAngle = 360 + currentAngle;
         Logger.addData(currentAngle);
         Logger.update();
         return currentAngle;
     }
 
     public void turn(double targetAngle, double power, BNO055IMU imu, AxesOrder order) {
-        double threshold = 2;
+        // Idk it seems to work sometimes but not always!
+        // I changed some stuff - writing this at home, so TODO: test
+        double threshold = 4;
+        if(targetAngle > 180) targetAngle -= 360;
         int directionMultiplier = targetAngle - getCurrentAngle(imu, order) > 0 ? 1 : -1;
 
         for(int i = 0; i < motors.length; i++) {
@@ -137,8 +139,8 @@ public class MecanumDriveTrain {
         }
 
         while (
-                getCurrentAngle(imu, order) < targetAngle - threshold/2 ||
-                getCurrentAngle(imu, order) > targetAngle + threshold/2
+                getCurrentAngle(imu, order) < (targetAngle - threshold/2) ||
+                getCurrentAngle(imu, order) > (targetAngle + threshold/2)
         ) {}
 
         for(Motor motor : motors) {
