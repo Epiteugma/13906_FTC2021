@@ -30,6 +30,11 @@ public class Motor {
         this.motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
+    public void resetEncoder(){
+        this.motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this.motor.setMode(this.runMode);
+    }
+
     public void setZeroPowerBehavior(DcMotor.ZeroPowerBehavior behavior) {
         this.motor.setZeroPowerBehavior(behavior);
     }

@@ -1,17 +1,15 @@
 package org.firstinspires.ftc.teamcode.Drive;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.z3db0y.susanalib.Logger;
 import com.z3db0y.susanalib.MecanumDriveTrain;
 import com.z3db0y.susanalib.Motor;
 
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp(name = "Beta drive", group = "FTC22")
@@ -25,14 +23,6 @@ public class NewDriveMecanum extends LinearOpMode {
     Motor duckSpinner;
     DistanceSensor distanceSensor;
     TouchSensor armTouchSensor;
-
-    public void addData(String tag, String data, String tagCol, String dataCol) {
-        if(dataCol == null) dataCol = "#e37b29";
-        if(tagCol == null) tagCol = "#e37b29";
-        tag = tag.replaceAll("<","&lt").replaceAll(">","&gt;").replaceAll(" ","&nbsp;").replaceAll("\"","&quot").replaceAll("'","&apos;");
-        data = data.replaceAll("<","&lt").replaceAll(">","&gt;").replaceAll(" ","&nbsp;").replaceAll("\"","&quot").replaceAll("'","&apos;");
-        telemetry.addData(String.format("<span style='color: %s'>%s</span>", tagCol, tag), String.format("<span style='color: %s'>%s</span>", dataCol, data));
-    }
 
     public void initMotors() {
         frontLeft = new Motor(hardwareMap, "frontLeft");
@@ -63,14 +53,13 @@ public class NewDriveMecanum extends LinearOpMode {
     @Override
     public void runOpMode() {
 
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-
-        // Colored telemetry (basically html)
-        telemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
+        Logger.setTelemetry(telemetry);
 
         double duckSpinnerPower = 0.25;
         double globalPowerFactor = 0.65;
+        boolean lastTouching = false;
         boolean duckSpinnersActivated = false;
+        double lastResetTime = 0;
         long prevTime = 0;
         initMotors();
         double distance = distanceSensor.getDistance(DistanceUnit.CM);
@@ -79,11 +68,11 @@ public class NewDriveMecanum extends LinearOpMode {
         waitForStart();
         while(opModeIsActive()) {
             distance = distanceSensor.getDistance(DistanceUnit.CM);
-            addData("PrevDistance", String.valueOf(prevDistance), null, null);
-            addData("Distance: ", String.valueOf(distance), null, null);
-            if(Math.abs(distance - prevDistance) >= 1) {
-//                gamepad1.rumble(1000);
-//                gamepad2.rumble(1000);
+            Logger.addData("PrevDistance: " + prevDistance);
+            Logger.addData("Distance: " + distance);
+            if(Math.abs(prevDistance - distance) >= 2) {
+                gamepad1.rumble(1000);
+                gamepad2.rumble(1000);
                 prevDistance = distance;
             }
 
@@ -127,36 +116,68 @@ public class NewDriveMecanum extends LinearOpMode {
                 globalPowerFactor += 0.2;
             }
             driveTrain.driveRobotCentric(gamepad1.left_stick_y*globalPowerFactor, gamepad1.right_stick_x, gamepad1.left_stick_x*globalPowerFactor);
-            if(gamepad2.y) {
-                arm.setTargetPosition(-1700);
-            } else if(gamepad2.b) {
+            if(gamepad2.left_bumper) {
+                arm.setTargetPosition(-1750);
+            }
+            else if (gamepad2.right_bumper){
+                arm.setTargetPosition(2500);
+                Logger.addData("touchSensor is currently pressed and I am ready to collect!", "#ef3f49");
+            }
+            else if(gamepad2.y) {
                 arm.setTargetPosition(-1000);
-            } else if(gamepad2.a) {
+            }
+            else if(gamepad2.a) {
                 arm.setTargetPosition(-370);
             }
 
-            if(!armTouchSensor.isPressed() || arm.getTargetPosition() == 0) {
-                if(gamepad2.dpad_down) {
-                    arm.setTargetPosition(arm.getCurrentPosition()+75);
-                } else if(gamepad2.dpad_up) {
-                    arm.setTargetPosition(arm.getCurrentPosition()-75);
-                }
-            } else {
-                addData("ArmReset: ", "true", null, null);
-                arm.setRunMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            if(armTouchSensor.isPressed() && !lastTouching && lastResetTime+250 < System.currentTimeMillis()){
+                arm.resetEncoder();
                 arm.setTargetPosition(0);
+                arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
+                Logger.addData("ArmReset: "+ "TRUE");
+                lastTouching = true;
+                lastResetTime = System.currentTimeMillis();
+            }
+            else {
+                lastTouching = false;
+                Logger.addData("ArmReset: "+ "FALSE");
+            }
+
+            if(arm.getTargetPosition() >= -2200) {
+                if(gamepad2.dpad_down && !armTouchSensor.isPressed()) {
+                    arm.setTargetPosition(arm.getCurrentPosition()+125);
+                }
+                else if(gamepad2.dpad_up) {
+                    arm.setTargetPosition(arm.getCurrentPosition()-125);
+                }
             }
             arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             if(gamepad2.right_trigger > 0) {
                 collector.setPower(gamepad2.right_trigger);
-            } else if(gamepad2.left_trigger > 0) {
+            }
+            else if(gamepad2.left_trigger > 0) {
                 collector.setPower(-gamepad2.left_trigger);
-            } else collector.setPower(0);
-
-            addData("Target arm ticks", String.valueOf(arm.getTargetPosition()), null, null);
-            addData("Current arm ticks", String.valueOf(arm.getCurrentPosition()), null, null);
-            telemetry.update();
+            }
+            else collector.setPower(0);
+            
+            Logger.addData("GlobalPowerFactor: " + globalPowerFactor);
+            Logger.addData("frontRight power: "+ frontRight.getPower());
+            Logger.addData("frontLeft power: "+ frontLeft.getPower());
+            Logger.addData("backRight power: "+ backRight.getPower());
+            Logger.addData("backLeft power: "+ backLeft.getPower());
+            Logger.addData("Arm power: "+ arm.getPower());
+            Logger.addData("Target arm ticks: "+ arm.getTargetPosition());
+            Logger.addData("Current arm ticks: "+ arm.getCurrentPosition());
+            Logger.addData("Collector power: "+ collector.getPower());
+            Logger.addData("ducksSpinner power: "+ duckSpinner.getPower());
+            Logger.addData("ducksSpinner power variable: "+ duckSpinnerPower);
+            Logger.addData("frontRight ticks: "+ frontRight.getCurrentPosition());
+            Logger.addData("frontLeft ticks: "+ frontLeft.getCurrentPosition());
+            Logger.addData("backRight ticks: "+ backRight.getCurrentPosition());
+            Logger.addData("backLeft ticks: " + backLeft.getCurrentPosition());
+//            Logger.addData("XYZ: "+  imu.getAngles()[0] + " " + imu.getAngles()[1] + " " + imu.getAngles()[2]);
+            Logger.update();
         }
     }
 

@@ -21,8 +21,12 @@ public class Autonomous extends LinearOpMode {
         frontRight = new Motor(hardwareMap, "frontRight");
         backLeft = new Motor(hardwareMap, "backLeft");
         backRight = new Motor(hardwareMap, "backRight");
+
+        // Motor reversing
+//        frontLeft.setDirection(Motor.Direction.REVERSE);
         backLeft.setDirection(Motor.Direction.REVERSE);
         frontRight.setDirection(Motor.Direction.REVERSE);
+//        backRight.setDirection(Motor.Direction.REVERSE);
 
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -38,7 +42,9 @@ public class Autonomous extends LinearOpMode {
         MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight);
         waitForStart();
 
-        driveTrain.drive(100, 0.1);
+//        driveTrain.drive(500, 0.5);
+        driveTrain.turn(90,0.5, imu, AxesOrder.XYZ);
+//        driveTrain.strafe(MecanumDriveTrain.Side.RIGHT, 500, 0.5);
     }
 
 }
