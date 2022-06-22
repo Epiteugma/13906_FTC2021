@@ -105,9 +105,9 @@ public class RedAllianceRight extends LinearOpMode {
             }
         }).start();
         driveTrain.drive(10, 0.8);
-        driveTrain.turn(90, 0.8, imu, AxesOrder.XYZ);
+        driveTrain.turn(90, 0.8, imu, 1);
         driveTrain.drive(57, 0.8);
-        driveTrain.turn(0, 0.8, imu, AxesOrder.XYZ);
+        driveTrain.turn(0, 0.8, imu, 1);
         switch (itemPos) {
             case LEFT:
                 arm.runToPosition(Configurable.armLowPosition, 1);
@@ -120,7 +120,7 @@ public class RedAllianceRight extends LinearOpMode {
                 break;
         }
         driveTrain.drive(35, 0.8);
-        driveTrain.turn(0, 1, imu, AxesOrder.XYZ);
+        driveTrain.turn(0, 1, imu, 1);
         switch (itemPos) {
             case LEFT:
                 collector.setPower(Configurable.disposeLowSpeed);
@@ -132,9 +132,9 @@ public class RedAllianceRight extends LinearOpMode {
                 collector.setPower(Configurable.disposeMidSpeed);
                 break;
         }
-        driveTrain.turn(0, 1, imu, AxesOrder.XYZ);
+        driveTrain.turn(0, 1, imu, 1);
         driveTrain.drive(25, 1);
-        driveTrain.turn(-90, 1, imu, AxesOrder.XYZ);
+        driveTrain.turn(-90, 1, imu, 1);
         arm.runToPosition(Configurable.armMidPosition, 1);
         driveTrain.drive(160, 1);
     }

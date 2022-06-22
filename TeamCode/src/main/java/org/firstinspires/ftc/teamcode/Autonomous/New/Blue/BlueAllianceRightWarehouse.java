@@ -97,9 +97,9 @@ public class BlueAllianceRightWarehouse extends LinearOpMode {
         Logger.addData("Detected Cargo: " + itemPos);
         Logger.update();
         driveTrain.drive(10, 0.8);
-        driveTrain.turn(-90, 0.8, imu, AxesOrder.XYZ);
+        driveTrain.turn(-90, 0.8, imu, 1);
         driveTrain.drive( 57, 0.8);
-        driveTrain.turn(0, 0.8, imu, AxesOrder.XYZ);
+        driveTrain.turn(0, 0.8, imu, 1);
         switch (itemPos) {
             case LEFT:
                 arm.runToPosition(Configurable.armHighPosition, 1);
@@ -112,7 +112,7 @@ public class BlueAllianceRightWarehouse extends LinearOpMode {
                 break;
         }
         driveTrain.drive( 35, 0.8);
-        driveTrain.turn(0, 1, imu, AxesOrder.XYZ);
+        driveTrain.turn(0, 1, imu, 1);
         switch (itemPos) {
             case LEFT:
                 collector.setPower(Configurable.disposeLowSpeed);
@@ -126,11 +126,11 @@ public class BlueAllianceRightWarehouse extends LinearOpMode {
         }
         driveTrain.drive(25, -0.4);
         arm.runToPosition(Configurable.armLowPosition, 1);
-        driveTrain.turn(-92, 0.8, imu, AxesOrder.XYZ);
+        driveTrain.turn(-92, 0.8, imu, 1);
         driveTrain.drive(125, 0.8);
-        driveTrain.turn(-90, 0.8, imu, AxesOrder.XYZ);
+        driveTrain.turn(-90, 0.8, imu, 1);
         duckSpinner.setPower(Configurable.duckSpinnerPower); // 4000 milliseconds
-        driveTrain.turn(85, 0.8, imu, AxesOrder.XYZ);
+        driveTrain.turn(85, 0.8, imu, 1);
         arm.runToPosition(Configurable.armHighPosition, 1);
         driveTrain.drive(1, 270);
     }

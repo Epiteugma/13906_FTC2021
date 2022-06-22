@@ -99,9 +99,9 @@ public class BlueAllianceLeft extends LinearOpMode {
         Logger.addData("Detected Cargo: " + itemPos);
         Logger.update();
         driveTrain.drive(10, 0.8);
-        driveTrain.turn(-90, 0.8, imu, AxesOrder.XYZ);
+        driveTrain.turn(-90, 0.8, imu, 1);
         driveTrain.drive( 57, 0.8);
-        driveTrain.turn(0, 0.8, imu, AxesOrder.XYZ);
+        driveTrain.turn(0, 0.8, imu, 1);
         switch (itemPos) {
             case LEFT:
                 arm.runToPosition(Configurable.armHighPosition, 1);
@@ -114,7 +114,7 @@ public class BlueAllianceLeft extends LinearOpMode {
                 break;
         }
         driveTrain.drive(35, 0.8);
-        driveTrain.turn(0, 1, imu, AxesOrder.XYZ);
+        driveTrain.turn(0, 1, imu, 1);
         switch (itemPos) {
             case LEFT:
                 collector.setPower(Configurable.disposeLowSpeed);
@@ -126,9 +126,9 @@ public class BlueAllianceLeft extends LinearOpMode {
                 collector.setPower(Configurable.disposeMidSpeed);
                 break;
         }
-        driveTrain.turn(0, 1, imu, AxesOrder.XYZ);
+        driveTrain.turn(0, 1, imu, 1);
         driveTrain.drive( 25, 1);
-        driveTrain.turn(90, 1, imu, AxesOrder.XYZ);
+        driveTrain.turn(90, 1, imu, 1);
         arm.runToPosition(-1000, 1);
         driveTrain.drive(160, 1);
     }

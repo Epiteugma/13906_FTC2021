@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 import java.util.Arrays;
 
@@ -119,29 +120,41 @@ public class MecanumDriveTrain {
         }
     }
 
-    private double getCurrentAngle(BNO055IMU imu, AxesOrder order) {
-        double currentAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, order, AngleUnit.DEGREES).firstAngle;
-        Logger.addData(currentAngle);
-        Logger.update();
-        return currentAngle;
+    private double getCurrentAngle(BNO055IMU imu, int angle) {
+        Orientation angles = imu.getAngularOrientation();
+        switch (angle) {
+            case 1: return angles.firstAngle;
+            case 2: return angles.secondAngle;
+            case 3: return angles.thirdAngle;
+        }
+        return 0;
     }
 
-    public void turn(double targetAngle, double power, BNO055IMU imu, AxesOrder order) {
-        // Idk it seems to work sometimes but not always!
-        // I changed some stuff - writing this at home, so TODO: test
+    public void turn(double targetAngle, double power, BNO055IMU imu, int angle) {
         double threshold = 4;
+        double currentAngle;
         if(targetAngle > 180) targetAngle -= 360;
-        int directionMultiplier = targetAngle - getCurrentAngle(imu, order) > 0 ? 1 : -1;
+        int directionMultiplier = targetAngle - getCurrentAngle(imu, angle) > 0 ? 1 : -1;
 
-        for(int i = 0; i < motors.length; i++) {
-            if(i % 2 == 0) motors[i].setPower(power * directionMultiplier);
-            else motors[i].setPower(-power * directionMultiplier);
-        }
+        double rangeMax = targetAngle + threshold/2;
+        double rangeMin = targetAngle - threshold/2;
 
-        while (
-                getCurrentAngle(imu, order) < (targetAngle - threshold/2) &&
-                getCurrentAngle(imu, order) > (targetAngle + threshold/2)
-        ) {}
+        do {
+            currentAngle = getCurrentAngle(imu, angle);
+            Logger.addData(currentAngle);
+            Logger.addData(targetAngle);
+//            Logger.addData(Math.abs(currentAngle - targetAngle));
+//            double speedPercentage = Math.abs(currentAngle - targetAngle) / 360;
+//            Logger.addData(speedPercentage);
+            for(int i = 0; i < motors.length; i++) {
+//                if(i % 2 == 0) motors[i].setPower(power * directionMultiplier * speedPercentage);
+//                else motors[i].setPower(-power * directionMultiplier * speedPercentage);
+                if(i % 2 == 0) motors[i].setPower(power * directionMultiplier);
+                else motors[i].setPower(-power * directionMultiplier);
+                Logger.addData(motors[i].getPower());
+            }
+            Logger.update();
+        } while(!(rangeMin < currentAngle && rangeMax > currentAngle));
 
         for(Motor motor : motors) {
             motor.setHoldPosition(true);

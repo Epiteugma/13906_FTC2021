@@ -6,7 +6,9 @@ import com.z3db0y.susanalib.Logger;
 import com.z3db0y.susanalib.MecanumDriveTrain;
 import com.z3db0y.susanalib.Motor;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "Autonomous Test", group = "SusanaLib")
 public class Autonomous extends LinearOpMode {
@@ -32,6 +34,9 @@ public class Autonomous extends LinearOpMode {
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.calibrationDataFile = "BNO055IMUCalibration.json";
+        parameters.loggingEnabled = true;
+        parameters.loggingTag = "IMU";
         imu.initialize(parameters);
     }
 
@@ -43,7 +48,7 @@ public class Autonomous extends LinearOpMode {
         waitForStart();
 
 //        driveTrain.drive(500, 0.5);
-        driveTrain.turn(90,0.5, imu, AxesOrder.XYZ);
+        driveTrain.turn(90,0.3, imu, 1);
 //        driveTrain.strafe(MecanumDriveTrain.Side.RIGHT, 500, 0.5);
     }
 
