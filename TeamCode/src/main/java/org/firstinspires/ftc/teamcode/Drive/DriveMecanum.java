@@ -1,11 +1,9 @@
 package org.firstinspires.ftc.teamcode.Drive;
 
-// Navigation and IMU
-import android.util.Log;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.opencv.core.Scalar;
+import org.firstinspires.ftc.teamcode.Configurable;
 
 // Sensors , Motors and Opmode
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -38,12 +36,10 @@ public class DriveMecanum extends LinearOpMode {
 
     public boolean armOverride = false;
     public double armPositionalPower = 0;
-    public double armPower = Configurable.armPower;
-    public int lowPosition = Configurable.lowPosition;
-    public int midPosition = Configurable.midPosition;
-    public int highPosition = Configurable.highPosition;
-    public int capperHighLimit = Configurable.capperHighLimit;
-    public int capperLowLimit = Configurable.capperLowLimit;
+    public double armPower = 0.3; //Configurable.armPower;
+    public int lowPosition = Configurable.armLowPosition;
+    public int midPosition = Configurable.armMidPosition;
+    public int highPosition = Configurable.armHighPosition;
 
     // IMU
     public double heading;

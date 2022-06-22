@@ -1,5 +1,4 @@
-package org.firstinspires.ftc.teamcode.Autonomous.Blue;
-
+package org.firstinspires.ftc.teamcode.Autonomous.Old.Blue;
 import com.arcrobotics.ftclib.hardware.RevIMU;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.arcrobotics.ftclib.hardware.SensorRevTOFDistance;
@@ -14,8 +13,8 @@ import org.firstinspires.ftc.teamcode.Autonomous.visionv1.TseDetector;
 
 import java.util.Arrays;
 
-@Autonomous(name="Blue Left", group="FTC22Auto_Ware_Blue")
-public class BlueAllianceLeft extends LinearOpMode {
+@Autonomous(name="Blue Right Warehouse", group="FTC22Auto_Ware_Blue")
+public class BlueAllianceRightWarehouse extends LinearOpMode {
 
     Motor arm;
     Motor collector;
@@ -30,9 +29,6 @@ public class BlueAllianceLeft extends LinearOpMode {
     DistanceSensor cargoDetector;
     SensorRevTOFDistance frontDistance;
 
-    double secondsRemaining = 30;
-    double opModeStartTime = System.currentTimeMillis();
-
     private void initHardware() {
         // Motors, servos, distance sensor and IMU
         imu = new RevIMU(hardwareMap);
@@ -40,7 +36,7 @@ public class BlueAllianceLeft extends LinearOpMode {
         duckSpinner = new Motor(hardwareMap, "duckSpinner");
         arm = new Motor(hardwareMap, "arm");
         collector = new Motor(hardwareMap, "collector");
-        capper = new CRServo(hardwareMap, "capper");
+        capper= new CRServo(hardwareMap, "capper");
         frontRight = new Motor(hardwareMap, "frontRight");
         frontLeft = new Motor(hardwareMap, "frontLeft");
         backRight = new Motor(hardwareMap, "backRight");
@@ -48,7 +44,7 @@ public class BlueAllianceLeft extends LinearOpMode {
     }
 
     @Override
-    public void runOpMode() {
+    public void runOpMode(){
         initHardware();
         Robot robot = new Robot(Arrays.asList(backLeft, frontLeft, backRight, frontRight, arm, collector, duckSpinner, imu, cargoDetector, frontDistance), this);
 
@@ -57,9 +53,10 @@ public class BlueAllianceLeft extends LinearOpMode {
         telemetry.addData("Detected Cargo: ", itemPos);
         telemetry.update();
         robot.drive(Robot.Direction.FORWARDS, 0.8, 10);
-        robot.turn(0.8, -90);
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 57);
+        robot.turn(0.8, 90);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 55);
         robot.turn(0.8, 0);
+        robot.drive(Robot.Direction.BACKWARDS, 0.8, 0.01); // UNKNOWN BUG!!!
         switch (itemPos) {
             case LEFT:
                 robot.moveArm(Robot.Position.LOW.label, 0.5);
@@ -71,18 +68,21 @@ public class BlueAllianceLeft extends LinearOpMode {
                 robot.moveArm(Robot.Position.MID.label, 0.5);
                 break;
         }
-        robot.drive(Robot.Direction.BACKWARDS, 0.08, 0.01); // UNKNOWN BUG!!!
-        robot.drive(Robot.Direction.FORWARDS, 0.8, 35);
-        robot.turn(1, 0);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 33);
+        robot.turn(0.5, 0);
         switch (itemPos) {
-            case LEFT: robot.intake(Robot.Direction.OUT, robot.intakeLowSpeed); break;
-            case RIGHT: robot.intake(Robot.Direction.OUT, robot.intakeHighSpeed); break;
-            case CENTER: robot.intake(Robot.Direction.OUT, robot.intakeMidSpeed); break;
+            case LEFT: robot.intake(Robot.Direction.OUT, robot.disposeLowSpeed); break;
+            case RIGHT: robot.intake(Robot.Direction.OUT, robot.disposeHighSpeed); break;
+            case CENTER: robot.intake(Robot.Direction.OUT, robot.disposeMidSpeed); break;
         }
-        robot.turn(1, 0);
-        robot.drive(Robot.Direction.BACKWARDS, 1, 25);
-        robot.turn(1, 90);
-        robot.moveArm(Robot.Position.MID.label, 0.08);
-        robot.drive(Robot.Direction.FORWARDS, 1, 160);
+        robot.drive(Robot.Direction.BACKWARDS, 0.4, 25);
+        robot.moveArm(Robot.Position.DOWN.label, 0.08);
+        robot.turn(0.8, -92);
+        robot.drive(Robot.Direction.FORWARDS, 0.8, 125);
+        robot.turn(0.8, -90);
+        robot.duckSpin(-0.275, 4000);
+        robot.turn(0.8, 85);
+        robot.moveArm(Robot.Position.HIGH.label, 0.5);
+        robot.drive(Robot.Direction.FORWARDS, 1, 270);
     }
 }

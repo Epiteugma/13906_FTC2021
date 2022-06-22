@@ -16,7 +16,7 @@ public class Autonomous extends LinearOpMode {
     Motor backRight;
     BNO055IMU imu;
 
-    private void initMotors() {
+    private void initHardware() {
         frontLeft = new Motor(hardwareMap, "frontLeft");
         frontRight = new Motor(hardwareMap, "frontRight");
         backLeft = new Motor(hardwareMap, "backLeft");
@@ -37,7 +37,7 @@ public class Autonomous extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        initMotors();
+        initHardware();
         Logger.setTelemetry(telemetry);
         MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight);
         waitForStart();

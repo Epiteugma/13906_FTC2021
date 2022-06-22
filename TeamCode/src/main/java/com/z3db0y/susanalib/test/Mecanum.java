@@ -17,7 +17,7 @@ public class Mecanum extends LinearOpMode {
     Motor backLeft;
     Motor backRight;
 
-    private void initMotors() {
+    private void initHardware() {
         frontLeft = new Motor(hardwareMap, "frontLeft");
         frontRight = new Motor(hardwareMap, "frontRight");
         backLeft = new Motor(hardwareMap, "backLeft");
@@ -28,7 +28,7 @@ public class Mecanum extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        initMotors();
+        initHardware();
 
         MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight);
 

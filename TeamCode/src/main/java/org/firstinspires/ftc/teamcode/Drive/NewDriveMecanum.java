@@ -8,8 +8,6 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.z3db0y.susanalib.Logger;
 import com.z3db0y.susanalib.MecanumDriveTrain;
 import com.z3db0y.susanalib.Motor;
-
-
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp(name = "Beta drive", group = "FTC22")
@@ -21,19 +19,19 @@ public class NewDriveMecanum extends LinearOpMode {
     Motor arm;
     Motor collector;
     Motor duckSpinner;
-    DistanceSensor distanceSensor;
+    DistanceSensor cargoDetector;
     TouchSensor armTouchSensor;
 
-    public void initMotors() {
+    public void initHardware() {
         frontLeft = new Motor(hardwareMap, "frontLeft");
         frontRight = new Motor(hardwareMap, "frontRight");
         backLeft = new Motor(hardwareMap, "backLeft");
         backRight = new Motor(hardwareMap, "backRight");
         arm = new Motor(hardwareMap, "arm");
         collector = new Motor(hardwareMap, "collector");
-
         duckSpinner = new Motor(hardwareMap, "duckSpinner");
 
+        // Motor reversing
         backLeft.setDirection(Motor.Direction.REVERSE);
         frontRight.setDirection(Motor.Direction.REVERSE);
 
@@ -46,13 +44,14 @@ public class NewDriveMecanum extends LinearOpMode {
         arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
         arm.setPower(1);
 
-        distanceSensor = hardwareMap.get(DistanceSensor.class, "cargoDetector");
+        cargoDetector = hardwareMap.get(DistanceSensor.class, "cargoDetector");
         armTouchSensor = hardwareMap.get(TouchSensor.class, "armTouch");
     }
 
     @Override
     public void runOpMode() {
 
+        initHardware();
         Logger.setTelemetry(telemetry);
 
         double duckSpinnerPower = 0.25;
@@ -61,13 +60,12 @@ public class NewDriveMecanum extends LinearOpMode {
         boolean duckSpinnersActivated = false;
         double lastResetTime = 0;
         long prevTime = 0;
-        initMotors();
-        double distance = distanceSensor.getDistance(DistanceUnit.CM);
+        double distance = cargoDetector.getDistance(DistanceUnit.CM);
         double prevDistance = distance;
         MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight);
         waitForStart();
         while(opModeIsActive()) {
-            distance = distanceSensor.getDistance(DistanceUnit.CM);
+            distance = cargoDetector.getDistance(DistanceUnit.CM);
             Logger.addData("PrevDistance: " + prevDistance);
             Logger.addData("Distance: " + distance);
             if(Math.abs(prevDistance - distance) >= 2) {

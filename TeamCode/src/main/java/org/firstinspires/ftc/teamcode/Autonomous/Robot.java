@@ -105,9 +105,9 @@ public class Robot {
     public double duckHeight = 5.4;
     public double collectorBoxHeight = 15;
 
-    public double intakeLowSpeed = 0.5;
-    public double intakeMidSpeed = 0.65;
-    public double intakeHighSpeed = 0.65;
+    public double disposeLowSpeed = 0.5;
+    public double disposeMidSpeed = 0.65;
+    public double disposeHighSpeed = 0.65;
 
 
 

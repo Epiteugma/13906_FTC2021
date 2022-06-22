@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Autonomous.Red;
+package org.firstinspires.ftc.teamcode.Autonomous.Old.Red;
 
 import com.arcrobotics.ftclib.hardware.RevIMU;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -77,14 +77,14 @@ public class RedAllianceRight extends LinearOpMode {
         switch (itemPos) {
             case LEFT: robot.intake(Robot.Direction.OUT, 0.5); break;
             case RIGHT: switch (itemPos) {
-            case LEFT: robot.intake(Robot.Direction.OUT, robot.intakeLowSpeed); break;
-            case RIGHT: robot.intake(Robot.Direction.OUT, robot.intakeHighSpeed); break;
-            case CENTER: robot.intake(Robot.Direction.OUT, robot.intakeMidSpeed); break;
+            case LEFT: robot.intake(Robot.Direction.OUT, robot.disposeLowSpeed); break;
+            case RIGHT: robot.intake(Robot.Direction.OUT, robot.disposeHighSpeed); break;
+            case CENTER: robot.intake(Robot.Direction.OUT, robot.disposeMidSpeed); break;
         } break;
             case CENTER: switch (itemPos) {
-            case LEFT: robot.intake(Robot.Direction.OUT, robot.intakeLowSpeed); break;
-            case RIGHT: robot.intake(Robot.Direction.OUT, robot.intakeHighSpeed); break;
-            case CENTER: robot.intake(Robot.Direction.OUT, robot.intakeMidSpeed); break;
+            case LEFT: robot.intake(Robot.Direction.OUT, robot.disposeLowSpeed); break;
+            case RIGHT: robot.intake(Robot.Direction.OUT, robot.disposeHighSpeed); break;
+            case CENTER: robot.intake(Robot.Direction.OUT, robot.disposeMidSpeed); break;
         } break;
         }
         robot.turn(1, 0);
