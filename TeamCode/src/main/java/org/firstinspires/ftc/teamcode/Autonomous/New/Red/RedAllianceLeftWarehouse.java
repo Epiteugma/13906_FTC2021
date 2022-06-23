@@ -77,6 +77,7 @@ public class RedAllianceLeftWarehouse extends LinearOpMode {
         Logger.setTelemetry(telemetry);
         MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight);
 
+
         detector = new TseDetector();
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         OpenCvWebcam webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
@@ -98,9 +99,9 @@ public class RedAllianceLeftWarehouse extends LinearOpMode {
         TseDetector.Location itemPos = detector.getLocation(this);
         Logger.addData("Detected Cargo: " + itemPos);
         Logger.update();
-        driveTrain.drive(10, 0.8);
+        driveTrain.driveCM(10, 0.8);
         driveTrain.turn(-90, 0.8, imu, 1);
-        driveTrain.drive( 63, 0.8);
+        driveTrain.driveCM( 63, 0.8);
         driveTrain.turn(0, 0.8, imu, 1);
         switch (itemPos) {
             case LEFT:
@@ -113,7 +114,7 @@ public class RedAllianceLeftWarehouse extends LinearOpMode {
                 arm.runToPosition(Configurable.armMidPosition, 1);
                 break;
         }
-        driveTrain.drive(40, 0.8);
+        driveTrain.driveCM(40, 0.8);
         driveTrain.turn(0, 1, imu, 1);
         switch (itemPos) {
             case LEFT:
@@ -126,14 +127,14 @@ public class RedAllianceLeftWarehouse extends LinearOpMode {
                 collector.setPower(Configurable.disposeMidSpeed);
                 break;
         }
-        driveTrain.drive(35, -0.8);
+        driveTrain.driveCM(35, -0.8);
         arm.runToPosition(Configurable.armLowPosition, 1);
         driveTrain.turn(-90, 0.8, imu, 1);
-        driveTrain.drive(145, -0.8);
+        driveTrain.driveCM(145, -0.8);
         driveTrain.turn(-145, 0.8, imu, 1);
         duckSpinner.setPower(Configurable.duckSpinnerPower); // spin for 4000 milliseconds
         driveTrain.turn(-103, 0.8, imu, 1);
         arm.runToPosition(Configurable.armHighPosition, 1);
-        driveTrain.drive(270, 1);
+        driveTrain.driveCM(270, 1);
     }
 }

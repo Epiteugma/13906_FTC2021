@@ -501,10 +501,10 @@ public class DriveMecanum extends LinearOpMode {
               drivetrain.driveRobotCentric(0,1,0);
             }
 //            else if (gamepad1.isDown(CIRCLE)){
-//              drivetrain.driveRobotCentric(0,0,1);
+//              driveTrain.driveRobotCentric(0,0,1);
 //            }
 //            else if (gamepad1.isDown(SQUARE)){
-//              drivetrain.driveRobotCentric(0,0,-1);
+//              driveTrain.driveRobotCentric(0,0,-1);
 //            }
 
 

@@ -47,8 +47,8 @@ public class Autonomous extends LinearOpMode {
         MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight);
         waitForStart();
 
-//        driveTrain.drive(500, 0.5);
-        driveTrain.turn(90,0.3, imu, 1);
+//        driveTrain.driveCM(10, 0.35);
+        driveTrain.turn(-90,1, imu, 1);
 //        driveTrain.strafe(MecanumDriveTrain.Side.RIGHT, 500, 0.5);
     }
 

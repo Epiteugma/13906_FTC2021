@@ -77,6 +77,7 @@ public class RedAllianceRight extends LinearOpMode {
         Logger.setTelemetry(telemetry);
         MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight);
 
+
         detector = new TseDetector();
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         OpenCvWebcam webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
@@ -104,9 +105,9 @@ public class RedAllianceRight extends LinearOpMode {
                 secondsRemaining = 30 - secondsSinceStart;
             }
         }).start();
-        driveTrain.drive(10, 0.8);
+        driveTrain.driveCM(10, 0.8);
         driveTrain.turn(90, 0.8, imu, 1);
-        driveTrain.drive(57, 0.8);
+        driveTrain.driveCM(57, 0.8);
         driveTrain.turn(0, 0.8, imu, 1);
         switch (itemPos) {
             case LEFT:
@@ -119,7 +120,7 @@ public class RedAllianceRight extends LinearOpMode {
                 arm.runToPosition(Configurable.armMidPosition, 1);
                 break;
         }
-        driveTrain.drive(35, 0.8);
+        driveTrain.driveCM(35, 0.8);
         driveTrain.turn(0, 1, imu, 1);
         switch (itemPos) {
             case LEFT:
@@ -133,9 +134,9 @@ public class RedAllianceRight extends LinearOpMode {
                 break;
         }
         driveTrain.turn(0, 1, imu, 1);
-        driveTrain.drive(25, 1);
+        driveTrain.driveCM(25, 1);
         driveTrain.turn(-90, 1, imu, 1);
         arm.runToPosition(Configurable.armMidPosition, 1);
-        driveTrain.drive(160, 1);
+        driveTrain.driveCM(160, 1);
     }
 }

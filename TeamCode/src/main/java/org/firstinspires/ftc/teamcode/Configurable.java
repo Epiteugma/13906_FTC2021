@@ -16,9 +16,10 @@ public class Configurable {
     public static double disposeHighSpeed = 0.7;
 
     public static double duckSpinnerPower = 0.27;
+    public static int duckSpinnerTicks = 1000;
 
-    public static double driveGearRatio = 12.15;
-    public static double driveTicksPerRev = 1120.0 * driveGearRatio;
+    public static double driveGearRatio = 12;
+//    public static double driveTicksPerRev = 280.0 * driveGearRatio;
     public static double armTickPerRev = 1120.0;
 
     // TODO: adjust gain (almost done)

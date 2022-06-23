@@ -74,6 +74,7 @@ public class BlueAllianceRightStorageUnit extends LinearOpMode {
         Logger.setTelemetry(telemetry);
         MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight);
 
+
         detector = new TseDetector();
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         OpenCvWebcam webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
@@ -95,9 +96,9 @@ public class BlueAllianceRightStorageUnit extends LinearOpMode {
         TseDetector.Location itemPos = detector.getLocation(this);
         Logger.addData("Detected Cargo: " + itemPos);
         Logger.update();
-        driveTrain.drive(10, 0.8);
+        driveTrain.driveCM(10, 0.8);
         driveTrain.turn(90, 0.8, imu, 1);
-        driveTrain.drive(55, 0.8);
+        driveTrain.driveCM(55, 0.8);
         driveTrain.turn(0.8, 0, imu, 1);
         switch (itemPos) {
             case LEFT:
@@ -110,7 +111,7 @@ public class BlueAllianceRightStorageUnit extends LinearOpMode {
                arm.runToPosition(Configurable.armMidPosition, 0.5);
                 break;
         }
-        driveTrain.drive( 33, 0.8);
+        driveTrain.driveCM( 33, 0.8);
         driveTrain.turn(0, 0.5, imu, 1);
         switch (itemPos) {
             case LEFT:
@@ -123,14 +124,14 @@ public class BlueAllianceRightStorageUnit extends LinearOpMode {
                 collector.setPower(Configurable.disposeMidSpeed);
                 break;
         }
-        driveTrain.drive(-25, 0.4);
+        driveTrain.driveCM(-25, 0.4);
         arm.runToPosition(Configurable.armLowPosition, 1);
         driveTrain.turn(-93, 0.8, imu, 1);
-        driveTrain.drive(127, 0.8);
+        driveTrain.driveCM(127, 0.8);
         driveTrain.turn(-92, 0.8, imu, 1);
         duckSpinner.setPower(Configurable.duckSpinnerPower); // 4000 miliseconds
         driveTrain.turn(0, 1, imu, 1);
-        driveTrain.drive(50, 0.45);
+        driveTrain.driveCM(50, 0.45);
         driveTrain.turn(0, 1, imu, 1);
     }
 }

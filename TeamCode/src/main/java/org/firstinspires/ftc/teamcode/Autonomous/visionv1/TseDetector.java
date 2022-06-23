@@ -56,8 +56,8 @@ public class TseDetector extends OpenCvPipeline {
     public Mat processFrame(Mat input) {
         Imgproc.cvtColor(input, mat, Imgproc.COLOR_RGB2HSV);
         // TODO: change this to HSV values for the tse
-        Scalar lowHSV = new Scalar(10, 60, 200);
-        Scalar highHSV = new Scalar(50, 255, 255);
+        Scalar lowHSV = new Scalar(4, 170, 45);
+        Scalar highHSV = new Scalar(30, 255, 255);
 
         Core.inRange(mat, lowHSV, highHSV, mat);
 

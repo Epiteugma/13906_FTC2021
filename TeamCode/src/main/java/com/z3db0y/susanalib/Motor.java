@@ -10,6 +10,8 @@ public class Motor {
     private boolean holdPosition;
     private double power = 0;
     private DcMotor.RunMode runMode = DcMotor.RunMode.RUN_WITHOUT_ENCODER;
+    public double wheelRadius = 3.75;
+    public double ratio = 20;
 
     public enum Direction {
         FORWARD(1), REVERSE(-1);
@@ -115,5 +117,10 @@ public class Motor {
 
     public double getVelocity() {
         return ((DcMotorEx)this.motor).getVelocity();
+    }
+
+    public int calculateTicks(int cm) {
+        double targetRotations = cm / (2 * Math.PI * wheelRadius);
+        return (int) (targetRotations * (28 * ratio));
     }
 }
