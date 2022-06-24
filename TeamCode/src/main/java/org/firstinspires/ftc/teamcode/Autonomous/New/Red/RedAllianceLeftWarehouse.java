@@ -21,7 +21,7 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-@Autonomous(name = "Red Left Warehouse")
+@Autonomous(name = "Red Left Warehouse", group="FTC22Auto_Ware")
 public class RedAllianceLeftWarehouse extends LinearOpMode {
 
     TseDetector detector;
@@ -75,7 +75,7 @@ public class RedAllianceLeftWarehouse extends LinearOpMode {
     public void runOpMode() {
         initHardware();
         Logger.setTelemetry(telemetry);
-        MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight);
+        MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight, imu);
 
 
         detector = new TseDetector();
@@ -100,41 +100,41 @@ public class RedAllianceLeftWarehouse extends LinearOpMode {
         Logger.addData("Detected Cargo: " + itemPos);
         Logger.update();
         driveTrain.driveCM(10, 0.8);
-        driveTrain.turn(-90, 0.8, imu, 1);
+        driveTrain.turn(-90, 0.8, 1);
         driveTrain.driveCM( 63, 0.8);
-        driveTrain.turn(0, 0.8, imu, 1);
-        switch (itemPos) {
-            case LEFT:
-                arm.runToPosition(Configurable.armHighPosition, 1);
-                break;
-            case RIGHT:
-                arm.runToPosition(Configurable.armLowPosition, 1);
-                break;
-            case CENTER:
-                arm.runToPosition(Configurable.armMidPosition, 1);
-                break;
-        }
+        driveTrain.turn(0, 0.8, 1);
+//        switch (itemPos) {
+//            case LEFT:
+//                arm.runToPosition(Configurable.armHighPosition, 1);
+//                break;
+//            case RIGHT:
+//                arm.runToPosition(Configurable.armLowPosition, 1);
+//                break;
+//            case CENTER:
+//                arm.runToPosition(Configurable.armMidPosition, 1);
+//                break;
+//        }
         driveTrain.driveCM(40, 0.8);
-        driveTrain.turn(0, 1, imu, 1);
+        driveTrain.turn(0, 1, 1);
         switch (itemPos) {
             case LEFT:
-                collector.setPower(Configurable.disposeLowSpeed);
+                collector.runToPosition(Configurable.disposeTicks,Configurable.disposeLowSpeed);
                 break;
             case RIGHT:
-                collector.setPower(Configurable.disposeHighSpeed);
+                collector.runToPosition(Configurable.disposeTicks,Configurable.disposeHighSpeed);
                 break;
             case CENTER:
-                collector.setPower(Configurable.disposeMidSpeed);
+                collector.runToPosition(Configurable.disposeTicks,Configurable.disposeMidSpeed);
                 break;
         }
         driveTrain.driveCM(35, -0.8);
-        arm.runToPosition(Configurable.armLowPosition, 1);
-        driveTrain.turn(-90, 0.8, imu, 1);
+//        arm.runToPosition(Configurable.armLowPosition, 1);
+        driveTrain.turn(-90, 0.8, 1);
         driveTrain.driveCM(145, -0.8);
-        driveTrain.turn(-145, 0.8, imu, 1);
-        duckSpinner.setPower(Configurable.duckSpinnerPower); // spin for 4000 milliseconds
-        driveTrain.turn(-103, 0.8, imu, 1);
-        arm.runToPosition(Configurable.armHighPosition, 1);
+        driveTrain.turn(-145, 0.8, 1);
+        duckSpinner.runToPosition(Configurable.duckSpinnerTicks, Configurable.duckSpinnerPowerRed);
+        driveTrain.turn(-103, 0.8, 1);
+//        arm.runToPosition(Configurable.armHighPosition, 1);
         driveTrain.driveCM(270, 1);
     }
 }

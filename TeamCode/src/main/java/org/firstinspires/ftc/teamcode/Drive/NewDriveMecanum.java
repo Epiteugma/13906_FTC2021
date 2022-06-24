@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Drive;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -21,6 +22,7 @@ public class NewDriveMecanum extends LinearOpMode {
     Motor duckSpinner;
     DistanceSensor cargoDetector;
     TouchSensor armTouchSensor;
+    BNO055IMU imu;
 
     public void initHardware() {
         frontLeft = new Motor(hardwareMap, "frontLeft");
@@ -30,6 +32,12 @@ public class NewDriveMecanum extends LinearOpMode {
         arm = new Motor(hardwareMap, "arm");
         collector = new Motor(hardwareMap, "collector");
         duckSpinner = new Motor(hardwareMap, "duckSpinner");
+
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
 
         // Motor reversing
         backLeft.setDirection(Motor.Direction.REVERSE);
@@ -62,7 +70,7 @@ public class NewDriveMecanum extends LinearOpMode {
         long prevTime = 0;
         double distance = cargoDetector.getDistance(DistanceUnit.CM);
         double prevDistance = distance;
-        MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight);
+        MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight, imu);
         waitForStart();
         while(opModeIsActive()) {
             distance = cargoDetector.getDistance(DistanceUnit.CM);

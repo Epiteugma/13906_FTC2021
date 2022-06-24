@@ -10,21 +10,44 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 public class MecanumDriveTrain {
     Motor[] motors;
-    public double turnThreshold = 15;
+    public double turnThreshold = 4;
     public double ratio = 20;
     public double wheelRadius = 3.75;
+    BNO055IMU imu;
+    double lastStallCheck = 0;
+    double lastVelo = 0;
 
-    private void init(Motor frontLeft, Motor frontRight, Motor backLeft, Motor backRight) {
+    private void init(Motor frontLeft, Motor frontRight, Motor backLeft, Motor backRight, BNO055IMU imu) {
         this.motors = new Motor[]{frontLeft, frontRight, backLeft, backRight};
         for(Motor motor : motors) {
             motor.resetEncoder();
         }
+        this.imu = imu;
     }
 
-    public MecanumDriveTrain(Motor frontLeft, Motor frontRight, Motor backLeft, Motor backRight) {
+    public MecanumDriveTrain(Motor frontLeft, Motor frontRight, Motor backLeft, Motor backRight, BNO055IMU imu) {
         // Default wheel radius = Mecanum wheels
         // Default gear ratio 20:1
-        init(frontLeft, frontRight, backLeft, backRight);
+        init(frontLeft, frontRight, backLeft, backRight, imu);
+    }
+
+    public boolean isStalled() {
+        if(lastStallCheck == 0) lastStallCheck = System.currentTimeMillis();
+        double velo = 0;
+        for(Motor motor : motors) {
+            velo += Math.abs(motor.getVelocity());
+        }
+        velo /= motors.length;
+        Logger.addData("Velo: " + velo);
+        Logger.addData("Last velo: " + lastVelo);
+        boolean stalled = false;
+        if(System.currentTimeMillis() - lastStallCheck > 1000) {
+            if(Math.abs(velo - lastVelo) == 0) {
+                stalled = true;
+            }
+            lastVelo = velo;
+        }
+        return stalled;
     }
 
     public void driveRobotCentric(double forwardPower, double sidePower, double strafePower) {
@@ -53,6 +76,11 @@ public class MecanumDriveTrain {
     }
 
     public void drive(int relativeTicks, double power) {
+        lastStallCheck = 0;
+        stop();
+        resetEncoders();
+        runOnEncoders();
+
         int[] targetPositions = new int[]{
                 motors[0].getCurrentPosition()-(relativeTicks * motors[0].getDirection().getMultiplier()),
                 motors[1].getCurrentPosition()-(relativeTicks * motors[1].getDirection().getMultiplier()),
@@ -67,10 +95,11 @@ public class MecanumDriveTrain {
             motor.setPower(power);
         }
         while(
-                Math.abs(motors[0].getCurrentPosition()) < Math.abs(targetPositions[0]) ||
+                (Math.abs(motors[0].getCurrentPosition()) < Math.abs(targetPositions[0]) ||
                 Math.abs(motors[1].getCurrentPosition()) < Math.abs(targetPositions[1]) ||
                 Math.abs(motors[2].getCurrentPosition()) < Math.abs(targetPositions[2]) ||
-                Math.abs(motors[3].getCurrentPosition()) < Math.abs(targetPositions[3])
+                Math.abs(motors[3].getCurrentPosition()) < Math.abs(targetPositions[3])) &&
+                        !isStalled()
         ) {
             Logger.addData("Front left: " + motors[0].getCurrentPosition() + " / " + motors[0].getTargetPosition());
             Logger.addData("Front right: " + motors[1].getCurrentPosition() + " / " + motors[1].getTargetPosition());
@@ -78,10 +107,19 @@ public class MecanumDriveTrain {
             Logger.addData("Back right: " + motors[3].getCurrentPosition() + " / " + motors[3].getTargetPosition());
             Logger.update();
         }
+
+        hold();
+    }
+
+
+    public void resetEncoders() {
+        for(Motor motor : motors) {
+            motor.resetEncoder();
+        }
     }
 
     public void driveCM(int cm, double power) {
-        this.drive((int) ((cm / (wheelRadius * Math.PI * 2)) * (28 * ratio/2)), power);
+        this.drive((int) ((cm / (wheelRadius * Math.PI * 2)) * (28 * ratio)), power);
     }
 
     public enum Side {
@@ -98,6 +136,11 @@ public class MecanumDriveTrain {
     }
 
     public void strafe(Side side, int relativeTicks, double power) {
+
+        stop();
+        resetEncoders();
+        runOnEncoders();
+
         int[] targetPositions = new int[]{
                 motors[0].getCurrentPosition() + side.getMultiplier() * (relativeTicks * motors[0].getDirection().getMultiplier()),
                 motors[1].getCurrentPosition() - side.getMultiplier() * (relativeTicks * motors[1].getDirection().getMultiplier()),
@@ -117,9 +160,11 @@ public class MecanumDriveTrain {
                         Math.abs(motors[2].getCurrentPosition()) < Math.abs(targetPositions[2]) ||
                         Math.abs(motors[3].getCurrentPosition()) < Math.abs(targetPositions[3])
         ) {}
+
+        hold();
     }
 
-    private double getCurrentAngle(BNO055IMU imu, int angle) {
+    private double getCurrentAngle(int angle) {
         Orientation angles = imu.getAngularOrientation();
         switch (angle) {
             case 1: return angles.firstAngle;
@@ -129,23 +174,44 @@ public class MecanumDriveTrain {
         return 0;
     }
 
-    public void turn(double targetAngle, double power, BNO055IMU imu, int angle) {
-        double currentAngle;
-        if(targetAngle > 180) targetAngle -= 360;
-        int directionMultiplier = targetAngle - getCurrentAngle(imu, angle) > 0 ? 1 : -1;
-
-        double rangeMax = targetAngle + (turnThreshold/2 + power*10);
-        double rangeMin = targetAngle - (turnThreshold/2 + power*10);
-
+    public void runOnEncoders(){
         for(Motor motor : motors) {
             motor.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
+    }
+
+    public void hold(){
+        for(Motor motor : motors) {
+            motor.setTargetPosition(motor.getCurrentPosition());
+            motor.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
+            motor.setPower(1);
+        }
+    }
+
+    public void stop() {
+        for(Motor motor : motors) {
+            motor.setPower(0);
+        }
+    }
+
+    public void turn(double targetAngle, double power, int angle) {
+
+        stop();
+        resetEncoders();
+        runOnEncoders();
+
+        double currentAngle;
+        if(targetAngle > 180) targetAngle -= 360;
+        int directionMultiplier = targetAngle - getCurrentAngle(angle) > 0 ? 1 : -1;
+
+        double rangeMax = targetAngle + turnThreshold/2;
+        double rangeMin = (targetAngle - turnThreshold/2) - turnThreshold;
 
         do {
-            currentAngle = getCurrentAngle(imu, angle);
-            Logger.addData(currentAngle);
-            Logger.addData(targetAngle);
-            Logger.addData(Math.abs(currentAngle - targetAngle));
+            currentAngle = getCurrentAngle(angle);
+            Logger.addData("Current angle: " + currentAngle);
+            Logger.addData("Target angle: " + targetAngle);
+            Logger.addData("Curr - Tar: " + Math.abs(currentAngle - targetAngle));
 //            double speedPercentage = (1.1-power) * (Math.abs(currentAngle - targetAngle) / 360);
 //            Logger.addData(speedPercentage);
             for(int i = 0; i < motors.length; i++) {
@@ -157,5 +223,7 @@ public class MecanumDriveTrain {
             }
             Logger.update();
         } while(!(rangeMin < currentAngle && rangeMax > currentAngle));
+
+        hold();
     }
 }

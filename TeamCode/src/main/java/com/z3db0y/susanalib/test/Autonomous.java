@@ -44,11 +44,11 @@ public class Autonomous extends LinearOpMode {
     public void runOpMode() {
         initHardware();
         Logger.setTelemetry(telemetry);
-        MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight);
+        MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight, imu);
         waitForStart();
 
 //        driveTrain.driveCM(10, 0.35);
-        driveTrain.turn(-90,1, imu, 1);
+        driveTrain.turn(-90,0.1, 1);
 //        driveTrain.strafe(MecanumDriveTrain.Side.RIGHT, 500, 0.5);
     }
 

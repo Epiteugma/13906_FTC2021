@@ -27,6 +27,10 @@ public class Mecanum2 extends LinearOpMode {
         backLeft = new Motor(hardwareMap, "backLeft");
         backRight = new Motor(hardwareMap, "backRight");
         imu = hardwareMap.get(BNO055IMU.class, "imu");
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        imu.initialize(parameters);
         backLeft.setDirection(Motor.Direction.REVERSE);
         frontRight.setDirection(Motor.Direction.REVERSE);
     }
@@ -35,7 +39,7 @@ public class Mecanum2 extends LinearOpMode {
     public void runOpMode() {
         initHardware();
 
-        MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight);
+        MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight, imu);
 
         waitForStart();
         while (opModeIsActive()) {

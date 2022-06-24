@@ -92,7 +92,7 @@ public class Motor {
         this.setPower(power);
 
         while(Math.abs(this.getPosition()) < Math.abs(ticks)) {
-            System.out.println(this.getPosition());
+            Logger.addData(this.getPosition());
         }
         this.setPower(0);
     }

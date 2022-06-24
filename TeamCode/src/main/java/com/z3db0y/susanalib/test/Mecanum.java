@@ -2,6 +2,7 @@ package com.z3db0y.susanalib.test;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -16,6 +17,7 @@ public class Mecanum extends LinearOpMode {
     Motor frontRight;
     Motor backLeft;
     Motor backRight;
+    BNO055IMU imu;
 
     private void initHardware() {
         frontLeft = new Motor(hardwareMap, "frontLeft");
@@ -24,13 +26,19 @@ public class Mecanum extends LinearOpMode {
         backRight = new Motor(hardwareMap, "backRight");
         backLeft.setDirection(Motor.Direction.REVERSE);
         frontRight.setDirection(Motor.Direction.REVERSE);
+
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        imu.initialize(parameters);
     }
 
     @Override
     public void runOpMode() {
         initHardware();
 
-        MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight);
+        MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight, imu);
 
         waitForStart();
         while (opModeIsActive()) {

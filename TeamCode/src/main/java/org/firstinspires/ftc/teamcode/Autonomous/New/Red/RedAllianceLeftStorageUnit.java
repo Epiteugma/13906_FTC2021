@@ -59,7 +59,7 @@ public class RedAllianceLeftStorageUnit extends LinearOpMode {
 
         arm.setTargetPosition(0);
         arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-        arm.setPower(1);
+        arm.setHoldPosition(true);
 
         cargoDetector = hardwareMap.get(DistanceSensor.class, "cargoDetector");
         armTouchSensor = hardwareMap.get(TouchSensor.class, "armTouch");
@@ -75,7 +75,7 @@ public class RedAllianceLeftStorageUnit extends LinearOpMode {
     public void runOpMode() {
         initHardware();
         Logger.setTelemetry(telemetry);
-        MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight);
+        MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight, imu);
         driveTrain.ratio = Configurable.driveGearRatio;
         driveTrain.wheelRadius = Configurable.wheelRadius;
 
@@ -98,57 +98,53 @@ public class RedAllianceLeftStorageUnit extends LinearOpMode {
 
         waitForStart();
         TseDetector.Location itemPos = detector.getLocation(this);
-        Logger.addData("Detected Cargo: " + itemPos);Logger.update();
-        driveTrain.driveCM(20, 0.4);
-        driveTrain.turn(-90, 0.2, imu, 1);
-        driveTrain.driveCM(54, 0.4);
-        driveTrain.turn(0, 0.2, imu, 1);
-//        switch (itemPos) {
-//            case LEFT:
-//                arm.runToPosition(Configurable.armLowPosition, 1);
-//                break;
-//            case RIGHT:
-//                arm.runToPosition(Configurable.armHighPosition, 1);
-//                break;
-//            case CENTER:
-//                arm.runToPosition(Configurable.armMidPosition, 1);
-//                break;
-//        }
-        driveTrain.driveCM(30, 0.4);
-        driveTrain.turn(0, 0.2, imu, 1);
-        double initialDistance = cargoDetector.getDistance(DistanceUnit.CM);
-        double cargoDistance;
-        double startTime = System.currentTimeMillis();
-        do {
-            cargoDistance = cargoDetector.getDistance(DistanceUnit.CM);
-            Logger.addData("Initial distance: " + initialDistance);
-            Logger.addData("Cargo distance: " + cargoDistance);
-            Logger.addData("Difference: " + (cargoDistance - initialDistance));
-            Logger.update();
-            switch (itemPos) {
-                case LEFT:
-//                    arm.runToPosition(Configurable.armLowPosition, 1);
-                    collector.setPower(Configurable.disposeLowSpeed);
-                    break;
-                case RIGHT:
-//                    arm.runToPosition(Configurable.armHighPosition, 1);
-                    collector.setPower(Configurable.disposeHighSpeed);
-                    break;
-                case CENTER:
-//                    arm.runToPosition(Configurable.armMidPosition, 1);
-                    collector.setPower(Configurable.disposeMidSpeed);
-                    break;
-            }
-        } while(cargoDistance - initialDistance < 5 && System.currentTimeMillis() < startTime+1500);
-        collector.setPower(0);
-        driveTrain.driveCM(-35, 0.4);
-//        arm.runToPosition(Configurable.armLowPosition, 1);
-        driveTrain.turn(-90, 0.2, imu, 1);
-        driveTrain.driveCM(-145, -0.4);
-        driveTrain.turn(-115, 0.2, imu, 1);
-        duckSpinner.runToPosition(Configurable.duckSpinnerTicks, Configurable.duckSpinnerPower);
-//        driveTrain.turn(0, 1, imu, 1);
-//        driveTrain.driveCM(47, 0.4);
-//        driveTrain.turn(0, 1, imu, 1);
+        Logger.addData("Detected Cargo: " + itemPos);
+        Logger.update();
+        driveTrain.driveCM(15, 0.3);
+        driveTrain.turn(-90, 0.1, 1);
+        driveTrain.driveCM(67, 0.3);
+        driveTrain.turn(0, 0.1, 1);
+        switch (itemPos) {
+            case LEFT:
+                arm.runToPosition(Configurable.armLowPosition, 1);
+                break;
+            case RIGHT:
+                arm.runToPosition(Configurable.armHighPosition, 1);
+                break;
+            case CENTER:
+                arm.runToPosition(Configurable.armMidPosition, 1);
+                break;
+        }
+        driveTrain.driveCM(52, 0.2);
+        driveTrain.turn(0, 0.1, 1);
+        switch (itemPos) {
+            case LEFT:
+                collector.runToPosition(Configurable.disposeTicks,Configurable.disposeLowSpeed);
+                break;
+            case RIGHT:
+                collector.runToPosition(Configurable.disposeTicks, Configurable.disposeHighSpeed);
+                break;
+            case CENTER:
+                collector.runToPosition(Configurable.disposeTicks, Configurable.disposeMidSpeed);
+                break;
+        }
+        driveTrain.driveCM(-20, 0.2);
+        arm.setHoldPosition(false);
+        arm.runToPosition(0, 1);
+        driveTrain.turn(-90, 0.1, 1);
+        driveTrain.driveCM(-40, 0.2);
+        driveTrain.turn(-90, 0.1, 1);
+        driveTrain.driveCM(-40, 0.2);
+        driveTrain.turn(-90, 0.1, 1);
+        driveTrain.driveCM(-40, 0.2);
+        driveTrain.turn(-90, 0.1, 1);
+        driveTrain.driveCM(-35, 0.2);
+        driveTrain.turn(-165, 0.1, 1);
+        driveTrain.driveCM(27, 0.1);
+        duckSpinner.runToPosition(Configurable.duckSpinnerTicks, Configurable.duckSpinnerPowerRed);
+        driveTrain.driveCM(-10, 0.2);
+        driveTrain.turn(-179, 0.1, 1);
+        driveTrain.driveCM(-35, 0.2);
+        driveTrain.turn(-179, 0.1, 1);
     }
 }

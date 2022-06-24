@@ -21,7 +21,7 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-@Autonomous(name="Blue Left", group="FTC22Auto_Ware_Blue")
+@Autonomous(name="Blue Left", group="FTC22Auto")
 public class BlueAllianceLeft extends LinearOpMode {
 
     TseDetector detector;
@@ -75,7 +75,7 @@ public class BlueAllianceLeft extends LinearOpMode {
     public void runOpMode() {
         initHardware();
         Logger.setTelemetry(telemetry);
-        MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight);
+        MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight, imu);
 
 
         detector = new TseDetector();
@@ -100,37 +100,37 @@ public class BlueAllianceLeft extends LinearOpMode {
         Logger.addData("Detected Cargo: " + itemPos);
         Logger.update();
         driveTrain.driveCM(10, 0.8);
-        driveTrain.turn(-90, 0.8, imu, 1);
+        driveTrain.turn(-90, 0.8, 1);
         driveTrain.driveCM( 57, 0.8);
-        driveTrain.turn(0, 0.8, imu, 1);
+        driveTrain.turn(0, 0.8, 1);
         switch (itemPos) {
             case LEFT:
-                arm.runToPosition(Configurable.armHighPosition, 1);
+//                arm.runToPosition(Configurable.armHighPosition, 1);
                 break;
             case RIGHT:
-                arm.runToPosition(Configurable.armLowPosition, 1);
+//                arm.runToPosition(Configurable.armLowPosition, 1);
                 break;
             case CENTER:
-                arm.runToPosition(Configurable.armMidPosition, 1);
+//                arm.runToPosition(Configurable.armMidPosition, 1);
                 break;
         }
         driveTrain.driveCM(35, 0.8);
-        driveTrain.turn(0, 1, imu, 1);
+        driveTrain.turn(0, 1, 1);
         switch (itemPos) {
             case LEFT:
-                collector.setPower(Configurable.disposeLowSpeed);
+                collector.runToPosition(Configurable.disposeTicks,Configurable.disposeLowSpeed);
                 break;
             case RIGHT:
-                collector.setPower(Configurable.disposeHighSpeed);
+                collector.runToPosition(Configurable.disposeTicks,Configurable.disposeHighSpeed);
                 break;
             case CENTER:
-                collector.setPower(Configurable.disposeMidSpeed);
+                collector.runToPosition(Configurable.disposeTicks,Configurable.disposeMidSpeed);
                 break;
         }
-        driveTrain.turn(0, 1, imu, 1);
+        driveTrain.turn(0, 1, 1);
         driveTrain.driveCM( 25, 1);
-        driveTrain.turn(90, 1, imu, 1);
-        arm.runToPosition(-1000, 1);
+        driveTrain.turn(90, 1, 1);
+//        arm.runToPosition(-1000, 1);
         driveTrain.driveCM(160, 1);
     }
 }

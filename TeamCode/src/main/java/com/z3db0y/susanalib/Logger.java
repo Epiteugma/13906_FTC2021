@@ -1,10 +1,15 @@
 package com.z3db0y.susanalib;
 
+import android.util.Log;
+
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+
+import java.util.ArrayList;
 
 public class Logger {
 
     static private Telemetry telemetry;
+    static private ArrayList<String> lines = new ArrayList<>();
 
     static public void setTelemetry(Telemetry telem) {
         telemetry = telem;
@@ -23,6 +28,7 @@ public class Logger {
     static private void addDataInternal(Object message, String color, String caller) {
         if(color == null) color = "#ffffff";
         if(telemetry != null) {
+            lines.add(caller + "() " + message);
             telemetry.addData("<span style='color: #ffaa00'>[SusanaLib] " + caller + "()</span>", "<span style='color: " + color + "'>" + stripHTML(message) + "</span>");
         }
     }
@@ -38,7 +44,13 @@ public class Logger {
     }
 
     static public void update() {
-        if(telemetry != null) telemetry.update();
+        if(telemetry != null) {
+            for(String line : lines) {
+                Log.i("SusanaLib", line);
+            }
+            lines = new ArrayList<>();
+            telemetry.update();
+        }
     }
 
 }

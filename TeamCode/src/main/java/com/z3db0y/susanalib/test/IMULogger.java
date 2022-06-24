@@ -1,5 +1,7 @@
 package com.z3db0y.susanalib.test;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.z3db0y.susanalib.Logger;
@@ -26,12 +28,16 @@ public class IMULogger extends LinearOpMode {
     @Override
     public void runOpMode() {
         initHardware();
-        Logger.setTelemetry(telemetry);
         waitForStart();
+        Logger.setTelemetry(telemetry);
         while (opModeIsActive()) {
             Logger.addData(imu.getAngularOrientation().firstAngle);
             Logger.addData(imu.getAngularOrientation().secondAngle);
             Logger.addData(imu.getAngularOrientation().thirdAngle);
+            Logger.addData(imu.getLinearAcceleration().xAccel);
+            Logger.addData(imu.getLinearAcceleration().yAccel);
+            Logger.addData(imu.getLinearAcceleration().zAccel);
+
             Logger.update();
         }
     }
