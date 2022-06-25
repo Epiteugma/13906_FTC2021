@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Autonomous.New.Red;
+package org.firstinspires.ftc.teamcode.Autonomous.New.Blue;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.hardware.bosch.BNO055IMU;
@@ -18,7 +18,7 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-public class RedAllianceLeft extends LinearOpMode {
+public class BlueAllianceRight extends LinearOpMode {
     TseDetector detector;
     Motor frontLeft;
     Motor frontRight;
@@ -97,18 +97,18 @@ public class RedAllianceLeft extends LinearOpMode {
         Logger.update();
 
         driveTrain.driveCM(15, 0.4);
-        driveTrain.turn(-90, 0.1, 1);
+        driveTrain.turn(90, 0.1, 1);
         driveTrain.driveCM(72, 0.2);
         driveTrain.turn(0, 0.1, 1);
         switch (itemPos) {
             case LEFT:
-                arm.runToPositionAsync(Configurable.armLowPosition, 1);
+                arm.runToPositionAsync(Configurable.armHighPosition, 0.8);
                 break;
             case RIGHT:
-                arm.runToPositionAsync(Configurable.armHighPosition, 1);
+                arm.runToPositionAsync(Configurable.armLowPosition, 0.5);
                 break;
             case CENTER:
-                arm.runToPositionAsync(Configurable.armMidPosition, 1);
+                arm.runToPositionAsync(Configurable.armMidPosition, 0.5);
                 break;
         }
         driveTrain.driveCM(48, 0.2);
@@ -119,7 +119,7 @@ public class RedAllianceLeft extends LinearOpMode {
             Logger.addData("Collector Power: " + collectorPower);
             Logger.update();
         }
-        driveTrain.driveCM(-15, 0.3);
+        driveTrain.driveCM(-27, 0.2);
         arm.setHoldPosition(false);
         new Thread(() -> {
             arm.setTargetPosition(0);
@@ -131,26 +131,37 @@ public class RedAllianceLeft extends LinearOpMode {
             arm.setPower(0);
         }).start();
         driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(-45, 0.4);
+        driveTrain.driveCM(65, 0.3);
         driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(-45, 0.4);
-        driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(-45, 0.2);
-        driveTrain.turn(-175, 0.1, 1);
-        driveTrain.driveCM(37, 0.1);
+        driveTrain.driveCM(65, 0.3);
+        driveTrain.driveCM(-10, 0.3);
+        driveTrain.turn(-125, 0.2, 1);
 
+        driveTrain.driveCM(10, 0.3); // until stalled
+
+        frontRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
         double duckSpinnerPower = Configurable.duckSpinnerPower;
-        duckSpinner.setTargetPosition(Configurable.duckSpinnerTicks);
-        while(Math.abs(duckSpinner.getCurrentPosition()) < Math.abs(duckSpinner.getTargetPosition())){
-            if(duckSpinner.runToPosition(Configurable.duckSpinnerTicks, duckSpinnerPower)) {
-                duckSpinnerPower += 0.05;
+        duckSpinner.resetStallDetection();
+        duckSpinner.runToPositionAsync(Configurable.duckSpinnerTicks, -duckSpinnerPower);
+        while (Math.abs(duckSpinner.getCurrentPosition()) < Math.abs(duckSpinner.getTargetPosition())) {
+            frontRight.resetStallDetection();
+            backRight.resetStallDetection();
+            if (duckSpinner.isStalled()) {
+                duckSpinnerPower += 0.04;
                 Logger.addData("Duck Spinner Power: " + duckSpinnerPower);
                 Logger.update();
             }
             else {
-                driveTrain.driveCM(2, 0.1);
+                while (!frontRight.isStalled() && !backRight.isStalled()) {
+                    frontRight.setPower(-0.17);
+                    backRight.setPower(-0.17);
+                }
             }
+            duckSpinner.setPower(-duckSpinnerPower);
+            frontRight.setPower(0);
+            backRight.setPower(0);
         }
-        driveTrain.driveCM(-10, 0.3);
+        duckSpinner.setPower(0);
     }
 }

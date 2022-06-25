@@ -17,8 +17,7 @@ public class Configurable {
 
     public static int disposeTicks = 576;
 
-    public static double duckSpinnerPowerRed = 0.23;
-    public static double duckSpinnerPowerBlue = -0.23;
+    public static double duckSpinnerPower = 0.23;
 
     public static int duckSpinnerTicks = 2000;
 

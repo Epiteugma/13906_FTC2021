@@ -31,6 +31,11 @@ public class MecanumDriveTrain {
         init(frontLeft, frontRight, backLeft, backRight, imu);
     }
 
+    public void resetStallDetector() {
+        lastStallCheck = 0;
+        lastVelo = 0;
+    }
+
     public boolean isStalled() {
         if(lastStallCheck == 0) lastStallCheck = System.currentTimeMillis();
         double velo = 0;
@@ -214,9 +219,15 @@ public class MecanumDriveTrain {
         double diff;
         do {
             currentAngle = getCurrentAngle(angle);
-            int directionMultiplier = targetAngle - getCurrentAngle(angle) > 0 ? 1 : -1;
+            if(currentAngle == 180 && targetAngle < 0) currentAngle = -180;
+
+            double target360 = targetAngle < 0 ? targetAngle + 360 : targetAngle;
+            double current360 = currentAngle < 0 ? currentAngle + 360 : currentAngle;
+            double diff360 = current360 - target360;
+            int directionMultiplier = Math.abs(diff360) > 180 ? (diff360 > 0 ? 1 : -1) : (diff360 > 0 ? -1 : 1);
+
             diff = Math.abs(currentAngle - targetAngle);
-            Logger.addData("Curr - Tar: " + currentAngle + " - " + targetAngle + " = "  + Math.abs(currentAngle - targetAngle));
+            Logger.addData("Tar: " + targetAngle + " / Curr: " + currentAngle + " / Diff: " + (targetAngle - currentAngle));
             Logger.addData("Dir: " + directionMultiplier);
             Logger.addData("Range Min: " + rangeMin);
             Logger.addData("Range Max: " + rangeMax);

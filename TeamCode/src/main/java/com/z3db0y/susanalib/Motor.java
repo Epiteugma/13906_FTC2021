@@ -65,6 +65,10 @@ public class Motor {
         this.motor.setMode(this.runMode);
         this.power = power;
         this.motor.setPower(power * this.direction.getMultiplier());
+        updateHoldPosition();
+    }
+
+    private void updateHoldPosition() {
         if(this.getPower() == 0 && this.holdPosition) {
             this.motor.setTargetPosition(this.motor.getCurrentPosition());
             this.motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -78,6 +82,7 @@ public class Motor {
 
     public void setHoldPosition(boolean hold) {
         this.holdPosition = hold;
+        updateHoldPosition();
     }
 
     public boolean getHoldPosition() {
@@ -88,8 +93,13 @@ public class Motor {
         return this.motor.getCurrentPosition();
     }
 
+    public void resetStallDetection(){
+        this.lastStallCheck = 0;
+        this.lastVelo = 0;
+    }
+
     // Only to be used in runToPosition function - because lastStallCheck has to be reset.
-    private boolean isStalled() {
+    public boolean isStalled() {
         if(lastStallCheck == 0) lastStallCheck = System.currentTimeMillis();
         double velo = this.getVelocity();
         Logger.addData("Velo: " + velo);
