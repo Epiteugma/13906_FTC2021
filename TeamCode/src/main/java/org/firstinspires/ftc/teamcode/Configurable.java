@@ -7,8 +7,8 @@ public class Configurable {
     // Tunable variables to tune from the dashboard, must be public and static so the dashboard can access them.
     // Always have to be in cm!!!
     // Constants and ratios
-    public static int armLowPosition = -450;
-    public static int armMidPosition = -1100;
+    public static int armLowPosition = -500;
+    public static int armMidPosition = -1150;
     public static int armHighPosition = -1800;
 
     public static double disposeLowSpeed = 0.5;
@@ -17,10 +17,10 @@ public class Configurable {
 
     public static int disposeTicks = 576;
 
-    public static double duckSpinnerPowerRed = 0.25;
-    public static double duckSpinnerPowerBlue = -0.25;
+    public static double duckSpinnerPowerRed = 0.23;
+    public static double duckSpinnerPowerBlue = -0.23;
 
-    public static int duckSpinnerTicks = 1500;
+    public static int duckSpinnerTicks = 2000;
 
     public static double driveGearRatio = 14/2;
 

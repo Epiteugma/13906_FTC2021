@@ -8,6 +8,8 @@ public class Motor {
     private final DcMotor motor;
     private Direction direction;
     private boolean holdPosition;
+    private double lastStallCheck = 0;
+    private double lastVelo;
     private double power = 0;
     private DcMotor.RunMode runMode = DcMotor.RunMode.RUN_WITHOUT_ENCODER;
     public double wheelRadius = 3.75;
@@ -86,15 +88,33 @@ public class Motor {
         return this.motor.getCurrentPosition();
     }
 
-    public void runToPosition(int ticks, double power) {
+    // Only to be used in runToPosition function - because lastStallCheck has to be reset.
+    private boolean isStalled() {
+        if(lastStallCheck == 0) lastStallCheck = System.currentTimeMillis();
+        double velo = this.getVelocity();
+        Logger.addData("Velo: " + velo);
+        boolean stalled = false;
+        if(System.currentTimeMillis() - lastStallCheck > 1000) {
+            double delta = velo - lastVelo;
+            if(delta == 0) stalled = true;
+            Logger.addData("Delta: " + delta);
+            lastVelo = velo;
+        }
+        return stalled;
+    }
+
+    public boolean runToPosition(int ticks, double power) {
+        this.lastStallCheck = 0;
         this.motor.setTargetPosition(this.direction.getMultiplier() * ticks);
         this.motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         this.setPower(power);
 
-        while(Math.abs(this.getPosition()) < Math.abs(ticks)) {
+        boolean wasStalled = false;
+        while(Math.abs(this.getPosition()) < Math.abs(ticks) && !(wasStalled = isStalled())) {
             Logger.addData(this.getPosition());
         }
         this.setPower(0);
+        return wasStalled;
     }
 
     public void runToPositionAsync(int ticks, double power) {

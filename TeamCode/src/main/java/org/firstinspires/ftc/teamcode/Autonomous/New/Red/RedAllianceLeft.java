@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.Autonomous.New.Red;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -12,8 +11,6 @@ import com.z3db0y.susanalib.MecanumDriveTrain;
 import com.z3db0y.susanalib.Motor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Autonomous.visionv1.TseDetector;
 import org.firstinspires.ftc.teamcode.Configurable;
 import org.openftc.easyopencv.OpenCvCamera;
@@ -21,9 +18,7 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-@Autonomous(name = "Red Left Warehouse", group="FTC22Auto_Ware")
-public class RedAllianceLeftWarehouse extends LinearOpMode {
-
+public class RedAllianceLeft extends LinearOpMode {
     TseDetector detector;
     Motor frontLeft;
     Motor frontRight;
@@ -71,9 +66,10 @@ public class RedAllianceLeftWarehouse extends LinearOpMode {
         imu.initialize(parameters);
     }
 
-    @Override
-    public void runOpMode() {
+    public void run() {
         initHardware();
+        waitForStart();
+
         Logger.setTelemetry(telemetry);
         MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight, imu);
         driveTrain.ratio = Configurable.driveGearRatio;
@@ -148,11 +144,12 @@ public class RedAllianceLeftWarehouse extends LinearOpMode {
                 driveTrain.driveCM(2, 0.1);
             }
         }
-
         driveTrain.driveCM(-10, 0.2);
-        driveTrain.turn(-95, 0.2, 1);
-        arm.runToPosition(Configurable.armHighPosition, 1);
-        arm.setHoldPosition(true);
-        driveTrain.driveCM(270, 1);
     }
+
+    @Override
+    public void runOpMode() {
+
+    }
+
 }

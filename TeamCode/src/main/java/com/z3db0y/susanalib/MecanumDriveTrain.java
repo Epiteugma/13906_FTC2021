@@ -77,7 +77,7 @@ public class MecanumDriveTrain {
 
     public void drive(int relativeTicks, double power) {
         lastStallCheck = 0;
-        stop();
+        release();
         resetEncoders();
         runOnEncoders();
 
@@ -111,6 +111,11 @@ public class MecanumDriveTrain {
         hold();
     }
 
+    private double normalizeAngle(double angle) {
+        if(angle < -180) return -180;
+        if(angle > 180) return 180;
+        return angle;
+    }
 
     public void resetEncoders() {
         for(Motor motor : motors) {
@@ -137,7 +142,7 @@ public class MecanumDriveTrain {
 
     public void strafe(Side side, int relativeTicks, double power) {
 
-        stop();
+        release();
         resetEncoders();
         runOnEncoders();
 
@@ -188,7 +193,7 @@ public class MecanumDriveTrain {
         }
     }
 
-    public void stop() {
+    public void release() {
         for(Motor motor : motors) {
             motor.setPower(0);
         }
@@ -196,33 +201,31 @@ public class MecanumDriveTrain {
 
     public void turn(double targetAngle, double power, int angle) {
 
-        stop();
+        release();
         resetEncoders();
         runOnEncoders();
 
         double currentAngle;
         if(targetAngle > 180) targetAngle -= 360;
-        int directionMultiplier = targetAngle - getCurrentAngle(angle) > 0 ? 1 : -1;
 
-        double rangeMax = targetAngle + turnThreshold/2;
-        double rangeMin = (targetAngle - turnThreshold/2) - turnThreshold;
+        double rangeMin = normalizeAngle(targetAngle + turnThreshold/2);
+        double rangeMax = normalizeAngle(targetAngle - turnThreshold/2);
 
+        double diff;
         do {
             currentAngle = getCurrentAngle(angle);
-            Logger.addData("Current angle: " + currentAngle);
-            Logger.addData("Target angle: " + targetAngle);
-            Logger.addData("Curr - Tar: " + Math.abs(currentAngle - targetAngle));
-//            double speedPercentage = (1.1-power) * (Math.abs(currentAngle - targetAngle) / 360);
-//            Logger.addData(speedPercentage);
+            int directionMultiplier = targetAngle - getCurrentAngle(angle) > 0 ? 1 : -1;
+            diff = Math.abs(currentAngle - targetAngle);
+            Logger.addData("Curr - Tar: " + currentAngle + " - " + targetAngle + " = "  + Math.abs(currentAngle - targetAngle));
+            Logger.addData("Dir: " + directionMultiplier);
+            Logger.addData("Range Min: " + rangeMin);
+            Logger.addData("Range Max: " + rangeMax);
             for(int i = 0; i < motors.length; i++) {
-//                if(i % 2 == 0) motors[i].setPower(power * directionMultiplier * speedPercentage);
-//                else motors[i].setPower(-power * directionMultiplier * speedPercentage);
                 if(i % 2 == 0) motors[i].setPower(power * directionMultiplier);
                 else motors[i].setPower(-power * directionMultiplier);
-                Logger.addData(motors[i].getPower());
             }
             Logger.update();
-        } while(!(rangeMin < currentAngle && rangeMax > currentAngle));
+        } while(diff > turnThreshold);
 
         hold();
     }

@@ -101,8 +101,8 @@ public class RedAllianceLeftStorageUnit extends LinearOpMode {
         Logger.addData("Detected Cargo: " + itemPos);
         Logger.update();
         driveTrain.driveCM(15, 0.3);
-        driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(67, 0.3);
+        driveTrain.turn(-85, 0.1, 1);
+        driveTrain.driveCM(70, 0.2);
         driveTrain.turn(0, 0.1, 1);
         switch (itemPos) {
             case LEFT:
@@ -115,36 +115,43 @@ public class RedAllianceLeftStorageUnit extends LinearOpMode {
                 arm.runToPosition(Configurable.armMidPosition, 1);
                 break;
         }
-        driveTrain.driveCM(52, 0.2);
+        driveTrain.driveCM(45, 0.2);
         driveTrain.turn(0, 0.1, 1);
-        switch (itemPos) {
-            case LEFT:
-                collector.runToPosition(Configurable.disposeTicks,Configurable.disposeLowSpeed);
-                break;
-            case RIGHT:
-                collector.runToPosition(Configurable.disposeTicks, Configurable.disposeHighSpeed);
-                break;
-            case CENTER:
-                collector.runToPosition(Configurable.disposeTicks, Configurable.disposeMidSpeed);
-                break;
+        driveTrain.hold();
+        double collectorPower = Configurable.disposeLowSpeed;
+        while(!collector.runToPosition(Configurable.disposeTicks,collectorPower)){
+            collectorPower += 0.05;
+            Logger.addData("Collector Power: " + collectorPower);
+            Logger.update();
         }
-        driveTrain.driveCM(-20, 0.2);
+        driveTrain.release();
+        driveTrain.driveCM(-20, 0.1);
         arm.setHoldPosition(false);
         arm.runToPosition(0, 1);
         driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(-40, 0.2);
+        driveTrain.driveCM(-50, 0.4);
         driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(-40, 0.2);
+        driveTrain.driveCM(-50, 0.4);
         driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(-40, 0.2);
-        driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(-35, 0.2);
+        driveTrain.driveCM(-50, 0.4);
         driveTrain.turn(-165, 0.1, 1);
-        driveTrain.driveCM(27, 0.1);
-        duckSpinner.runToPosition(Configurable.duckSpinnerTicks, Configurable.duckSpinnerPowerRed);
+        driveTrain.driveCM(37, 0.1);
+
+        double duckSpinnerPower = Configurable.duckSpinnerPowerRed;
+        while(Math.abs(duckSpinner.getCurrentPosition()) < Math.abs(duckSpinner.getTargetPosition())){
+            if(duckSpinner.runToPosition(Configurable.duckSpinnerTicks, duckSpinnerPower)) {
+                duckSpinnerPower += 0.05;
+                Logger.addData("Duck Spinner Power: " + duckSpinnerPower);
+                Logger.update();
+            }
+            else{
+                driveTrain.driveCM(2, 0.1);
+            }
+        }
         driveTrain.driveCM(-10, 0.2);
-        driveTrain.turn(-179, 0.1, 1);
-        driveTrain.driveCM(-35, 0.2);
-        driveTrain.turn(-179, 0.1, 1);
+        // both modes
+        driveTrain.turn(180, 0.1, 1);
+        driveTrain.driveCM(-38, 0.2);
+        driveTrain.turn(180, 0.1, 1);
     }
 }
