@@ -170,17 +170,13 @@ public class BlueAllianceRight extends LinearOpMode {
         driveToShippingHub(0.2);
         releaseCube();
         driveBackWallDistance(50);
-        driveTrain.driveCM(-27, 0.2);
         arm.setHoldPosition(false);
         lowerArmAsync();
         driveTrain.turn(-90, 0.1, 1);
         driveTrain.driveCM(65, 0.3);
         driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(65, 0.3);
-        driveTrain.driveCM(-10, 0.3);
-        driveTrain.turn(-125, 0.2, 1);
-
-        driveTrain.driveCM(10, 0.3); // until stalled
+        driveTrain.driveCM(60, 0.1);
+        driveTrain.turn(-120, 0.2, 1);
 
         frontRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -197,8 +193,8 @@ public class BlueAllianceRight extends LinearOpMode {
             }
             else {
                 while (!frontRight.isStalled() && !backRight.isStalled()) {
-                    frontRight.setPower(-0.17);
-                    backRight.setPower(-0.17);
+                    frontRight.setPower(-0.11);
+                    backRight.setPower(-0.11);
                 }
             }
             duckSpinner.setPower(-duckSpinnerPower);
