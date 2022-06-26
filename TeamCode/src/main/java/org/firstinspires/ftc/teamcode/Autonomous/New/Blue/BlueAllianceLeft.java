@@ -35,6 +35,8 @@ public class BlueAllianceLeft extends LinearOpMode {
     TouchSensor armTouchSensor;
     BNO055IMU imu;
 
+    int timer = 30;
+
     MecanumDriveTrain driveTrain;
 
     public void initHardware() {
@@ -171,6 +173,16 @@ public class BlueAllianceLeft extends LinearOpMode {
         driveTrain.hold();
     }
 
+    private void startTimer() {
+        new Thread(() -> {
+            double prevTime = System.currentTimeMillis();
+            while (opModeIsActive() && System.currentTimeMillis() > prevTime+1000) {
+                timer--;
+                prevTime = System.currentTimeMillis();
+            }
+        });
+    }
+
     @Override
     public void runOpMode() {
         initHardware();
@@ -198,6 +210,7 @@ public class BlueAllianceLeft extends LinearOpMode {
         });
 
         waitForStart();
+        startTimer();
         TseDetector.Location itemPos = detector.getLocation(this);
         Logger.addData("Detected Cargo: " + itemPos);
         Logger.update();
@@ -226,6 +239,9 @@ public class BlueAllianceLeft extends LinearOpMode {
         lowerArm();
         driveTrain.turn(105, 0.1, 1);
         collectCube(0.2);
+        if(timer < 5) {
+            this.stop();
+        }
         arm.runToPositionAsync(Configurable.armHighPosition, 1);
         driveTrain.turn(-90, 0.1, 1);
         driveTrain.driveCM(300, 0.6);
