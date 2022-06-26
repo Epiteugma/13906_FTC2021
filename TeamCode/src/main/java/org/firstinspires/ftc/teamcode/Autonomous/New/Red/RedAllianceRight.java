@@ -23,7 +23,6 @@ import org.openftc.easyopencv.OpenCvWebcam;
 
 @Autonomous(name="Red Right", group="FTC22Auto")
 public class RedAllianceRight extends LinearOpMode {
-
     TseDetector detector;
     Motor frontLeft;
     Motor frontRight;
@@ -36,8 +35,7 @@ public class RedAllianceRight extends LinearOpMode {
     TouchSensor armTouchSensor;
     BNO055IMU imu;
 
-    double secondsRemaining = 30;
-    double opModeStartTime = System.currentTimeMillis();
+    MecanumDriveTrain driveTrain;
 
     public void initHardware() {
         frontLeft = new Motor(hardwareMap, "frontLeft");
@@ -59,7 +57,7 @@ public class RedAllianceRight extends LinearOpMode {
 
         arm.setTargetPosition(0);
         arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-        arm.setPower(1);
+        arm.setHoldPosition(true);
 
         cargoDetector = hardwareMap.get(DistanceSensor.class, "cargoDetector");
         armTouchSensor = hardwareMap.get(TouchSensor.class, "armTouch");
@@ -71,11 +69,94 @@ public class RedAllianceRight extends LinearOpMode {
         imu.initialize(parameters);
     }
 
+    private void lowerArm() {
+        arm.setHoldPosition(false);
+        arm.setTargetPosition(0);
+        arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
+        while (!armTouchSensor.isPressed()) {
+            arm.setPower(1);
+        }
+        arm.resetEncoder();
+        arm.setPower(0);
+    }
+
+    private void lowerArmAsync() {
+        arm.setHoldPosition(false);
+        new Thread(() -> {
+            arm.setTargetPosition(0);
+            arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
+            while (!armTouchSensor.isPressed()) {
+                arm.setPower(1);
+            }
+            arm.resetEncoder();
+            arm.setPower(0);
+        }).start();
+    }
+
+    private void collectCube(double power) {
+        frontLeft.resetEncoder();
+        frontRight.resetEncoder();
+        backLeft.resetEncoder();
+        backRight.resetEncoder();
+        frontLeft.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backLeft.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontLeft.setPower(-power);
+        frontRight.setPower(-power);
+        backLeft.setPower(-power);
+        backRight.setPower(-power);
+        collector.setPower(-1);
+        double initialDistance = cargoDetector.getDistance(DistanceUnit.CM);
+        while (initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2) {}
+        collector.setPower(0);
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        backLeft.setPower(0);
+        backRight.setPower(0);
+
+        // Go back to initial position.
+        frontLeft.setTargetPosition(0);
+        frontRight.setTargetPosition(0);
+        backLeft.setTargetPosition(0);
+        backRight.setTargetPosition(0);
+        frontLeft.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontRight.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backLeft.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backRight.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontLeft.setPower(power);
+        frontRight.setPower(power);
+        backLeft.setPower(power);
+        backRight.setPower(power);
+        while(
+                frontLeft.getCurrentPosition() - frontLeft.getTargetPosition() > 0 ||
+                        frontRight.getCurrentPosition() - frontRight.getTargetPosition() > 0 ||
+                        backLeft.getCurrentPosition() - backLeft.getTargetPosition() > 0 ||
+                        backRight.getCurrentPosition() - backRight.getTargetPosition() > 0
+        ) {}
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        backLeft.setPower(0);
+        backRight.setPower(0);
+    }
+
+    private void releaseCube() {
+        double collectorPower = Configurable.disposeLowSpeed;
+        while(!collector.runToPosition(Configurable.disposeTicks,collectorPower)){
+            collectorPower += 0.05;
+            Logger.addData("Collector Power: " + collectorPower);
+            Logger.update();
+        }
+    }
+
     @Override
     public void runOpMode() {
         initHardware();
+
         Logger.setTelemetry(telemetry);
-        MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight, imu);
+        driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight, imu);
+        driveTrain.ratio = Configurable.driveGearRatio;
+        driveTrain.wheelRadius = Configurable.wheelRadius;
 
         detector = new TseDetector();
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -98,44 +179,27 @@ public class RedAllianceRight extends LinearOpMode {
         TseDetector.Location itemPos = detector.getLocation(this);
         Logger.addData("Detected Cargo: " + itemPos);
         Logger.update();
-        new Thread(() -> {
-            while(opModeIsActive()) {
-                double secondsSinceStart = Math.floor((System.currentTimeMillis() - opModeStartTime)/1000);
-                secondsRemaining = 30 - secondsSinceStart;
-            }
-        }).start();
-        driveTrain.driveCM(10, 0.8);
-        driveTrain.turn(90, 0.8, 1);
-        driveTrain.driveCM(57, 0.8);
-        driveTrain.turn(0, 0.8, 1);
-//        switch (itemPos) {
-//            case LEFT:
-//                arm.runToPosition(Configurable.armLowPosition, 1);
-//                break;
-//            case RIGHT:
-//                arm.runToPosition(Configurable.armHighPosition, 1);
-//                break;
-//            case CENTER:
-//                arm.runToPosition(Configurable.armMidPosition, 1);
-//                break;
-//        }
-        driveTrain.driveCM(35, 0.8);
-        driveTrain.turn(0, 1, 1);
+
+        driveTrain.driveCM(15, 0.4);
+        driveTrain.turn(90, 0.1, 1);
+        driveTrain.driveCM(72, 0.2);
+        driveTrain.turn(0, 0.1, 1);
         switch (itemPos) {
             case LEFT:
-                collector.runToPosition(Configurable.disposeTicks,Configurable.disposeLowSpeed);
+                arm.runToPositionAsync(Configurable.armLowPosition, 1);
                 break;
             case RIGHT:
-                collector.runToPosition(Configurable.disposeTicks,Configurable.disposeHighSpeed);
+                arm.runToPositionAsync(Configurable.armHighPosition, 1);
                 break;
             case CENTER:
-                collector.runToPosition(Configurable.disposeTicks,Configurable.disposeMidSpeed);
+                arm.runToPositionAsync(Configurable.armMidPosition, 1);
                 break;
         }
-        driveTrain.turn(0, 1, 1);
-        driveTrain.driveCM(25, 1);
-        driveTrain.turn(-90, 1, 1);
-//        arm.runToPosition(Configurable.armMidPosition, 1);
-        driveTrain.driveCM(160, 1);
+        driveTrain.driveCM(48, 0.2);
+        driveTrain.turn(0, 0.1, 1);
+        releaseCube();
+        driveTrain.driveCM(-15, 0.3);
+
+
     }
 }

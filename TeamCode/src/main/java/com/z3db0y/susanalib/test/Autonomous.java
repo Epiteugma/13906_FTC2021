@@ -24,6 +24,7 @@ public class Autonomous extends LinearOpMode {
     Motor collector;
     Motor arm;
     DistanceSensor cargoDetector;
+    MecanumDriveTrain driveTrain;
 
     private void initHardware() {
         frontLeft = new Motor(hardwareMap, "frontLeft");
@@ -49,13 +50,12 @@ public class Autonomous extends LinearOpMode {
         parameters.loggingEnabled = true;
         parameters.loggingTag = "IMU";
         imu.initialize(parameters);
+
+        driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight, imu);
     }
 
     private void collectCube(double power) {
-        frontLeft.resetEncoder();
-        frontRight.resetEncoder();
-        backLeft.resetEncoder();
-        backRight.resetEncoder();
+        double averageTicks = Math.abs(frontLeft.getCurrentPosition()) + Math.abs(frontRight.getCurrentPosition()) + Math.abs(backLeft.getCurrentPosition()) + Math.abs(backRight.getCurrentPosition()) / 4;
         frontLeft.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
         frontRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backLeft.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -74,37 +74,14 @@ public class Autonomous extends LinearOpMode {
         backRight.setPower(0);
 
         // Go back to initial position.
-        frontLeft.setTargetPosition(0);
-        frontRight.setTargetPosition(0);
-        backLeft.setTargetPosition(0);
-        backRight.setTargetPosition(0);
-        frontLeft.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-        frontRight.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-        backLeft.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-        backRight.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-        frontLeft.setPower(power);
-        frontRight.setPower(power);
-        backLeft.setPower(power);
-        backRight.setPower(power);
-        while(
-                frontLeft.getCurrentPosition() - frontLeft.getTargetPosition() > 0 ||
-                frontRight.getCurrentPosition() - frontRight.getTargetPosition() > 0 ||
-                backLeft.getCurrentPosition() - backLeft.getTargetPosition() > 0 ||
-                backRight.getCurrentPosition() - backRight.getTargetPosition() > 0
-        ) {}
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
+        driveTrain.drive((int)averageTicks, 0.3);
     }
 
     @Override
     public void runOpMode() {
         initHardware();
         Logger.setTelemetry(telemetry);
-        MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight, imu);
         waitForStart();
-
 
         driveTrain.turn(130, 0.1, 1);
         collectCube(0.2);
