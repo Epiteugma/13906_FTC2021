@@ -102,13 +102,13 @@ public class BlueAllianceRight extends LinearOpMode {
         driveTrain.turn(0, 0.1, 1);
         switch (itemPos) {
             case LEFT:
-                arm.runToPositionAsync(Configurable.armHighPosition, 0.8);
+                arm.runToPositionAsync(Configurable.armLowPosition, 1);
                 break;
             case RIGHT:
-                arm.runToPositionAsync(Configurable.armLowPosition, 0.5);
+                arm.runToPositionAsync(Configurable.armHighPosition, 1);
                 break;
             case CENTER:
-                arm.runToPositionAsync(Configurable.armMidPosition, 0.5);
+                arm.runToPositionAsync(Configurable.armMidPosition, 1);
                 break;
         }
         driveTrain.driveCM(48, 0.2);
