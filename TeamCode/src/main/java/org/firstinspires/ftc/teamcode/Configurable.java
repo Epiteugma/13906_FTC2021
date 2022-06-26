@@ -7,13 +7,16 @@ public class Configurable {
     // Tunable variables to tune from the dashboard, must be public and static so the dashboard can access them.
     // Always have to be in cm!!!
     // Constants and ratios
-    public static int armLowPosition = -500;
+    public static int armLowPosition = -525;
     public static int armMidPosition = -1150;
     public static int armHighPosition = -1800;
 
+    public static int distanceToShippingHub = 45;
+    public static int distanceAfterBars = 130;
+
     public static double disposeLowSpeed = 0.5;
-    public static double disposeMidSpeed = 0.65;
-    public static double disposeHighSpeed = 0.7;
+    public static double disposeMidSpeed = 0.7;
+    public static double disposeHighSpeed = 0.9;
 
     public static int disposeTicks = 576;
 

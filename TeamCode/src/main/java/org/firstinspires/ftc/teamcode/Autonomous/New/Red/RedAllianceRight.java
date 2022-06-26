@@ -32,6 +32,7 @@ public class RedAllianceRight extends LinearOpMode {
     Motor collector;
     Motor duckSpinner;
     DistanceSensor cargoDetector;
+    DistanceSensor backDistance;
     TouchSensor armTouchSensor;
     BNO055IMU imu;
 
@@ -59,6 +60,7 @@ public class RedAllianceRight extends LinearOpMode {
         arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
         arm.setHoldPosition(true);
 
+        backDistance = hardwareMap.get(DistanceSensor.class, "backDistance");
         cargoDetector = hardwareMap.get(DistanceSensor.class, "cargoDetector");
         armTouchSensor = hardwareMap.get(TouchSensor.class, "armTouch");
 
@@ -94,10 +96,8 @@ public class RedAllianceRight extends LinearOpMode {
     }
 
     private void collectCube(double power) {
-        frontLeft.resetEncoder();
-        frontRight.resetEncoder();
-        backLeft.resetEncoder();
-        backRight.resetEncoder();
+        double initialDistance = cargoDetector.getDistance(DistanceUnit.CM);
+        double averageTicks = (Math.abs(frontLeft.getCurrentPosition()) + Math.abs(frontRight.getCurrentPosition()) + Math.abs(backLeft.getCurrentPosition()) + Math.abs(backRight.getCurrentPosition())) / 4.0;
         frontLeft.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
         frontRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backLeft.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -107,8 +107,16 @@ public class RedAllianceRight extends LinearOpMode {
         backLeft.setPower(-power);
         backRight.setPower(-power);
         collector.setPower(-1);
-        double initialDistance = cargoDetector.getDistance(DistanceUnit.CM);
-        while (initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2) {}
+        collector.resetStallDetection();
+        double currentAngle = imu.getAngularOrientation().firstAngle;
+        while (initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2 && !collector.isStalled()) {
+            Logger.addData("Initial Distance: " + initialDistance);
+            Logger.addData("Distance: " + cargoDetector.getDistance(DistanceUnit.CM));
+            Logger.update();
+            driveTrain.driveCM(25, 0.2);
+            driveTrain.turn(currentAngle - 8, 0.1, 1);
+            driveTrain.turn(currentAngle + 8, 0.1, 1);
+        }
         collector.setPower(0);
         frontLeft.setPower(0);
         frontRight.setPower(0);
@@ -116,37 +124,45 @@ public class RedAllianceRight extends LinearOpMode {
         backRight.setPower(0);
 
         // Go back to initial position.
-        frontLeft.setTargetPosition(0);
-        frontRight.setTargetPosition(0);
-        backLeft.setTargetPosition(0);
-        backRight.setTargetPosition(0);
-        frontLeft.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-        frontRight.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-        backLeft.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-        backRight.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-        frontLeft.setPower(power);
-        frontRight.setPower(power);
-        backLeft.setPower(power);
-        backRight.setPower(power);
-        while(
-                frontLeft.getCurrentPosition() - frontLeft.getTargetPosition() > 0 ||
-                        frontRight.getCurrentPosition() - frontRight.getTargetPosition() > 0 ||
-                        backLeft.getCurrentPosition() - backLeft.getTargetPosition() > 0 ||
-                        backRight.getCurrentPosition() - backRight.getTargetPosition() > 0
-        ) {}
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
+        driveTrain.drive((int) (-averageTicks * 0.2), 0.2);
     }
 
-    private void releaseCube() {
-        double collectorPower = Configurable.disposeLowSpeed;
+    private void releaseCube(double collectorPower) {
         while(!collector.runToPosition(Configurable.disposeTicks,collectorPower)){
             collectorPower += 0.05;
             Logger.addData("Collector Power: " + collectorPower);
             Logger.update();
         }
+    }
+
+    private void driveToShippingHub(double power) {
+        driveTrain.runOnEncoders();
+        while(backDistance.getDistance(DistanceUnit.CM) < Configurable.distanceToShippingHub) {
+            frontLeft.setPower(-power);
+            frontRight.setPower(-power);
+            backLeft.setPower(-power);
+            backRight.setPower(-power);
+        }
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        backLeft.setPower(0);
+        backRight.setPower(0);
+        driveTrain.turn(0, 0.1, 1);
+    }
+
+    private void driveBackWallDistance(double distance) {
+        driveTrain.runOnEncoders();
+        while (backDistance.getDistance(DistanceUnit.CM) > distance) {
+            Logger.addData("Distance: " + backDistance.getDistance(DistanceUnit.CM));
+            frontLeft.setPower(0.2);
+            frontRight.setPower(0.2);
+            backLeft.setPower(0.2);
+            backRight.setPower(0.2);
+        }
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        backLeft.setPower(0);
+        backRight.setPower(0);
     }
 
     @Override
@@ -195,11 +211,34 @@ public class RedAllianceRight extends LinearOpMode {
                 arm.runToPositionAsync(Configurable.armMidPosition, 1);
                 break;
         }
-        driveTrain.driveCM(48, 0.2);
+        driveToShippingHub(0.2);
+        releaseCube(Configurable.disposeLowSpeed);
+        driveBackWallDistance(50);
+        arm.runToPositionAsync(Configurable.armHighPosition, 1);
+        driveTrain.turn(-90, 0.1, 1);
+        driveTrain.driveCM(250, 0.6);
+        lowerArm();
+        driveTrain.turn(-105, 0.1, 1);
+        collectCube(0.2);
+        arm.runToPositionAsync(Configurable.armHighPosition, 1);
+        driveTrain.turn(90, 0.1, 1);
+        driveTrain.driveCM(300, 0.6);
         driveTrain.turn(0, 0.1, 1);
-        releaseCube();
-        driveTrain.driveCM(-15, 0.3);
-
-
+        driveToShippingHub(0.2);
+        releaseCube(Configurable.disposeHighSpeed);
+        while(backDistance.getDistance(DistanceUnit.CM) > 20) {
+            frontLeft.setPower(0.2);
+            frontRight.setPower(0.2);
+            backLeft.setPower(0.2);
+            backRight.setPower(0.2);
+        }
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        backLeft.setPower(0);
+        backRight.setPower(0);
+        arm.runToPositionAsync(Configurable.armHighPosition, 1);
+        driveTrain.turn(-90, 0.1, 1);
+        driveTrain.driveCM(270, 0.6);
+        lowerArm();
     }
 }

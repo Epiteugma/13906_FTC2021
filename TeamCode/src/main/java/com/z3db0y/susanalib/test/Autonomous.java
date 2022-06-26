@@ -8,11 +8,7 @@ import com.z3db0y.susanalib.Logger;
 import com.z3db0y.susanalib.MecanumDriveTrain;
 import com.z3db0y.susanalib.Motor;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.Configurable;
 
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "Autonomous Test", group = "SusanaLib")
 public class Autonomous extends LinearOpMode {
@@ -24,6 +20,7 @@ public class Autonomous extends LinearOpMode {
     Motor collector;
     Motor arm;
     DistanceSensor cargoDetector;
+    DistanceSensor backDistance;
     MecanumDriveTrain driveTrain;
 
     private void initHardware() {
@@ -35,6 +32,7 @@ public class Autonomous extends LinearOpMode {
         collector = new Motor(hardwareMap, "collector");
         arm = new Motor(hardwareMap, "arm");
         cargoDetector = hardwareMap.get(DistanceSensor.class, "cargoDetector");
+        backDistance = hardwareMap.get(DistanceSensor.class, "backDistance");
 
         // Motor reversing
 //        frontLeft.setDirection(Motor.Direction.REVERSE);
@@ -74,7 +72,24 @@ public class Autonomous extends LinearOpMode {
         backRight.setPower(0);
 
         // Go back to initial position.
-        driveTrain.drive((int)averageTicks, 0.3);
+        driveTrain.drive((int) (-averageTicks * 0.2), 0.2);
+//         driveTrain.drive((int) (-averageTicks * 0.8), 0.075);
+    }
+
+    private void driveBackWallDistance(double distance) {
+        driveTrain.runOnEncoders();
+        while (backDistance.getDistance(DistanceUnit.CM) > distance) {
+            Logger.addData("Distance: " + backDistance.getDistance(DistanceUnit.CM));
+            Logger.update();
+            frontLeft.setPower(0.2);
+            frontRight.setPower(0.2);
+            backLeft.setPower(0.2);
+            backRight.setPower(0.2);
+        }
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        backLeft.setPower(0);
+        backRight.setPower(0);
     }
 
     @Override
@@ -83,8 +98,9 @@ public class Autonomous extends LinearOpMode {
         Logger.setTelemetry(telemetry);
         waitForStart();
 
-        driveTrain.turn(130, 0.1, 1);
-        collectCube(0.2);
+        while(opModeIsActive()){
+            driveBackWallDistance(50);
+        }
     }
 
 }

@@ -12,7 +12,6 @@ import com.z3db0y.susanalib.MecanumDriveTrain;
 import com.z3db0y.susanalib.Motor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Autonomous.visionv1.TseDetector;
 import org.firstinspires.ftc.teamcode.Configurable;
@@ -32,6 +31,7 @@ public class BlueAllianceLeft extends LinearOpMode {
     Motor collector;
     Motor duckSpinner;
     DistanceSensor cargoDetector;
+    DistanceSensor backDistance;
     TouchSensor armTouchSensor;
     BNO055IMU imu;
 
@@ -59,6 +59,7 @@ public class BlueAllianceLeft extends LinearOpMode {
         arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
         arm.setHoldPosition(true);
 
+        backDistance = hardwareMap.get(DistanceSensor.class, "backDistance");
         cargoDetector = hardwareMap.get(DistanceSensor.class, "cargoDetector");
         armTouchSensor = hardwareMap.get(TouchSensor.class, "armTouch");
 
@@ -94,10 +95,8 @@ public class BlueAllianceLeft extends LinearOpMode {
     }
 
     private void collectCube(double power) {
-        frontLeft.resetEncoder();
-        frontRight.resetEncoder();
-        backLeft.resetEncoder();
-        backRight.resetEncoder();
+        double initialDistance = cargoDetector.getDistance(DistanceUnit.CM);
+        double averageTicks = (Math.abs(frontLeft.getCurrentPosition()) + Math.abs(frontRight.getCurrentPosition()) + Math.abs(backLeft.getCurrentPosition()) + Math.abs(backRight.getCurrentPosition())) / 4.0;
         frontLeft.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
         frontRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backLeft.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -107,8 +106,21 @@ public class BlueAllianceLeft extends LinearOpMode {
         backLeft.setPower(-power);
         backRight.setPower(-power);
         collector.setPower(-1);
-        double initialDistance = cargoDetector.getDistance(DistanceUnit.CM);
-        while (initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2) {}
+        double currentAngle = imu.getAngularOrientation().firstAngle;
+        do {
+            Logger.addData("Initial Distance: " + initialDistance);
+            Logger.addData("Distance: " + cargoDetector.getDistance(DistanceUnit.CM));
+            Logger.update();
+            if(initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2){
+                driveTrain.driveCM(25, 0.2);
+            }
+            if(initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2){
+                driveTrain.turn(currentAngle - 8, 0.1, 1);
+            }
+            if(initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2){
+                driveTrain.turn(currentAngle + 8, 0.1, 1);
+            }
+        } while (initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2);
         collector.setPower(0);
         frontLeft.setPower(0);
         frontRight.setPower(0);
@@ -116,37 +128,47 @@ public class BlueAllianceLeft extends LinearOpMode {
         backRight.setPower(0);
 
         // Go back to initial position.
-        frontLeft.setTargetPosition(0);
-        frontRight.setTargetPosition(0);
-        backLeft.setTargetPosition(0);
-        backRight.setTargetPosition(0);
-        frontLeft.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-        frontRight.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-        backLeft.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-        backRight.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-        frontLeft.setPower(power);
-        frontRight.setPower(power);
-        backLeft.setPower(power);
-        backRight.setPower(power);
-        while(
-                frontLeft.getCurrentPosition() - frontLeft.getTargetPosition() > 0 ||
-                        frontRight.getCurrentPosition() - frontRight.getTargetPosition() > 0 ||
-                        backLeft.getCurrentPosition() - backLeft.getTargetPosition() > 0 ||
-                        backRight.getCurrentPosition() - backRight.getTargetPosition() > 0
-        ) {}
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
+        driveTrain.drive((int) (-averageTicks * 0.2), 0.2);
     }
 
-    private void releaseCube() {
-        double collectorPower = Configurable.disposeLowSpeed;
-        while(!collector.runToPosition(Configurable.disposeTicks,collectorPower)){
+    private void releaseCube(double collectorPower) {
+        while (!collector.runToPosition(Configurable.disposeTicks, collectorPower)) {
             collectorPower += 0.05;
             Logger.addData("Collector Power: " + collectorPower);
             Logger.update();
         }
+    }
+
+    private void driveToShippingHub(double power) {
+        driveTrain.runOnEncoders();
+        while(backDistance.getDistance(DistanceUnit.CM) < Configurable.distanceToShippingHub) {
+            frontLeft.setPower(-power);
+            frontRight.setPower(-power);
+            backLeft.setPower(-power);
+            backRight.setPower(-power);
+        }
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        backLeft.setPower(0);
+        backRight.setPower(0);
+        driveTrain.turn(0, 0.1, 1);
+    }
+
+    private void driveBackWallDistance(double distance) {
+        driveTrain.runOnEncoders();
+        while (backDistance.getDistance(DistanceUnit.CM) > distance) {
+            Logger.addData("Distance: " + backDistance.getDistance(DistanceUnit.CM));
+            Logger.update();
+            frontLeft.setPower(0.2);
+            frontRight.setPower(0.2);
+            backLeft.setPower(0.2);
+            backRight.setPower(0.2);
+        }
+        frontLeft.setPower(0);
+        frontRight.setPower(0);
+        backLeft.setPower(0);
+        backRight.setPower(0);
+        driveTrain.hold();
     }
 
     @Override
@@ -195,27 +217,26 @@ public class BlueAllianceLeft extends LinearOpMode {
                 arm.runToPositionAsync(Configurable.armMidPosition, 1);
                 break;
         }
-        driveTrain.driveCM(48, 0.2);
-        driveTrain.turn(0, 0.1, 1);
-        releaseCube();
+        driveToShippingHub(0.2);
+        releaseCube(Configurable.disposeLowSpeed);
         driveTrain.driveCM(-15, 0.3);
-
-        arm.setTargetPosition(Configurable.armHighPosition);
+        arm.runToPositionAsync(Configurable.armHighPosition, 1);
         driveTrain.turn(90, 0.1, 1);
-        driveTrain.driveCM(110, 0.4);
+        driveTrain.driveCM(250, 0.6);
         lowerArm();
-        driveTrain.turn(130, 0.1, 1);
+        driveTrain.turn(105, 0.1, 1);
         collectCube(0.2);
         arm.runToPositionAsync(Configurable.armHighPosition, 1);
         driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(110, 0.4);
+        driveTrain.driveCM(300, 0.6);
         driveTrain.turn(0, 0.1, 1);
-        driveTrain.driveCM(15, 0.2);
-        releaseCube();
-        driveTrain.driveCM(-15, 0.2);
-        driveTrain.turn(90, 0.1, 1);
+        driveToShippingHub(0.2);
+        releaseCube(Configurable.disposeHighSpeed);
+        driveTrain.runOnEncoders();
+        driveBackWallDistance(50);
         arm.runToPositionAsync(Configurable.armHighPosition, 1);
-        driveTrain.driveCM(110, 0.4);
+        driveTrain.turn(90, 0.1, 1);
+        driveTrain.driveCM(270, 0.6);
         lowerArm();
     }
 }

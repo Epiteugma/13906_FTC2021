@@ -212,6 +212,7 @@ public class MecanumDriveTrain {
 
         double currentAngle;
         if(targetAngle > 180) targetAngle -= 360;
+        targetAngle = normalizeAngle(targetAngle);
 
         double rangeMin = normalizeAngle(targetAngle + turnThreshold/2);
         double rangeMax = normalizeAngle(targetAngle - turnThreshold/2);
