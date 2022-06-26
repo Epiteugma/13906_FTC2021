@@ -1,6 +1,7 @@
-package com.z3db0y.susanalib.test;
+package org.firstinspires.ftc.teamcode.testing;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -11,6 +12,7 @@ import com.z3db0y.susanalib.Motor;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "Autonomous Test", group = "SusanaLib")
+@Disabled
 public class Autonomous extends LinearOpMode {
     Motor frontLeft;
     Motor frontRight;

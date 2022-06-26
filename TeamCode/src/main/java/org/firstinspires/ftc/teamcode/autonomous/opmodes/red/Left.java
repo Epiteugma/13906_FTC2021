@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Autonomous.New.Blue;
+package org.firstinspires.ftc.teamcode.autonomous.opmodes.red;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.hardware.bosch.BNO055IMU;
@@ -12,14 +12,14 @@ import com.z3db0y.susanalib.Motor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.Autonomous.visionv1.TseDetector;
+import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
 import org.firstinspires.ftc.teamcode.Configurable;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-public class BlueAllianceRight extends LinearOpMode {
+public class Left extends LinearOpMode {
     TseDetector detector;
     Motor frontLeft;
     Motor frontRight;
@@ -153,7 +153,7 @@ public class BlueAllianceRight extends LinearOpMode {
         Logger.update();
 
         driveTrain.driveCM(15, 0.4);
-        driveTrain.turn(90, 0.1, 1);
+        driveTrain.turn(-90, 0.1, 1);
         driveTrain.driveCM(72, 0.2);
         driveTrain.turn(0, 0.1, 1);
         switch (itemPos) {
@@ -168,39 +168,31 @@ public class BlueAllianceRight extends LinearOpMode {
                 break;
         }
         driveToShippingHub(0.2);
+        driveTrain.turn(0, 0.1, 1);
         releaseCube();
         driveBackWallDistance(50);
         arm.setHoldPosition(false);
         lowerArmAsync();
         driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(65, 0.3);
+        driveTrain.driveCM(-45, 0.4);
         driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(60, 0.1);
-        driveTrain.turn(-120, 0.2, 1);
-
-        frontRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        driveTrain.driveCM(-45, 0.4);
+        driveTrain.turn(-90, 0.1, 1);
+        driveTrain.driveCM(-45, 0.2);
+        driveTrain.turn(-175, 0.1, 1);
+        driveTrain.driveCM(37, 0.1);
         double duckSpinnerPower = Configurable.duckSpinnerPower;
-        duckSpinner.resetStallDetection();
-        duckSpinner.runToPositionAsync(Configurable.duckSpinnerTicks, -duckSpinnerPower);
-        while (Math.abs(duckSpinner.getCurrentPosition()) < Math.abs(duckSpinner.getTargetPosition())) {
-            frontRight.resetStallDetection();
-            backRight.resetStallDetection();
-            if (duckSpinner.isStalled()) {
-                duckSpinnerPower += 0.04;
+        duckSpinner.setTargetPosition(Configurable.duckSpinnerTicks);
+        while(Math.abs(duckSpinner.getCurrentPosition()) < Math.abs(duckSpinner.getTargetPosition())){
+            if(duckSpinner.runToPosition(Configurable.duckSpinnerTicks, duckSpinnerPower)) {
+                duckSpinnerPower += 0.05;
                 Logger.addData("Duck Spinner Power: " + duckSpinnerPower);
                 Logger.update();
             }
             else {
-                while (!frontRight.isStalled() && !backRight.isStalled()) {
-                    frontRight.setPower(-0.11);
-                    backRight.setPower(-0.11);
-                }
+                driveTrain.driveCM(2, 0.1);
             }
-            duckSpinner.setPower(-duckSpinnerPower);
-            frontRight.setPower(0);
-            backRight.setPower(0);
         }
-        duckSpinner.setPower(0);
+        driveTrain.driveCM(-10, 0.3);
     }
 }

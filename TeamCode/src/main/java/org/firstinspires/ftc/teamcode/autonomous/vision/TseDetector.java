@@ -1,8 +1,7 @@
-package org.firstinspires.ftc.teamcode.Autonomous.visionv1;
+package org.firstinspires.ftc.teamcode.autonomous.vision;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;

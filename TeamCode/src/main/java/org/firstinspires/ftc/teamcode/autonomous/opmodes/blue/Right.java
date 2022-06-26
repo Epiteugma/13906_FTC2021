@@ -1,8 +1,7 @@
-package org.firstinspires.ftc.teamcode.Autonomous.New.Blue;
+package org.firstinspires.ftc.teamcode.autonomous.opmodes.blue;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -13,15 +12,14 @@ import com.z3db0y.susanalib.Motor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.Autonomous.visionv1.TseDetector;
+import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
 import org.firstinspires.ftc.teamcode.Configurable;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-@Autonomous(name="Blue Left", group="FTC22Auto")
-public class BlueAllianceLeft extends LinearOpMode {
+public class Right extends LinearOpMode {
     TseDetector detector;
     Motor frontLeft;
     Motor frontRight;
@@ -34,8 +32,6 @@ public class BlueAllianceLeft extends LinearOpMode {
     DistanceSensor backDistance;
     TouchSensor armTouchSensor;
     BNO055IMU imu;
-
-    int timer = 30;
 
     MecanumDriveTrain driveTrain;
 
@@ -61,9 +57,9 @@ public class BlueAllianceLeft extends LinearOpMode {
         arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
         arm.setHoldPosition(true);
 
-        backDistance = hardwareMap.get(DistanceSensor.class, "backDistance");
         cargoDetector = hardwareMap.get(DistanceSensor.class, "cargoDetector");
         armTouchSensor = hardwareMap.get(TouchSensor.class, "armTouch");
+        backDistance = hardwareMap.get(DistanceSensor.class, "backDistance");
 
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
@@ -72,69 +68,9 @@ public class BlueAllianceLeft extends LinearOpMode {
         imu.initialize(parameters);
     }
 
-    private void lowerArm() {
-        arm.setHoldPosition(false);
-        arm.setTargetPosition(0);
-        arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-        while (!armTouchSensor.isPressed()) {
-            arm.setPower(1);
-        }
-        arm.resetEncoder();
-        arm.setPower(0);
-    }
-
-    private void lowerArmAsync() {
-        arm.setHoldPosition(false);
-        new Thread(() -> {
-            arm.setTargetPosition(0);
-            arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-            while (!armTouchSensor.isPressed()) {
-                arm.setPower(1);
-            }
-            arm.resetEncoder();
-            arm.setPower(0);
-        }).start();
-    }
-
-    private void collectCube(double power) {
-        double initialDistance = cargoDetector.getDistance(DistanceUnit.CM);
-        double averageTicks = (Math.abs(frontLeft.getCurrentPosition()) + Math.abs(frontRight.getCurrentPosition()) + Math.abs(backLeft.getCurrentPosition()) + Math.abs(backRight.getCurrentPosition())) / 4.0;
-        frontLeft.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        frontRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backLeft.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        frontLeft.setPower(-power);
-        frontRight.setPower(-power);
-        backLeft.setPower(-power);
-        backRight.setPower(-power);
-        collector.setPower(-1);
-        double currentAngle = imu.getAngularOrientation().firstAngle;
-        do {
-            Logger.addData("Initial Distance: " + initialDistance);
-            Logger.addData("Distance: " + cargoDetector.getDistance(DistanceUnit.CM));
-            Logger.update();
-            if(initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2){
-                driveTrain.driveCM(25, 0.2);
-            }
-            if(initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2){
-                driveTrain.turn(currentAngle - 8, 0.1, 1);
-            }
-            if(initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2){
-                driveTrain.turn(currentAngle + 8, 0.1, 1);
-            }
-        } while (initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2);
-        collector.setPower(0);
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
-
-        // Go back to initial position.
-        driveTrain.drive((int) (-averageTicks * 0.2), 0.2);
-    }
-
-    private void releaseCube(double collectorPower) {
-        while (!collector.runToPosition(Configurable.disposeTicks, collectorPower)) {
+    private void releaseCube() {
+        double collectorPower = Configurable.disposeMidSpeed;
+        while(!collector.runToPosition(Configurable.disposeTicks, collectorPower)){
             collectorPower += 0.05;
             Logger.addData("Collector Power: " + collectorPower);
             Logger.update();
@@ -156,6 +92,18 @@ public class BlueAllianceLeft extends LinearOpMode {
         driveTrain.turn(0, 0.1, 1);
     }
 
+    private void lowerArmAsync(){
+        new Thread(() -> {
+            arm.setTargetPosition(0);
+            arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
+            while (!armTouchSensor.isPressed()) {
+                arm.setPower(1);
+            }
+            arm.resetEncoder();
+            arm.setPower(0);
+        }).start();
+    }
+
     private void driveBackWallDistance(double distance) {
         driveTrain.runOnEncoders();
         while (backDistance.getDistance(DistanceUnit.CM) > distance) {
@@ -171,16 +119,6 @@ public class BlueAllianceLeft extends LinearOpMode {
         backLeft.setPower(0);
         backRight.setPower(0);
         driveTrain.hold();
-    }
-
-    private void startTimer() {
-        new Thread(() -> {
-            double prevTime = System.currentTimeMillis();
-            while (opModeIsActive() && System.currentTimeMillis() > prevTime+1000) {
-                timer--;
-                prevTime = System.currentTimeMillis();
-            }
-        });
     }
 
     @Override
@@ -210,13 +148,12 @@ public class BlueAllianceLeft extends LinearOpMode {
         });
 
         waitForStart();
-        startTimer();
         TseDetector.Location itemPos = detector.getLocation(this);
         Logger.addData("Detected Cargo: " + itemPos);
         Logger.update();
 
         driveTrain.driveCM(15, 0.4);
-        driveTrain.turn(-90, 0.1, 1);
+        driveTrain.turn(90, 0.1, 1);
         driveTrain.driveCM(72, 0.2);
         driveTrain.turn(0, 0.1, 1);
         switch (itemPos) {
@@ -231,28 +168,39 @@ public class BlueAllianceLeft extends LinearOpMode {
                 break;
         }
         driveToShippingHub(0.2);
-        releaseCube(Configurable.disposeLowSpeed);
-        driveTrain.driveCM(-15, 0.3);
-        arm.runToPositionAsync(Configurable.armHighPosition, 1);
-        driveTrain.turn(90, 0.1, 1);
-        driveTrain.driveCM(250, 0.6);
-        lowerArm();
-        driveTrain.turn(105, 0.1, 1);
-        collectCube(0.2);
-        if(timer < 5) {
-            this.stop();
-        }
-        arm.runToPositionAsync(Configurable.armHighPosition, 1);
-        driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(300, 0.6);
-        driveTrain.turn(0, 0.1, 1);
-        driveToShippingHub(0.2);
-        releaseCube(Configurable.disposeHighSpeed);
-        driveTrain.runOnEncoders();
+        releaseCube();
         driveBackWallDistance(50);
-        arm.runToPositionAsync(Configurable.armHighPosition, 1);
-        driveTrain.turn(90, 0.1, 1);
-        driveTrain.driveCM(270, 0.6);
-        lowerArm();
+        arm.setHoldPosition(false);
+        lowerArmAsync();
+        driveTrain.turn(-90, 0.1, 1);
+        driveTrain.driveCM(65, 0.3);
+        driveTrain.turn(-90, 0.1, 1);
+        driveTrain.driveCM(60, 0.1);
+        driveTrain.turn(-120, 0.2, 1);
+
+        frontRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        double duckSpinnerPower = Configurable.duckSpinnerPower;
+        duckSpinner.resetStallDetection();
+        duckSpinner.runToPositionAsync(Configurable.duckSpinnerTicks, -duckSpinnerPower);
+        while (Math.abs(duckSpinner.getCurrentPosition()) < Math.abs(duckSpinner.getTargetPosition())) {
+            frontRight.resetStallDetection();
+            backRight.resetStallDetection();
+            if (duckSpinner.isStalled()) {
+                duckSpinnerPower += 0.04;
+                Logger.addData("Duck Spinner Power: " + duckSpinnerPower);
+                Logger.update();
+            }
+            else {
+                while (!frontRight.isStalled() && !backRight.isStalled()) {
+                    frontRight.setPower(-0.11);
+                    backRight.setPower(-0.11);
+                }
+            }
+            duckSpinner.setPower(-duckSpinnerPower);
+            frontRight.setPower(0);
+            backRight.setPower(0);
+        }
+        duckSpinner.setPower(0);
     }
 }

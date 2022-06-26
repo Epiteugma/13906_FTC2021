@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Autonomous.New.Red;
+package org.firstinspires.ftc.teamcode.autonomous.opmodes.blue;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.hardware.bosch.BNO055IMU;
@@ -12,17 +12,16 @@ import com.z3db0y.susanalib.MecanumDriveTrain;
 import com.z3db0y.susanalib.Motor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.Autonomous.visionv1.TseDetector;
+import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
 import org.firstinspires.ftc.teamcode.Configurable;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-@Autonomous(name="Red Right", group="FTC22Auto")
-public class RedAllianceRight extends LinearOpMode {
+@Autonomous(name="Blue Left", group="FTC22Auto")
+public class Left extends LinearOpMode {
     TseDetector detector;
     Motor frontLeft;
     Motor frontRight;
@@ -36,9 +35,9 @@ public class RedAllianceRight extends LinearOpMode {
     TouchSensor armTouchSensor;
     BNO055IMU imu;
 
-    MecanumDriveTrain driveTrain;
-
     int timer = 30;
+
+    MecanumDriveTrain driveTrain;
 
     public void initHardware() {
         frontLeft = new Motor(hardwareMap, "frontLeft");
@@ -109,16 +108,21 @@ public class RedAllianceRight extends LinearOpMode {
         backLeft.setPower(-power);
         backRight.setPower(-power);
         collector.setPower(-1);
-        collector.resetStallDetection();
         double currentAngle = imu.getAngularOrientation().firstAngle;
-        while (initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2 && !collector.isStalled()) {
+        do {
             Logger.addData("Initial Distance: " + initialDistance);
             Logger.addData("Distance: " + cargoDetector.getDistance(DistanceUnit.CM));
             Logger.update();
-            driveTrain.driveCM(25, 0.2);
-            driveTrain.turn(currentAngle - 8, 0.1, 1);
-            driveTrain.turn(currentAngle + 8, 0.1, 1);
-        }
+            if(initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2){
+                driveTrain.driveCM(25, 0.2);
+            }
+            if(initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2){
+                driveTrain.turn(currentAngle - 8, 0.1, 1);
+            }
+            if(initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2){
+                driveTrain.turn(currentAngle + 8, 0.1, 1);
+            }
+        } while (initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2);
         collector.setPower(0);
         frontLeft.setPower(0);
         frontRight.setPower(0);
@@ -130,7 +134,7 @@ public class RedAllianceRight extends LinearOpMode {
     }
 
     private void releaseCube(double collectorPower) {
-        while(!collector.runToPosition(Configurable.disposeTicks,collectorPower)){
+        while (!collector.runToPosition(Configurable.disposeTicks, collectorPower)) {
             collectorPower += 0.05;
             Logger.addData("Collector Power: " + collectorPower);
             Logger.update();
@@ -156,6 +160,7 @@ public class RedAllianceRight extends LinearOpMode {
         driveTrain.runOnEncoders();
         while (backDistance.getDistance(DistanceUnit.CM) > distance) {
             Logger.addData("Distance: " + backDistance.getDistance(DistanceUnit.CM));
+            Logger.update();
             frontLeft.setPower(0.2);
             frontRight.setPower(0.2);
             backLeft.setPower(0.2);
@@ -165,6 +170,7 @@ public class RedAllianceRight extends LinearOpMode {
         frontRight.setPower(0);
         backLeft.setPower(0);
         backRight.setPower(0);
+        driveTrain.hold();
     }
 
     private void startTimer() {
@@ -210,7 +216,7 @@ public class RedAllianceRight extends LinearOpMode {
         Logger.update();
 
         driveTrain.driveCM(15, 0.4);
-        driveTrain.turn(90, 0.1, 1);
+        driveTrain.turn(-90, 0.1, 1);
         driveTrain.driveCM(72, 0.2);
         driveTrain.turn(0, 0.1, 1);
         switch (itemPos) {
@@ -226,34 +232,26 @@ public class RedAllianceRight extends LinearOpMode {
         }
         driveToShippingHub(0.2);
         releaseCube(Configurable.disposeLowSpeed);
-        driveBackWallDistance(50);
+        driveTrain.driveCM(-15, 0.3);
         arm.runToPositionAsync(Configurable.armHighPosition, 1);
-        driveTrain.turn(-90, 0.1, 1);
+        driveTrain.turn(90, 0.1, 1);
         driveTrain.driveCM(250, 0.6);
         lowerArm();
-        driveTrain.turn(-105, 0.1, 1);
+        driveTrain.turn(105, 0.1, 1);
         collectCube(0.2);
         if(timer < 5) {
             this.stop();
         }
         arm.runToPositionAsync(Configurable.armHighPosition, 1);
-        driveTrain.turn(90, 0.1, 1);
+        driveTrain.turn(-90, 0.1, 1);
         driveTrain.driveCM(300, 0.6);
         driveTrain.turn(0, 0.1, 1);
         driveToShippingHub(0.2);
         releaseCube(Configurable.disposeHighSpeed);
-        while(backDistance.getDistance(DistanceUnit.CM) > 20) {
-            frontLeft.setPower(0.2);
-            frontRight.setPower(0.2);
-            backLeft.setPower(0.2);
-            backRight.setPower(0.2);
-        }
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
+        driveTrain.runOnEncoders();
+        driveBackWallDistance(50);
         arm.runToPositionAsync(Configurable.armHighPosition, 1);
-        driveTrain.turn(-90, 0.1, 1);
+        driveTrain.turn(90, 0.1, 1);
         driveTrain.driveCM(270, 0.6);
         lowerArm();
     }

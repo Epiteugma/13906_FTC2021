@@ -1,9 +1,8 @@
-package com.z3db0y.susanalib.test;
-
-import android.util.Log;
+package org.firstinspires.ftc.teamcode.testing;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -11,10 +10,11 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.z3db0y.susanalib.Logger;
 import com.z3db0y.susanalib.Motor;
 
-import org.firstinspires.ftc.teamcode.Autonomous.visionv1.TseDetector;
+import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
 import org.firstinspires.ftc.teamcode.Configurable;
 
 @Autonomous(name = "Encoder Logger", group = "SusanaLib")
+@Disabled
 public class EncoderLogger extends LinearOpMode {
 
     TseDetector detector;

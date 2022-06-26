@@ -1,10 +1,10 @@
-package org.firstinspires.ftc.teamcode.Autonomous.New.Blue;
+package org.firstinspires.ftc.teamcode.autonomous.opmodes.blue;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import org.firstinspires.ftc.teamcode.Configurable;
 
 @Autonomous(name="Blue Right Warehouse", group="FTC22Auto_Ware")
-public class BlueAllianceRightWarehouse extends BlueAllianceRight {
+public class RightWarehouse extends Right {
 
     @Override
     public void runOpMode() {

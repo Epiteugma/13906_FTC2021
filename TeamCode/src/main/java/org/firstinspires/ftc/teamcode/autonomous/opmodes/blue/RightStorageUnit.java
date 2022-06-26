@@ -1,9 +1,9 @@
-package org.firstinspires.ftc.teamcode.Autonomous.New.Blue;
+package org.firstinspires.ftc.teamcode.autonomous.opmodes.blue;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 @Autonomous(name = "Blue Right Storage Unit", group="FTC22Auto_Store")
-public class BlueAllianceRightStorageUnit extends BlueAllianceRight {
+public class RightStorageUnit extends Right {
 
     @Override
     public void runOpMode() {

@@ -1,18 +1,12 @@
-package com.z3db0y.susanalib.test;
+package org.firstinspires.ftc.teamcode.testing;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.z3db0y.susanalib.Logger;
-import com.z3db0y.susanalib.MecanumDriveTrain;
-import com.z3db0y.susanalib.Motor;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name = "IMU Logger", group = "SusanaLib")
+@Disabled
 public class IMULogger extends LinearOpMode {
     BNO055IMU imu;
 

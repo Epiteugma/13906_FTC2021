@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Drive;
+package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -12,7 +12,7 @@ import com.z3db0y.susanalib.Motor;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp(name = "Beta drive", group = "FTC22")
-public class NewDriveMecanum extends LinearOpMode {
+public class Drive extends LinearOpMode {
     Motor frontLeft;
     Motor frontRight;
     Motor backLeft;
