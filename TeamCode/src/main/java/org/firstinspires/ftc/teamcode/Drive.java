@@ -58,6 +58,13 @@ public class Drive extends LinearOpMode {
         backDistance = hardwareMap.get(DistanceSensor.class, "backDistance");
     }
 
+    double duckSpinnerPower = 0.25;
+    double globalPowerFactor = 0.65;
+    boolean lastTouching = false;
+    boolean duckSpinnersActivated = false;
+    double lastResetTime = 0;
+    long prevTime = 0;
+
     private void duckSpinnerControl(){
         if (gamepad1.dpad_up && System.currentTimeMillis() >= prevTime + 200 && duckSpinnerPower > 0) {
             prevTime = System.currentTimeMillis();
@@ -118,7 +125,7 @@ public class Drive extends LinearOpMode {
         }
         else {
             lastTouching = false;
-            Logger.addData("ArmReset: "+ lastTouching);
+            Logger.addData("ArmReset: "+ "False");
         }
 
         if(arm.getTargetPosition() >= -2200) {
@@ -181,14 +188,9 @@ public class Drive extends LinearOpMode {
         initHardware();
         Logger.setTelemetry(telemetry);
 
-        double duckSpinnerPower = 0.25;
-        double globalPowerFactor = 0.65;
-        boolean lastTouching = false;
-        boolean duckSpinnersActivated = false;
-        double lastResetTime = 0;
-        long prevTime = 0;
         double distance = cargoDetector.getDistance(DistanceUnit.CM);
         double prevDistance = distance;
+
         MecanumDriveTrain driveTrain = new MecanumDriveTrain(frontLeft, frontRight, backLeft, backRight, imu);
         waitForStart();
         while(opModeIsActive()) {
