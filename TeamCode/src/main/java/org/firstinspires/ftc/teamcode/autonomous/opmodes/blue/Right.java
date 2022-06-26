@@ -178,28 +178,32 @@ public class Right extends LinearOpMode {
         driveTrain.driveCM(60, 0.1);
         driveTrain.turn(-120, 0.2, 1);
 
-        frontRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        backRight.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        driveTrain.runOnEncoders();
         double duckSpinnerPower = Configurable.duckSpinnerPower;
         duckSpinner.resetStallDetection();
         duckSpinner.runToPositionAsync(Configurable.duckSpinnerTicks, -duckSpinnerPower);
         while (Math.abs(duckSpinner.getCurrentPosition()) < Math.abs(duckSpinner.getTargetPosition())) {
+            double strafePower = 0.2;
             frontRight.resetStallDetection();
             backRight.resetStallDetection();
+            frontLeft.resetStallDetection();
+            backLeft.resetStallDetection();
             if (duckSpinner.isStalled()) {
-                duckSpinnerPower += 0.04;
+                duckSpinnerPower += 0.05;
                 Logger.addData("Duck Spinner Power: " + duckSpinnerPower);
                 Logger.update();
+                driveTrain.hold();
             }
             else {
-                while (!frontRight.isStalled() && !backRight.isStalled()) {
-                    frontRight.setPower(-0.11);
-                    backRight.setPower(-0.11);
+                while (!frontRight.isStalled() && !backRight.isStalled() && !frontLeft.isStalled() && !backLeft.isStalled()) {
+                    // strafe to the right
+                    frontLeft.setPower(-strafePower);
+                    frontRight.setPower(strafePower);
+                    backLeft.setPower(-strafePower);
+                    backRight.setPower(strafePower);
                 }
             }
             duckSpinner.setPower(-duckSpinnerPower);
-            frontRight.setPower(0);
-            backRight.setPower(0);
         }
         duckSpinner.setPower(0);
     }
