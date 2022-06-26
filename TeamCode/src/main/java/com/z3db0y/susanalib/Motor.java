@@ -106,9 +106,10 @@ public class Motor {
         boolean stalled = false;
         if(System.currentTimeMillis() - lastStallCheck > 1000) {
             double delta = velo - lastVelo;
-            if(delta == 0) stalled = true;
+            if(delta == 0 && Math.abs(velo) < 15) stalled = true;
             Logger.addData("Delta: " + delta);
             lastVelo = velo;
+            this.resetStallDetection();
         }
         return stalled;
     }

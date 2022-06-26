@@ -77,9 +77,14 @@ public class Drive extends LinearOpMode {
             Logger.addData("PrevDistance: " + prevDistance);
             Logger.addData("Distance: " + distance);
             if(Math.abs(prevDistance - distance) >= 2) {
-                gamepad1.rumble(1000);
-                gamepad2.rumble(1000);
+                gamepad1.rumble(1, 0.5, 100);
+                gamepad2.rumble(1, 0.5, 100);
                 prevDistance = distance;
+            }
+
+            if(driveTrain.isStalled()) {
+                gamepad1.rumble(0.5, 1, 1000);
+                gamepad2.rumble(0.5, 1, 1000);
             }
 
             if (gamepad1.dpad_up && System.currentTimeMillis() >= prevTime + 200 && duckSpinnerPower > 0) {
@@ -90,7 +95,6 @@ public class Drive extends LinearOpMode {
                 prevTime = System.currentTimeMillis();
                 duckSpinnerPower -= 0.05;
             }
-
 
             else if (gamepad1.dpad_right && System.currentTimeMillis() >= prevTime + 200){
                 prevTime = System.currentTimeMillis();

@@ -47,10 +47,11 @@ public class MecanumDriveTrain {
         Logger.addData("Last velo: " + lastVelo);
         boolean stalled = false;
         if(System.currentTimeMillis() - lastStallCheck > 1000) {
-            if(Math.abs(velo - lastVelo) == 0) {
+            if(Math.abs(velo - lastVelo) == 0 && Math.abs(velo) < 15) {
                 stalled = true;
             }
             lastVelo = velo;
+            this.resetStallDetector();
         }
         return stalled;
     }
