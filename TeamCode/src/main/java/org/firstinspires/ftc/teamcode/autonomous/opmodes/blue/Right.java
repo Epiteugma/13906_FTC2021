@@ -12,8 +12,8 @@ import com.z3db0y.susanalib.Motor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
 import org.firstinspires.ftc.teamcode.Configurable;
+import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
@@ -68,18 +68,20 @@ public class Right extends LinearOpMode {
         imu.initialize(parameters);
     }
 
-    private void releaseCube() {
-        double collectorPower = Configurable.disposeMidSpeed;
-        while(!collector.runToPosition(Configurable.disposeTicks, collectorPower)){
-            collectorPower += 0.05;
-            Logger.addData("Collector Power: " + collectorPower);
-            Logger.update();
+    private void releaseCube(double collectorPower) {
+        collector.setPower(collectorPower);
+        double startTime = System.currentTimeMillis();
+        while (System.currentTimeMillis() < startTime+1000) {
+            double percentage = (System.currentTimeMillis()-startTime) / 1000;
+            double addition = 1 - collectorPower;
+            collector.setPower(collectorPower + addition*percentage);
         }
+        collector.setPower(0);
     }
 
     private void driveToShippingHub(double power) {
         driveTrain.runOnEncoders();
-        while(backDistance.getDistance(DistanceUnit.CM) < Configurable.distanceToShippingHub) {
+        while (backDistance.getDistance(DistanceUnit.CM) < Configurable.distanceToShippingHubBlue) {
             frontLeft.setPower(-power);
             frontRight.setPower(-power);
             backLeft.setPower(-power);
@@ -92,7 +94,8 @@ public class Right extends LinearOpMode {
         driveTrain.turn(0, 0.1, 1);
     }
 
-    private void lowerArmAsync(){
+    private void lowerArmAsync() {
+        arm.setHoldPosition(false);
         new Thread(() -> {
             arm.setTargetPosition(0);
             arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -149,34 +152,42 @@ public class Right extends LinearOpMode {
 
         waitForStart();
         TseDetector.Location itemPos = detector.getLocation(this);
-        Logger.addData("Detected Cargo: " + itemPos);
-        Logger.update();
+        if(itemPos != null){
+            Logger.addData("Detected Cargo: " + itemPos);
+            Logger.update();
+        }
+        else {
+            itemPos = TseDetector.Location.CENTER;
+        }
 
         driveTrain.driveCM(15, 0.4);
-        driveTrain.turn(90, 0.1, 1);
+        driveTrain.turn(91, 0.1, 1);
         driveTrain.driveCM(72, 0.2);
         driveTrain.turn(0, 0.1, 1);
         switch (itemPos) {
             case LEFT:
                 arm.runToPositionAsync(Configurable.armLowPosition, 1);
+                driveToShippingHub(0.2);
+                releaseCube(Configurable.disposeLowSpeed);
                 break;
             case RIGHT:
                 arm.runToPositionAsync(Configurable.armHighPosition, 1);
+                driveToShippingHub(0.2);
+                releaseCube(Configurable.disposeHighSpeed);
                 break;
             case CENTER:
                 arm.runToPositionAsync(Configurable.armMidPosition, 1);
+                driveToShippingHub(0.2);
+                releaseCube(Configurable.disposeMidSpeed);
                 break;
         }
-        driveToShippingHub(0.2);
-        releaseCube();
         driveBackWallDistance(50);
         arm.setHoldPosition(false);
         lowerArmAsync();
         driveTrain.turn(-90, 0.1, 1);
         driveTrain.driveCM(65, 0.3);
         driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(60, 0.1);
-        driveTrain.turn(-120, 0.2, 1);
+        driveTrain.driveCM(60, 0.15);
 
         driveTrain.runOnEncoders();
         double duckSpinnerPower = Configurable.duckSpinnerPower;
@@ -189,7 +200,7 @@ public class Right extends LinearOpMode {
             frontLeft.resetStallDetection();
             backLeft.resetStallDetection();
             if (duckSpinner.isStalled()) {
-                duckSpinnerPower += 0.05;
+                duckSpinnerPower += 0.08;
                 Logger.addData("Duck Spinner Power: " + duckSpinnerPower);
                 Logger.update();
                 driveTrain.hold();
@@ -199,8 +210,8 @@ public class Right extends LinearOpMode {
                     // strafe to the right
                     frontLeft.setPower(-strafePower);
                     frontRight.setPower(strafePower);
-                    backLeft.setPower(-strafePower);
-                    backRight.setPower(strafePower);
+                    backLeft.setPower(strafePower);
+                    backRight.setPower(-strafePower);
                 }
             }
             duckSpinner.setPower(-duckSpinnerPower);

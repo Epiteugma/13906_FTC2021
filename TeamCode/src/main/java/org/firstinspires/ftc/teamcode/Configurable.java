@@ -11,7 +11,9 @@ public class Configurable {
     public static int armMidPosition = -1150;
     public static int armHighPosition = -1800;
 
-    public static int distanceToShippingHub = 45;
+    public static int distanceToShippingHubRed = 46;
+    public static int distanceToShippingHubBlue = 42;
+
     public static int distanceAfterBars = 130;
 
     public static double disposeLowSpeed = 0.5;
@@ -20,11 +22,11 @@ public class Configurable {
 
     public static int disposeTicks = 576;
 
-    public static double duckSpinnerPower = 0.23;
+    public static double duckSpinnerPower = 0.3;
 
-    public static int duckSpinnerTicks = 2000;
+    public static int duckSpinnerTicks = 1150;
 
-    public static double driveGearRatio = 14/2;
+    public static double driveGearRatio = 14.0/2.0;
 
     public static double armTickPerRev = 1120.0;
 

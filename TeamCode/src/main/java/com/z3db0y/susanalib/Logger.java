@@ -29,7 +29,7 @@ public class Logger {
         if(color == null) color = "#ffffff";
         if(telemetry != null) {
             lines.add(caller + "() " + message);
-            telemetry.addData("<span style='color: #ffaa00'>[SusanaLib] " + caller + "()</span>", "<span style='color: " + color + "'>" + stripHTML(message) + "</span>");
+            telemetry.addData("<span style='color: #ffaa00'>" + caller + "()</span>", "<span style='color: " + color + "'>" + stripHTML(message) + "</span>");
         }
     }
 

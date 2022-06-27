@@ -12,8 +12,8 @@ import com.z3db0y.susanalib.Motor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
 import org.firstinspires.ftc.teamcode.Configurable;
+import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
@@ -68,18 +68,20 @@ public class Left extends LinearOpMode {
         imu.initialize(parameters);
     }
 
-    private void releaseCube() {
-        double collectorPower = Configurable.disposeMidSpeed;
-        while(!collector.runToPosition(Configurable.disposeTicks, collectorPower)){
-            collectorPower += 0.05;
-            Logger.addData("Collector Power: " + collectorPower);
-            Logger.update();
+    private void releaseCube(double collectorPower) {
+        collector.setPower(collectorPower);
+        double startTime = System.currentTimeMillis();
+        while (System.currentTimeMillis() < startTime+1000) {
+            double percentage = (System.currentTimeMillis()-startTime) / 1000;
+            double addition = 1 - collectorPower;
+            collector.setPower(collectorPower + addition*percentage);
         }
+        collector.setPower(0);
     }
 
     private void driveToShippingHub(double power) {
         driveTrain.runOnEncoders();
-        while(backDistance.getDistance(DistanceUnit.CM) < Configurable.distanceToShippingHub) {
+        while (backDistance.getDistance(DistanceUnit.CM) < Configurable.distanceToShippingHubRed) {
             frontLeft.setPower(-power);
             frontRight.setPower(-power);
             backLeft.setPower(-power);
@@ -92,7 +94,8 @@ public class Left extends LinearOpMode {
         driveTrain.turn(0, 0.1, 1);
     }
 
-    private void lowerArmAsync(){
+    private void lowerArmAsync() {
+        arm.setHoldPosition(false);
         new Thread(() -> {
             arm.setTargetPosition(0);
             arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -149,8 +152,13 @@ public class Left extends LinearOpMode {
 
         waitForStart();
         TseDetector.Location itemPos = detector.getLocation(this);
-        Logger.addData("Detected Cargo: " + itemPos);
-        Logger.update();
+        if(itemPos != null){
+            Logger.addData("Detected Cargo: " + itemPos);
+            Logger.update();
+        }
+        else {
+            itemPos = TseDetector.Location.CENTER;
+        }
 
         driveTrain.driveCM(15, 0.4);
         driveTrain.turn(-90, 0.1, 1);
@@ -159,19 +167,21 @@ public class Left extends LinearOpMode {
         switch (itemPos) {
             case LEFT:
                 arm.runToPositionAsync(Configurable.armLowPosition, 1);
+                driveToShippingHub(0.2);
+                releaseCube(Configurable.disposeHighSpeed);
                 break;
             case RIGHT:
                 arm.runToPositionAsync(Configurable.armHighPosition, 1);
+                driveToShippingHub(0.2);
+                releaseCube(Configurable.disposeLowSpeed);
                 break;
             case CENTER:
                 arm.runToPositionAsync(Configurable.armMidPosition, 1);
+                driveToShippingHub(0.2);
+                releaseCube(Configurable.disposeMidSpeed);
                 break;
         }
-        driveToShippingHub(0.2);
-        driveTrain.turn(0, 0.1, 1);
-        releaseCube();
-        driveBackWallDistance(50);
-        arm.setHoldPosition(false);
+        driveBackWallDistance(45);
         lowerArmAsync();
         driveTrain.turn(-90, 0.1, 1);
         driveTrain.driveCM(-45, 0.4);
@@ -183,16 +193,15 @@ public class Left extends LinearOpMode {
         driveTrain.driveCM(37, 0.1);
         double duckSpinnerPower = Configurable.duckSpinnerPower;
         duckSpinner.setTargetPosition(Configurable.duckSpinnerTicks);
-        while(Math.abs(duckSpinner.getCurrentPosition()) < Math.abs(duckSpinner.getTargetPosition())){
-            if(duckSpinner.runToPosition(Configurable.duckSpinnerTicks, duckSpinnerPower)) {
-                duckSpinnerPower += 0.05;
+        while (Math.abs(duckSpinner.getCurrentPosition()) < Math.abs(duckSpinner.getTargetPosition())) {
+            if (duckSpinner.runToPosition(Configurable.duckSpinnerTicks, duckSpinnerPower)) {
+                duckSpinnerPower += 0.08;
                 Logger.addData("Duck Spinner Power: " + duckSpinnerPower);
                 Logger.update();
             }
             else {
-                driveTrain.driveCM(2, 0.1);
+                driveTrain.driveCM(1, 0.1);
             }
         }
-        driveTrain.driveCM(-10, 0.3);
     }
 }

@@ -13,14 +13,14 @@ import com.z3db0y.susanalib.Motor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
 import org.firstinspires.ftc.teamcode.Configurable;
+import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-@Autonomous(name="Blue Left", group="FTC22Auto")
+@Autonomous(name = "Blue Left", group = "FTC22Auto")
 public class Left extends LinearOpMode {
     TseDetector detector;
     Motor frontLeft;
@@ -113,13 +113,13 @@ public class Left extends LinearOpMode {
             Logger.addData("Initial Distance: " + initialDistance);
             Logger.addData("Distance: " + cargoDetector.getDistance(DistanceUnit.CM));
             Logger.update();
-            if(initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2){
+            if (initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2) {
                 driveTrain.driveCM(25, 0.2);
             }
-            if(initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2){
+            if (initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2) {
                 driveTrain.turn(currentAngle - 8, 0.1, 1);
             }
-            if(initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2){
+            if (initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2) {
                 driveTrain.turn(currentAngle + 8, 0.1, 1);
             }
         } while (initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2);
@@ -143,7 +143,7 @@ public class Left extends LinearOpMode {
 
     private void driveToShippingHub(double power) {
         driveTrain.runOnEncoders();
-        while(backDistance.getDistance(DistanceUnit.CM) < Configurable.distanceToShippingHub) {
+        while (backDistance.getDistance(DistanceUnit.CM) < Configurable.distanceToShippingHubBlue) {
             frontLeft.setPower(-power);
             frontRight.setPower(-power);
             backLeft.setPower(-power);
@@ -176,7 +176,7 @@ public class Left extends LinearOpMode {
     private void startTimer() {
         new Thread(() -> {
             double prevTime = System.currentTimeMillis();
-            while (opModeIsActive() && System.currentTimeMillis() > prevTime+1000) {
+            while (opModeIsActive() && System.currentTimeMillis() > prevTime + 1000) {
                 timer--;
                 prevTime = System.currentTimeMillis();
             }
@@ -212,8 +212,13 @@ public class Left extends LinearOpMode {
         waitForStart();
         startTimer();
         TseDetector.Location itemPos = detector.getLocation(this);
-        Logger.addData("Detected Cargo: " + itemPos);
-        Logger.update();
+        if(itemPos != null) {
+            Logger.addData("Detected Cargo: " + itemPos);
+            Logger.update();
+        }
+        else {
+            itemPos = TseDetector.Location.CENTER;
+        }
 
         driveTrain.driveCM(15, 0.4);
         driveTrain.turn(-90, 0.1, 1);
@@ -222,16 +227,20 @@ public class Left extends LinearOpMode {
         switch (itemPos) {
             case LEFT:
                 arm.runToPositionAsync(Configurable.armLowPosition, 1);
+                driveToShippingHub(0.2);
+                releaseCube(Configurable.disposeLowSpeed);
                 break;
             case RIGHT:
                 arm.runToPositionAsync(Configurable.armHighPosition, 1);
+                driveToShippingHub(0.2);
+                releaseCube(Configurable.disposeHighSpeed);
                 break;
             case CENTER:
                 arm.runToPositionAsync(Configurable.armMidPosition, 1);
+                driveToShippingHub(0.2);
+                releaseCube(Configurable.disposeMidSpeed);
                 break;
         }
-        driveToShippingHub(0.2);
-        releaseCube(Configurable.disposeLowSpeed);
         driveTrain.driveCM(-15, 0.3);
         arm.runToPositionAsync(Configurable.armHighPosition, 1);
         driveTrain.turn(90, 0.1, 1);
@@ -239,7 +248,7 @@ public class Left extends LinearOpMode {
         lowerArm();
         driveTrain.turn(105, 0.1, 1);
         collectCube(0.2);
-        if(timer < 5) {
+        if (timer < 5) {
             this.stop();
         }
         arm.runToPositionAsync(Configurable.armHighPosition, 1);
