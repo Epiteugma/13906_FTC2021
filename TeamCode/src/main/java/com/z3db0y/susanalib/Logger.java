@@ -5,14 +5,15 @@ import android.util.Log;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.ArrayList;
+import java.lang.Thread;
 
 public class Logger {
 
     static private Telemetry telemetry;
     static private ArrayList<String> lines = new ArrayList<>();
 
-    static public void setTelemetry(Telemetry telem) {
-        telemetry = telem;
+    static public void setTelemetry(Telemetry tele) {
+        telemetry = tele;
         telemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
     }
 

@@ -12,8 +12,8 @@ public class MecanumDriveTrain {
     public double wheelRadius = 3.75;
     BNO055IMU imu;
     double lastStallCheck = 0;
-    double lastVelo = 0;
-
+    double lastVelocity = 0;
+    
     private void init(Motor frontLeft, Motor frontRight, Motor backLeft, Motor backRight, BNO055IMU imu) {
         this.motors = new Motor[]{frontLeft, frontRight, backLeft, backRight};
         for (Motor motor : motors) {
@@ -30,28 +30,40 @@ public class MecanumDriveTrain {
 
     public void resetStallDetector() {
         lastStallCheck = 0;
-        lastVelo = 0;
+        lastVelocity = 0;
+    }
+
+    public void setPower(double frPower, double flPower, double brPower, double blPower) {
+        runOnEncoders();
+        motors[0].setPower(flPower);
+        motors[1].setPower(frPower);
+        motors[2].setPower(blPower);
+        motors[3].setPower(brPower);
+    }
+
+    public void setPowerAll(double power) {
+        this.setPower(power, power, power, power);
     }
 
     public boolean isStalled() {
         if (lastStallCheck == 0) lastStallCheck = System.currentTimeMillis();
-        double velo = 0;
+        double velocity = 0;
         for (Motor motor : motors) {
-            velo += Math.abs(motor.getVelocity());
+            velocity += Math.abs(motor.getVelocity());
         }
-        velo /= motors.length;
-        Logger.addData("Velo: " + velo);
-        Logger.addData("Last velo: " + lastVelo);
+        velocity /= motors.length;
+        Logger.addData("Velocity: " + velocity);
+        Logger.addData("Last velocity: " + lastVelocity);
         boolean stalled = false;
         double totalPower = 0;
         for (Motor motor : motors) {
             totalPower += Math.abs(motor.getPower());
         }
         if (System.currentTimeMillis() - lastStallCheck > 1000) {
-            if (Math.abs(velo - lastVelo) == 0 && Math.abs(velo) < 15 && totalPower != 0) {
+            if (Math.abs(velocity - lastVelocity) == 0 && Math.abs(velocity) < 15 && totalPower != 0) {
                 stalled = true;
             }
-            lastVelo = velo;
+            lastVelocity = velocity;
             this.resetStallDetector();
         }
         return stalled;
@@ -64,26 +76,9 @@ public class MecanumDriveTrain {
         motors[3].setPower(forwardPower + sidePower * 0.6 - strafePower); // back right
     }
 
-    public void driveFieldCentric(double forwardPower, double sidePower, double strafePower, double robotAngle) {
-//        double relativeAngle = robotAngle - Math.atan2(-forwardPower, strafePower);
-//        double gamepadHypot = Range.clip(Math.hypot(strafePower, forwardPower), 0, 1);
-//
-//        double xValue = Math.cos(Math.toRadians(relativeAngle)) * gamepadHypot;
-//        double yValue = Math.sin(Math.toRadians(relativeAngle)) * gamepadHypot;
-//
-//        double relativeForwardPower = yValue * Math.abs(yValue);
-//        double relativeStrafePower = xValue * Math.abs(xValue);
-//
-//        motors[0].setPower(relativeForwardPower - sidePower - relativeStrafePower);
-//        motors[1].setPower(relativeForwardPower + sidePower + relativeStrafePower);
-//        motors[2].setPower(relativeForwardPower - sidePower + relativeStrafePower);
-//        motors[3].setPower(relativeForwardPower + sidePower - relativeStrafePower);
-
-        throw new NotImplementedError();
-    }
-
     public void drive(int relativeTicks, double power) {
         lastStallCheck = 0;
+        
         release();
         resetEncoders();
         runOnEncoders();
@@ -148,31 +143,42 @@ public class MecanumDriveTrain {
         }
     }
 
+    public void strafeCM(Side side,int cm, double power) {
+        this.strafe(side, (int) ((cm / (wheelRadius * Math.PI * 2)) * (28 * ratio)), power);
+    }
+
     public void strafe(Side side, int relativeTicks, double power) {
+        lastStallCheck = 0;
 
         release();
         resetEncoders();
         runOnEncoders();
 
         int[] targetPositions = new int[]{
-                motors[0].getCurrentPosition() + side.getMultiplier() * (relativeTicks * motors[0].getDirection().getMultiplier()),
-                motors[1].getCurrentPosition() - side.getMultiplier() * (relativeTicks * motors[1].getDirection().getMultiplier()),
-                motors[2].getCurrentPosition() - side.getMultiplier() * (relativeTicks * motors[2].getDirection().getMultiplier()),
-                motors[3].getCurrentPosition() + side.getMultiplier() * (relativeTicks * motors[3].getDirection().getMultiplier())
+                motors[0].getCurrentPosition() + (side.getMultiplier() * relativeTicks * motors[0].getDirection().getMultiplier()),
+                motors[1].getCurrentPosition() - (side.getMultiplier() * relativeTicks * motors[1].getDirection().getMultiplier()),
+                motors[2].getCurrentPosition() - (side.getMultiplier() * relativeTicks * motors[2].getDirection().getMultiplier()),
+                motors[3].getCurrentPosition() + (side.getMultiplier() * relativeTicks * motors[3].getDirection().getMultiplier())
         };
+
         for (int i = 0; i < targetPositions.length; i++) {
             Motor motor = motors[i];
             motor.setTargetPosition(targetPositions[i]);
             motor.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
             motor.setPower(power);
         }
-
         while (
-                Math.abs(motors[0].getCurrentPosition()) < Math.abs(targetPositions[0]) ||
+                (Math.abs(motors[0].getCurrentPosition()) < Math.abs(targetPositions[0]) ||
                         Math.abs(motors[1].getCurrentPosition()) < Math.abs(targetPositions[1]) ||
                         Math.abs(motors[2].getCurrentPosition()) < Math.abs(targetPositions[2]) ||
-                        Math.abs(motors[3].getCurrentPosition()) < Math.abs(targetPositions[3])
+                        Math.abs(motors[3].getCurrentPosition()) < Math.abs(targetPositions[3])) &&
+                        !isStalled()
         ) {
+            Logger.addData("Front left: " + motors[0].getCurrentPosition() + " / " + motors[0].getTargetPosition());
+            Logger.addData("Front right: " + motors[1].getCurrentPosition() + " / " + motors[1].getTargetPosition());
+            Logger.addData("Back left: " + motors[2].getCurrentPosition() + " / " + motors[2].getTargetPosition());
+            Logger.addData("Back right: " + motors[3].getCurrentPosition() + " / " + motors[3].getTargetPosition());
+            Logger.update();
         }
 
         hold();
@@ -212,7 +218,6 @@ public class MecanumDriveTrain {
     }
 
     public void turn(double targetAngle, double power, int angle) {
-
         release();
         resetEncoders();
         runOnEncoders();

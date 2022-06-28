@@ -69,29 +69,20 @@ public class Left extends LinearOpMode {
     }
 
     private void releaseCube(double collectorPower) {
-        collector.setPower(collectorPower);
         double startTime = System.currentTimeMillis();
         while (System.currentTimeMillis() < startTime+1000) {
             double percentage = (System.currentTimeMillis()-startTime) / 1000;
-            double addition = 1 - collectorPower;
-            collector.setPower(collectorPower + addition*percentage);
+            collector.setPower(collectorPower*percentage);
         }
         collector.setPower(0);
     }
 
-    private void driveToShippingHub(double power) {
-        driveTrain.runOnEncoders();
-        while (backDistance.getDistance(DistanceUnit.CM) < Configurable.distanceToShippingHubRed) {
-            frontLeft.setPower(-power);
-            frontRight.setPower(-power);
-            backLeft.setPower(-power);
-            backRight.setPower(-power);
+    private void driveToShippingHub(double power, double distance) {
+        while (backDistance.getDistance(DistanceUnit.CM) < distance) {
+            driveTrain.setPowerAll(-power);
         }
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
         driveTrain.turn(0, 0.1, 1);
+        driveTrain.hold();
     }
 
     private void lowerArmAsync() {
@@ -108,20 +99,12 @@ public class Left extends LinearOpMode {
     }
 
     private void driveBackWallDistance(double distance) {
-        driveTrain.runOnEncoders();
         while (backDistance.getDistance(DistanceUnit.CM) > distance) {
             Logger.addData("Distance: " + backDistance.getDistance(DistanceUnit.CM));
             Logger.update();
-            frontLeft.setPower(0.2);
-            frontRight.setPower(0.2);
-            backLeft.setPower(0.2);
-            backRight.setPower(0.2);
+            driveTrain.setPowerAll(0.2);
         }
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
-        driveTrain.hold();
+       driveTrain.hold();
     }
 
     @Override
@@ -151,7 +134,7 @@ public class Left extends LinearOpMode {
         });
 
         waitForStart();
-        TseDetector.Location itemPos = detector.getLocation(this);
+        TseDetector.Location itemPos = detector.getLocation();
         if(itemPos != null){
             Logger.addData("Detected Cargo: " + itemPos);
             Logger.update();
@@ -162,26 +145,26 @@ public class Left extends LinearOpMode {
 
         driveTrain.driveCM(15, 0.4);
         driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(72, 0.2);
+        driveTrain.driveCM(75, 0.2);
         driveTrain.turn(0, 0.1, 1);
         switch (itemPos) {
             case LEFT:
                 arm.runToPositionAsync(Configurable.armLowPosition, 1);
-                driveToShippingHub(0.2);
+                driveToShippingHub(0.2, Configurable.distanceToShippingHubRedLow);
                 releaseCube(Configurable.disposeHighSpeed);
                 break;
             case RIGHT:
                 arm.runToPositionAsync(Configurable.armHighPosition, 1);
-                driveToShippingHub(0.2);
+                driveToShippingHub(0.2, Configurable.distanceToShippingHubRedHigh);
                 releaseCube(Configurable.disposeLowSpeed);
                 break;
             case CENTER:
                 arm.runToPositionAsync(Configurable.armMidPosition, 1);
-                driveToShippingHub(0.2);
+                driveToShippingHub(0.2, Configurable.distanceToShippingHubRedMid);
                 releaseCube(Configurable.disposeMidSpeed);
                 break;
         }
-        driveBackWallDistance(45);
+        driveBackWallDistance(Configurable.distancefromBackWallRed);
         lowerArmAsync();
         driveTrain.turn(-90, 0.1, 1);
         driveTrain.driveCM(-45, 0.4);

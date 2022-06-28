@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -11,12 +10,7 @@ import com.z3db0y.susanalib.Logger;
 import com.z3db0y.susanalib.MecanumDriveTrain;
 import com.z3db0y.susanalib.Motor;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvWebcam;
 
 @TeleOp(name = "TeleOp", group = "FTC22")
 public class Drive extends LinearOpMode {
@@ -55,11 +49,6 @@ public class Drive extends LinearOpMode {
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-//        frontLeft.setHoldPosition(true);
-//        frontRight.setHoldPosition(true);
-//        backLeft.setHoldPosition(true);
-//        backRight.setHoldPosition(true);
 
         arm.setTargetPosition(0);
         arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -106,42 +95,51 @@ public class Drive extends LinearOpMode {
         }
     }
 
+
+    boolean lastArmOnPower = false;
     private void armControl() {
-        if (gamepad2.right_bumper) {
-            arm.setTargetPosition(-1750);
-        }
-        else if (gamepad2.left_bumper && !armTouchSensor.isPressed()) {
-            arm.setTargetPosition(2500);
-        }
-        else if (gamepad2.y) {
-            arm.setTargetPosition(-1000);
-        }
-        else if (gamepad2.a) {
-            arm.setTargetPosition(-370);
-        }
-
-        if (armTouchSensor.isPressed() && lastResetTime + 250 < System.currentTimeMillis()) {
-            arm.resetEncoder();
-            arm.setTargetPosition(0);
-            arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
-            Logger.addData("touchSensor is currently pressed and I am ready to collect!", "#ef3f49");
-            lastResetTime = System.currentTimeMillis();
-        }
-        else {
-            Logger.addData("ArmReset: " + "False");
-        }
-
-        if (gamepad2.dpad_down && !armTouchSensor.isPressed() && arm.getTargetPosition() != 0) {
-            arm.setTargetPosition(arm.getCurrentPosition() + 150);
+        if (gamepad2.dpad_down && !armTouchSensor.isPressed()) {
+            arm.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            arm.setPower(0.5);
         }
         else if (gamepad2.dpad_up) {
-            arm.setTargetPosition(arm.getCurrentPosition() - 150);
+            arm.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            arm.setPower(-0.5);
         }
-
-        if(Math.abs(gamepad2.left_stick_y) != 0)
-        arm.setTargetPosition(arm.getCurrentPosition() + (int)(gamepad2.left_stick_y * 150));
-
-        arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
+        else if(gamepad2.left_stick_y != 0 && (!(gamepad2.left_stick_y > 0) || !armTouchSensor.isPressed())) {
+            arm.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            arm.setPower(gamepad2.left_stick_y);
+        }
+        else {
+            if (gamepad2.right_bumper) {
+                arm.setTargetPosition(Configurable.armHighPosition);
+            }
+            else if (gamepad2.left_bumper && !armTouchSensor.isPressed()) {
+                arm.setTargetPosition(2500);
+            }
+            else if (gamepad2.y) {
+                arm.setTargetPosition(Configurable.armMidPosition);
+            }
+            else if (gamepad2.a) {
+                arm.setTargetPosition(Configurable.armLowPosition);
+            }
+            else if (armTouchSensor.isPressed() && lastResetTime + 250 < System.currentTimeMillis()) {
+                arm.resetEncoder();
+                arm.setTargetPosition(0);
+                arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
+                Logger.addData("touchSensor is currently pressed and I am ready to collect!", "#ef3f49");
+                lastResetTime = System.currentTimeMillis();
+            }
+            else {
+                Logger.addData("ArmReset: " + "False");
+                if(lastArmOnPower) arm.setTargetPosition(arm.getCurrentPosition());
+                arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
+                arm.setPower(1);
+                lastArmOnPower = false;
+            }
+            return;
+        }
+        lastArmOnPower = true;
     }
 
     private void globalPowerFactorControl() {

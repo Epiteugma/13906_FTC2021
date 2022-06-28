@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.Configurable;
 public class RightWarehouse extends Right {
 
     @Override
-    public void runOpMode() {
+    public void runOpMode() throws InterruptedException {
         super.runOpMode();
         driveTrain.driveCM(-10, 0.3);
         driveTrain.turn(85, 0.1, 1);

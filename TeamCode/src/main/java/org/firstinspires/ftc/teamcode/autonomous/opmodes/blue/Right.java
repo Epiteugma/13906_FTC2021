@@ -71,27 +71,20 @@ public class Right extends LinearOpMode {
     private void releaseCube(double collectorPower) {
         collector.setPower(collectorPower);
         double startTime = System.currentTimeMillis();
-        while (System.currentTimeMillis() < startTime+1000) {
-            double percentage = (System.currentTimeMillis()-startTime) / 1000;
+        while (System.currentTimeMillis() < startTime + 1000) {
+            double percentage = (System.currentTimeMillis() - startTime) / 1000;
             double addition = 1 - collectorPower;
-            collector.setPower(collectorPower + addition*percentage);
+            collector.setPower(collectorPower + addition * percentage);
         }
         collector.setPower(0);
     }
 
-    private void driveToShippingHub(double power) {
-        driveTrain.runOnEncoders();
-        while (backDistance.getDistance(DistanceUnit.CM) < Configurable.distanceToShippingHubBlue) {
-            frontLeft.setPower(-power);
-            frontRight.setPower(-power);
-            backLeft.setPower(-power);
-            backRight.setPower(-power);
+    private void driveToShippingHub(double power, double distance) {
+        while (backDistance.getDistance(DistanceUnit.CM) < distance) {
+            driveTrain.setPowerAll(-power);
         }
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
         driveTrain.turn(0, 0.1, 1);
+        driveTrain.hold();
     }
 
     private void lowerArmAsync() {
@@ -108,24 +101,16 @@ public class Right extends LinearOpMode {
     }
 
     private void driveBackWallDistance(double distance) {
-        driveTrain.runOnEncoders();
         while (backDistance.getDistance(DistanceUnit.CM) > distance) {
             Logger.addData("Distance: " + backDistance.getDistance(DistanceUnit.CM));
             Logger.update();
-            frontLeft.setPower(0.2);
-            frontRight.setPower(0.2);
-            backLeft.setPower(0.2);
-            backRight.setPower(0.2);
+            driveTrain.setPowerAll(0.2);
         }
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
         driveTrain.hold();
     }
 
     @Override
-    public void runOpMode() {
+    public void runOpMode() throws InterruptedException {
         initHardware();
 
         Logger.setTelemetry(telemetry);
@@ -151,8 +136,8 @@ public class Right extends LinearOpMode {
         });
 
         waitForStart();
-        TseDetector.Location itemPos = detector.getLocation(this);
-        if(itemPos != null){
+        TseDetector.Location itemPos = detector.getLocation();
+        if (itemPos != null) {
             Logger.addData("Detected Cargo: " + itemPos);
             Logger.update();
         }
@@ -162,58 +147,49 @@ public class Right extends LinearOpMode {
 
         driveTrain.driveCM(15, 0.4);
         driveTrain.turn(91, 0.1, 1);
-        driveTrain.driveCM(72, 0.2);
+        driveTrain.driveCM(75, 0.2);
         driveTrain.turn(0, 0.1, 1);
         switch (itemPos) {
             case LEFT:
                 arm.runToPositionAsync(Configurable.armLowPosition, 1);
-                driveToShippingHub(0.2);
+                driveToShippingHub(0.2, Configurable.distanceToShippingHubBlueLow);
                 releaseCube(Configurable.disposeLowSpeed);
                 break;
             case RIGHT:
                 arm.runToPositionAsync(Configurable.armHighPosition, 1);
-                driveToShippingHub(0.2);
-                releaseCube(Configurable.disposeHighSpeed);
+                driveToShippingHub(0.2, Configurable.distanceToShippingHubBlueHigh);
+                releaseCube(Configurable.disposeLowSpeed);
                 break;
             case CENTER:
                 arm.runToPositionAsync(Configurable.armMidPosition, 1);
-                driveToShippingHub(0.2);
-                releaseCube(Configurable.disposeMidSpeed);
+                driveToShippingHub(0.2, Configurable.distanceToShippingHubBlueMid);
+                releaseCube(Configurable.disposeLowSpeed);
                 break;
         }
-        driveBackWallDistance(50);
-        arm.setHoldPosition(false);
+        driveBackWallDistance(Configurable.distancefromBackWallBlue);
         lowerArmAsync();
         driveTrain.turn(-90, 0.1, 1);
         driveTrain.driveCM(65, 0.3);
         driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(60, 0.15);
+        driveTrain.driveCM(60, 0.1);
 
-        driveTrain.runOnEncoders();
+        com.z3db0y.susanalib.Thread.sleep(300);
+
         double duckSpinnerPower = Configurable.duckSpinnerPower;
+        duckSpinner.resetEncoder();
+        duckSpinner.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
         duckSpinner.resetStallDetection();
-        duckSpinner.runToPositionAsync(Configurable.duckSpinnerTicks, -duckSpinnerPower);
-        while (Math.abs(duckSpinner.getCurrentPosition()) < Math.abs(duckSpinner.getTargetPosition())) {
-            double strafePower = 0.2;
-            frontRight.resetStallDetection();
-            backRight.resetStallDetection();
-            frontLeft.resetStallDetection();
-            backLeft.resetStallDetection();
+        while (Math.abs(duckSpinner.getCurrentPosition()) - Math.abs(Configurable.duckSpinnerTicks) < 0) {
             if (duckSpinner.isStalled()) {
-                duckSpinnerPower += 0.08;
+                duckSpinnerPower += 0.05;
                 Logger.addData("Duck Spinner Power: " + duckSpinnerPower);
-                Logger.update();
-                driveTrain.hold();
             }
-            else {
-                while (!frontRight.isStalled() && !backRight.isStalled() && !frontLeft.isStalled() && !backLeft.isStalled()) {
-                    // strafe to the right
-                    frontLeft.setPower(-strafePower);
-                    frontRight.setPower(strafePower);
-                    backLeft.setPower(strafePower);
-                    backRight.setPower(-strafePower);
-                }
+            if(!driveTrain.isStalled()) {
+                driveTrain.resetStallDetector();
+                driveTrain.strafeCM(MecanumDriveTrain.Side.RIGHT ,20, 0.2);
             }
+            Logger.addData(duckSpinner.getCurrentPosition());
+            Logger.update();
             duckSpinner.setPower(-duckSpinnerPower);
         }
         duckSpinner.setPower(0);

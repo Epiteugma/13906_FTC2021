@@ -9,7 +9,7 @@ public class Motor {
     private Direction direction;
     private boolean holdPosition;
     private double lastStallCheck = 0;
-    private double lastVelo;
+    private double lastVelocity;
     private double power = 0;
     private DcMotor.RunMode runMode = DcMotor.RunMode.RUN_WITHOUT_ENCODER;
     public double wheelRadius = 3.75;
@@ -32,6 +32,10 @@ public class Motor {
         this.direction = Direction.FORWARD;
         this.motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+
+    public boolean atTargetPosition() {
+        return  motor.getCurrentPosition() == motor.getTargetPosition();
     }
 
     public void resetEncoder(){
@@ -95,22 +99,22 @@ public class Motor {
 
     public void resetStallDetection(){
         this.lastStallCheck = 0;
-        this.lastVelo = 0;
+        this.lastVelocity = 0;
     }
 
     // Only to be used in runToPosition function - because lastStallCheck has to be reset.
     public boolean isStalled() {
         if(lastStallCheck == 0) lastStallCheck = System.currentTimeMillis();
-        double velo = this.getVelocity();
-        Logger.addData("Velo: " + velo);
+        double velocity = this.getVelocity();
+        Logger.addData("Velocity: " + velocity);
         boolean stalled = false;
         if(System.currentTimeMillis() - lastStallCheck > 1000) {
-            double delta = velo - lastVelo;
-            if(delta == 0 || Math.abs(velo) < 15 && this.getPower() != 0) {
+            double delta = velocity - lastVelocity;
+            if(delta == 0 || Math.abs(velocity) < 15 && this.getPower() != 0) {
                 stalled = true;
             }
             Logger.addData("Delta: " + delta);
-            lastVelo = velo;
+            lastVelocity = velocity;
             this.resetStallDetection();
         }
         return stalled;

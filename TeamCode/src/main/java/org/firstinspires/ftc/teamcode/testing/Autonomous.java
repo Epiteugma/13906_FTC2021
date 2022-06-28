@@ -68,30 +68,19 @@ public class Autonomous extends LinearOpMode {
         double initialDistance = cargoDetector.getDistance(DistanceUnit.CM);
         while (initialDistance - cargoDetector.getDistance(DistanceUnit.CM) < 2) {}
         collector.setPower(0);
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
+        driveTrain.hold();
 
         // Go back to initial position.
         driveTrain.drive((int) (-averageTicks * 0.2), 0.2);
-//         driveTrain.drive((int) (-averageTicks * 0.8), 0.075);
     }
 
     private void driveBackWallDistance(double distance) {
-        driveTrain.runOnEncoders();
         while (backDistance.getDistance(DistanceUnit.CM) > distance) {
             Logger.addData("Distance: " + backDistance.getDistance(DistanceUnit.CM));
             Logger.update();
-            frontLeft.setPower(0.2);
-            frontRight.setPower(0.2);
-            backLeft.setPower(0.2);
-            backRight.setPower(0.2);
+            driveTrain.setPowerAll(0.2);
         }
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
+        driveTrain.hold();
     }
 
     @Override
