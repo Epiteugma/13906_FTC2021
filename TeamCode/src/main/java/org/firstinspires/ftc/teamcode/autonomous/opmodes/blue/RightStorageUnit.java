@@ -10,7 +10,7 @@ public class RightStorageUnit extends Right {
     public void runOpMode() throws InterruptedException {
         super.runOpMode();
         driveTrain.turn(180, 0.1, 1);
-        driveTrain.driveCM(-45, 0.5);
+        driveTrain.driveCM(-37, 0.5);
         driveTrain.turn(180, 0.1, 1);
         driveTrain.strafeCM(MecanumDriveTrain.Side.LEFT ,10, 0.2);
     }

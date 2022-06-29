@@ -9,24 +9,27 @@ public class Configurable {
     // Constants and ratios
     public static int armLowPosition = -525;
     public static int armMidPosition = -1150;
-    public static int armHighPosition = -1890;
+    public static int armHighPosition = -1850;
 
-    public static int distanceToShippingHubRedLow = 46;
-    public static int distanceToShippingHubRedMid = 46;
-    public static int distanceToShippingHubRedHigh = 46;
+    public static int distanceToShippingHubRedLow = 50;
+    public static int distanceToShippingHubRedMid = 50;
+    public static int distanceToShippingHubRedHigh = 56;
 
-    public static int distanceToShippingHubBlueLow = 36;
-    public static int distanceToShippingHubBlueMid = 36;
-    public static int distanceToShippingHubBlueHigh = 36;
+    public static int distanceToShippingHubBlueLow = 46;
+    public static int distanceToShippingHubBlueMid = 43;
+    public static int distanceToShippingHubBlueHigh = 40;
 
-    public static int distancefromBackWallBlue = 45;
-    public static int distancefromBackWallRed = 50;
+    public static int distanceFromBackWallBlue = 45;
+    public static int distanceFromBackWallRed = 50;
 
     public static double disposeLowSpeed = 0.6;
     public static double disposeMidSpeed = 0.7;
     public static double disposeHighSpeed = 0.9;
 
-    public static double duckSpinnerPower = 0.23;
+    public static double duckSpinnerPowerRed = 0.27;
+    public static double duckSpinnerPowerBlue = 0.23;
+    public static double duckSpinnerPowerTeleop = 0.38;
+
 
     public static int duckSpinnerTicks = 1000;
 
@@ -39,4 +42,5 @@ public class Configurable {
     public static double wheelRadius = 7.5;
     public static double wheelCircumference = 2 * Math.PI * wheelRadius;
     public static double centerToWheel = 21;
+
 }

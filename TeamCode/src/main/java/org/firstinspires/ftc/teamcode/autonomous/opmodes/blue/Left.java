@@ -203,7 +203,7 @@ public class Left extends LinearOpMode {
 
         driveTrain.driveCM(15, 0.4);
         driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(75, 0.2);
+        driveTrain.driveCM(76, 0.4);
         driveTrain.turn(0, 0.1, 1);
         switch (itemPos) {
             case LEFT:
@@ -239,7 +239,7 @@ public class Left extends LinearOpMode {
         driveToShippingHub(0.2, Configurable.distanceToShippingHubBlueHigh);
         releaseCube(Configurable.disposeLowSpeed);
         driveTrain.runOnEncoders();
-        driveBackWallDistance(Configurable.distancefromBackWallBlue);
+        driveBackWallDistance(Configurable.distanceFromBackWallBlue);
         arm.runToPositionAsync(Configurable.armHighPosition, 1);
         driveTrain.turn(90, 0.1, 1);
         driveTrain.driveCM(270, 0.6);

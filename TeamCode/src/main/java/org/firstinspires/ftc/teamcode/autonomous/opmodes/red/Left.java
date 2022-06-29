@@ -145,26 +145,26 @@ public class Left extends LinearOpMode {
 
         driveTrain.driveCM(15, 0.4);
         driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(75, 0.2);
+        driveTrain.driveCM(76, 0.4);
         driveTrain.turn(0, 0.1, 1);
         switch (itemPos) {
             case LEFT:
                 arm.runToPositionAsync(Configurable.armLowPosition, 1);
                 driveToShippingHub(0.2, Configurable.distanceToShippingHubRedLow);
-                releaseCube(Configurable.disposeHighSpeed);
+                releaseCube(Configurable.disposeLowSpeed);
                 break;
             case RIGHT:
                 arm.runToPositionAsync(Configurable.armHighPosition, 1);
-                driveToShippingHub(0.2, Configurable.distanceToShippingHubRedHigh);
-                releaseCube(Configurable.disposeLowSpeed);
+                driveToShippingHub(0.1, Configurable.distanceToShippingHubRedHigh);
+                releaseCube(Configurable.disposeMidSpeed);
                 break;
             case CENTER:
                 arm.runToPositionAsync(Configurable.armMidPosition, 1);
                 driveToShippingHub(0.2, Configurable.distanceToShippingHubRedMid);
-                releaseCube(Configurable.disposeMidSpeed);
+                releaseCube(Configurable.disposeLowSpeed);
                 break;
         }
-        driveBackWallDistance(Configurable.distancefromBackWallRed);
+        driveBackWallDistance(Configurable.distanceFromBackWallRed);
         lowerArmAsync();
         driveTrain.turn(-90, 0.1, 1);
         driveTrain.driveCM(-45, 0.4);
@@ -173,8 +173,8 @@ public class Left extends LinearOpMode {
         driveTrain.turn(-90, 0.1, 1);
         driveTrain.driveCM(-45, 0.2);
         driveTrain.turn(-175, 0.1, 1);
-        driveTrain.driveCM(37, 0.1);
-        double duckSpinnerPower = Configurable.duckSpinnerPower;
+        driveTrain.driveCM(37, 0.2) ;
+        double duckSpinnerPower = Configurable.duckSpinnerPowerRed;
         duckSpinner.setTargetPosition(Configurable.duckSpinnerTicks);
         while (Math.abs(duckSpinner.getCurrentPosition()) < Math.abs(duckSpinner.getTargetPosition())) {
             if (duckSpinner.runToPosition(Configurable.duckSpinnerTicks, duckSpinnerPower)) {

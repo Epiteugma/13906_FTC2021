@@ -147,7 +147,7 @@ public class Right extends LinearOpMode {
 
         driveTrain.driveCM(15, 0.4);
         driveTrain.turn(91, 0.1, 1);
-        driveTrain.driveCM(75, 0.2);
+        driveTrain.driveCM(76, 0.4);
         driveTrain.turn(0, 0.1, 1);
         switch (itemPos) {
             case LEFT:
@@ -158,7 +158,7 @@ public class Right extends LinearOpMode {
             case RIGHT:
                 arm.runToPositionAsync(Configurable.armHighPosition, 1);
                 driveToShippingHub(0.2, Configurable.distanceToShippingHubBlueHigh);
-                releaseCube(Configurable.disposeLowSpeed);
+                releaseCube(Configurable.disposeMidSpeed);
                 break;
             case CENTER:
                 arm.runToPositionAsync(Configurable.armMidPosition, 1);
@@ -166,16 +166,16 @@ public class Right extends LinearOpMode {
                 releaseCube(Configurable.disposeLowSpeed);
                 break;
         }
-        driveBackWallDistance(Configurable.distancefromBackWallBlue);
+        driveBackWallDistance(Configurable.distanceFromBackWallBlue);
         lowerArmAsync();
         driveTrain.turn(-90, 0.1, 1);
         driveTrain.driveCM(65, 0.3);
         driveTrain.turn(-90, 0.1, 1);
-        driveTrain.driveCM(60, 0.1);
+        driveTrain.driveCM(65, 0.1);
 
         com.z3db0y.susanalib.Thread.sleep(300);
 
-        double duckSpinnerPower = Configurable.duckSpinnerPower;
+        double duckSpinnerPower = Configurable.duckSpinnerPowerBlue;
         duckSpinner.resetEncoder();
         duckSpinner.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
         duckSpinner.resetStallDetection();
@@ -186,7 +186,7 @@ public class Right extends LinearOpMode {
             }
             if(!driveTrain.isStalled()) {
                 driveTrain.resetStallDetector();
-                driveTrain.strafeCM(MecanumDriveTrain.Side.RIGHT ,20, 0.2);
+                driveTrain.strafeCM(MecanumDriveTrain.Side.RIGHT ,5, 0.1);
             }
             Logger.addData(duckSpinner.getCurrentPosition());
             Logger.update();

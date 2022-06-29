@@ -35,13 +35,14 @@ public class Drive extends LinearOpMode {
         collector = new Motor(hardwareMap, "collector");
         duckSpinner = new Motor(hardwareMap, "duckSpinner");
 
+        // imu
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);
 
-        // Motor reversing
+        // Motor reversing - drivetrain
         backLeft.setDirection(Motor.Direction.REVERSE);
         frontRight.setDirection(Motor.Direction.REVERSE);
 
@@ -50,48 +51,59 @@ public class Drive extends LinearOpMode {
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        // Arm
         arm.setTargetPosition(0);
         arm.setRunMode(DcMotor.RunMode.RUN_TO_POSITION);
         arm.setPower(1);
 
+        // Sensors
         cargoDetector = hardwareMap.get(DistanceSensor.class, "cargoDetector");
         armTouchSensor = hardwareMap.get(TouchSensor.class, "armTouch");
         backDistance = hardwareMap.get(DistanceSensor.class, "backDistance");
     }
 
-    double duckSpinnerPower = Configurable.duckSpinnerPower;
+    double duckSpinnerPower = Configurable.duckSpinnerPowerTeleop;
+    double duckSpinnerStep = 0.04;
     double globalPowerFactor = 0.7;
-    boolean duckSpinnersActivated = false;
+    boolean duckSpinnerActivated = false;
     double lastResetTime = 0;
     long prevTime = 0;
 
     private void duckSpinnerControl() {
-        if (gamepad1.dpad_up && System.currentTimeMillis() >= prevTime + 200 && duckSpinnerPower + 0.05 < 1) {
+        if(gamepad1.dpad_up && System.currentTimeMillis() >= prevTime + 200 && Math.abs(duckSpinnerPower + duckSpinnerStep) < 1) {
             prevTime = System.currentTimeMillis();
-            duckSpinnerPower += 0.05;
-        } else if (gamepad1.dpad_down && System.currentTimeMillis() >= prevTime + 200 && duckSpinnerPower -0.05 > 0) {
-            prevTime = System.currentTimeMillis();
-            duckSpinnerPower -= 0.05;
+            duckSpinnerPower += duckSpinnerStep;
         }
+
+        else if (gamepad1.dpad_down && System.currentTimeMillis() >= prevTime + 200 && Math.abs(duckSpinnerPower - duckSpinnerStep) > 0) {
+            prevTime = System.currentTimeMillis();
+            duckSpinnerPower -= duckSpinnerStep;
+        }
+
         else if (gamepad1.dpad_right && System.currentTimeMillis() >= prevTime + 200) {
             prevTime = System.currentTimeMillis();
             duckSpinnerPower = -duckSpinnerPower;
+            duckSpinnerStep = -duckSpinnerStep;
         }
 
-        if (duckSpinnersActivated) {
+        if (duckSpinnerActivated) {
             duckSpinner.setPower(duckSpinnerPower);
         }
 
-        if (gamepad1.b && System.currentTimeMillis() >= prevTime + 300) {
+        if (gamepad1.circle && System.currentTimeMillis() >= prevTime + 300) {
             prevTime = System.currentTimeMillis();
-            if (duckSpinnersActivated) {
-                duckSpinnersActivated = false;
+
+            if (duckSpinnerActivated) {
+                duckSpinnerActivated = false;
                 duckSpinner.setPower(0);
-            } else {
-                duckSpinnersActivated = true;
+            }
+
+            else {
+                duckSpinnerActivated = true;
                 duckSpinner.setPower(duckSpinnerPower);
             }
-            duckSpinner.setHoldPosition(!duckSpinnersActivated);
+
+            duckSpinner.setHoldPosition(!duckSpinnerActivated);
         }
     }
 
@@ -167,10 +179,16 @@ public class Drive extends LinearOpMode {
 
     private void collectorControl() {
         if (gamepad2.right_trigger > 0) {
-            collector.setPower(gamepad2.right_trigger * 0.8);
+            collector.setPower(gamepad2.right_trigger );
         }
         else if (gamepad2.left_trigger > 0) {
             collector.setPower(-gamepad2.left_trigger);
+        }
+        else if(gamepad2.circle){
+            collector.setPower(0.68);
+        }
+        else if(gamepad2.square){
+            collector.setPower(0.4);
         }
         else collector.setPower(0);
     }
@@ -184,15 +202,21 @@ public class Drive extends LinearOpMode {
         Logger.addData("|--  backLeft power: " + backLeft.getPower());
         Logger.addData("|--  Arm power: " + arm.getPower());
         Logger.addData("|--  Collector power: " + collector.getPower());
+        Logger.addData("|--  duckSpinner power: " + duckSpinner.getPower());
+        Logger.addData("|--  duckSpinner variable: " + duckSpinnerPower);
         Logger.addData("Ticks:");
-        Logger.addData("|--  Current arm ticks: " + arm.getCurrentPosition());
         Logger.addData("|--  Target arm ticks: " + arm.getTargetPosition());
-        Logger.addData("|--  ducksSpinner power: " + duckSpinner.getPower());
-        Logger.addData("|--  ducksSpinner variable: " + duckSpinnerPower);
+        Logger.addData("|--  duckSpinner ticks: " + duckSpinner.getCurrentPosition());
+        Logger.addData("|--  collector ticks: " + collector.getCurrentPosition());
         Logger.addData("|--  frontRight ticks: " + frontRight.getCurrentPosition());
         Logger.addData("|--  frontLeft ticks: " + frontLeft.getCurrentPosition());
         Logger.addData("|--  backRight ticks: " + backRight.getCurrentPosition());
         Logger.addData("|--  backLeft ticks: " + backLeft.getCurrentPosition());
+        Logger.addData("Info (usually variables):");
+        Logger.addData("|--  duckSpinner step: " + duckSpinnerStep);
+        Logger.addData("|--  duckSpinnerActivated: " + duckSpinnerActivated);
+        Logger.addData("|--  lastResetTime: " + lastResetTime);
+        Logger.addData("|--  prevTime: " + prevTime);
         Logger.update();
     }
 

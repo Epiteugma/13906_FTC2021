@@ -15,6 +15,6 @@ public class RightWarehouse extends Right {
         driveTrain.driveCM(100, 0.4);
         arm.runToPositionAsync(Configurable.armHighPosition, 1);
         driveTrain.turn(85, 0.1, 1);
-        driveTrain.driveCM(300, 0.4);
+        driveTrain.driveCM(280, 0.4);
     }
 }

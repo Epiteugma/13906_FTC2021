@@ -193,7 +193,7 @@ public class Right extends LinearOpMode {
 
         driveTrain.driveCM(15, 0.4);
         driveTrain.turn(90, 0.1, 1);
-        driveTrain.driveCM(75, 0.2);
+        driveTrain.driveCM(76, 0.4);
         driveTrain.turn(0, 0.1, 1);
         switch (itemPos) {
             case LEFT:
@@ -212,7 +212,7 @@ public class Right extends LinearOpMode {
                 releaseCube(Configurable.disposeMidSpeed);
                 break;
         }
-        driveBackWallDistance(Configurable.distancefromBackWallRed);
+        driveBackWallDistance(Configurable.distanceFromBackWallRed);
         arm.runToPositionAsync(Configurable.armHighPosition, 1);
         driveTrain.turn(-90, 0.1, 1);
         driveTrain.driveCM(250, 0.6);
