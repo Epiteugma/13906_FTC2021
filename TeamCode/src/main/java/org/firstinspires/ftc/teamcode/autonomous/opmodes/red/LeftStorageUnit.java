@@ -13,6 +13,6 @@ public class LeftStorageUnit extends Left {
         driveTrain.turn(180, 0.1, 1);
         driveTrain.driveCM(-45, 0.2);
         driveTrain.turn(180, 0.1, 1);
-        driveTrain.strafeCM(MecanumDriveTrain.Side.RIGHT, 10, 0.2);
+        driveTrain.strafeCM(MecanumDriveTrain.Side.RIGHT, 20, 0.2);
     }
 }
