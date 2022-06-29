@@ -68,6 +68,8 @@ public class Drive extends LinearOpMode {
     boolean duckSpinnerActivated = false;
     double lastResetTime = 0;
     long prevTime = 0;
+    boolean lastArmOnPower = false;
+
 
     private void duckSpinnerControl() {
         if(gamepad1.dpad_up && System.currentTimeMillis() >= prevTime + 200 && Math.abs(duckSpinnerPower + duckSpinnerStep) < 1) {
@@ -108,7 +110,6 @@ public class Drive extends LinearOpMode {
     }
 
 
-    boolean lastArmOnPower = false;
     private void armControl() {
         if (gamepad2.dpad_down && !armTouchSensor.isPressed()) {
             arm.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -129,10 +130,10 @@ public class Drive extends LinearOpMode {
             else if (gamepad2.left_bumper && !armTouchSensor.isPressed()) {
                 arm.setTargetPosition(2500);
             }
-            else if (gamepad2.y) {
+            else if (gamepad2.square) {
                 arm.setTargetPosition(Configurable.armMidPosition);
             }
-            else if (gamepad2.a) {
+            else if (gamepad2.cross) {
                 arm.setTargetPosition(Configurable.armLowPosition);
             }
             else if (armTouchSensor.isPressed() && lastResetTime + 250 < System.currentTimeMillis()) {
@@ -181,15 +182,19 @@ public class Drive extends LinearOpMode {
         if (gamepad2.right_trigger > 0) {
             collector.setPower(gamepad2.right_trigger );
         }
+
         else if (gamepad2.left_trigger > 0) {
             collector.setPower(-gamepad2.left_trigger);
         }
+
         else if(gamepad2.circle){
-            collector.setPower(0.68);
+            collector.setPower(0.69);
         }
+
         else if(gamepad2.square){
             collector.setPower(0.4);
         }
+
         else collector.setPower(0);
     }
 
