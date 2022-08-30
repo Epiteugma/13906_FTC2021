@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.ftc2022;
 
 //import com.acmerobotics.dashboard.config.Config;
-//
+
 //@Config
 public class Configurable {
     // Tunable variables to tune from the dashboard, must be public and static so the dashboard can access them.

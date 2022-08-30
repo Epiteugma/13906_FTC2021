@@ -5,13 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.z3db0y.susanalib.Logger;
-import com.z3db0y.susanalib.MecanumDriveTrain;
 import com.z3db0y.susanalib.Motor;
-import org.firstinspires.ftc.teamcode.fgc2022.Configurable;
-
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
-import java.net.ConnectException;
 
 @TeleOp(name = "TeleOpFGC", group = "FGC22")
 public class Drive extends LinearOpMode {
@@ -52,10 +46,40 @@ public class Drive extends LinearOpMode {
 
     double collectorPower = Configurable.collectorPower;
     double conveyorPower = Configurable.conveyorPower;
-    double shooterPower = Configurable.shooterPower;
+//    double shooterUpperPower = Configurable.shooterUpperPower;
+//    double shooterLowerPower = Configurable.shooterLowerPower;
     double shooterStep = Configurable.shooterStep;
     double globalPowerFactor = 0.4;
     long prevTime = 0;
+    double targetVeloUp = 0;
+    double targetVeloDown = 0;
+
+    private void controlShooter(double distanceFromTarget) {
+        double massOfTheBall = Configurable.massOfTheBall;
+        double gravity = Configurable.gravity;
+        double angleToTarget = Configurable.angleToTarget;
+        double verticalDistanceToTarget = Configurable.verticalDistanceToTarget;
+        double targetAngleTan = Math.tan(Math.toRadians(angleToTarget));
+        double minimDistanceToTarget = verticalDistanceToTarget / targetAngleTan;
+
+        double velocity = Math.sqrt(gravity * Math.pow(distanceFromTarget, 2) * (1 + Math.pow(targetAngleTan, 2)) /
+                2 * (distanceFromTarget * targetAngleTan - verticalDistanceToTarget));
+        // D * targetAngleTan has to be bigger/equal(risky) than verticalDistanceToTarget
+
+        targetVeloUp = velocity;
+        if ( distanceFromTarget >= minimDistanceToTarget) {
+            targetVeloDown = velocity;
+        }
+//            shooterUp.setVelocity(velocity);
+//            shooterDown.setVelocity(velocity);
+        else {
+//            shooterUp.setVelocity(velocity);
+            double multiplier = distanceFromTarget * 0.3;
+            Logger.addData("Multiplier" + multiplier);
+            targetVeloDown = velocity * multiplier;
+//            shooterDown.setVelocity(velocity * multiplier);
+        }
+    }
 
     private void globalPowerFactorControl() {
         if (gamepad1.left_bumper && globalPowerFactor - 0.1 > 0 && System.currentTimeMillis() >= prevTime + 500) {
@@ -88,7 +112,16 @@ public class Drive extends LinearOpMode {
     }
 
     private void conveyorControl(){
-        conveyor.setPower(conveyorPower);
+        Logger.addData("UpVelo" + shooterUp.getVelocity());
+        Logger.addData("DownVelo" + shooterDown.getVelocity());
+        double upVelo = shooterUp.getVelocity();
+        double downVelo = shooterDown.getVelocity();
+        if (Math.abs(upVelo - targetVeloUp) > shooterStep && Math.abs(downVelo - targetVeloDown) > shooterStep) {
+            conveyor.setPower(conveyorPower);
+        }
+        else {
+            conveyor.setPower(0);
+        }
     }
 
     private void collectorControl() {
@@ -96,16 +129,17 @@ public class Drive extends LinearOpMode {
     }
 
     private void shooterControl(){
-        if (gamepad1.dpad_up){
-            shooterPower++;
+        double shooterVeloStep = Configurable.shooterVeloStep;
+        double distanceFromTarget = Configurable.distanceFromTarget;
+        if (gamepad1.circle) {
+            controlShooter(distanceFromTarget);
         }
-        else if (gamepad1.dpad_down){
-            shooterPower--;
+        else if(gamepad1.triangle){
+            targetVeloUp = targetVeloDown;
+            targetVeloDown += shooterVeloStep;
         }
-        else {
-            shooterDown.setPower(shooterPower);
-            shooterUp.setPower(shooterPower);
-        }
+        shooterUp.setVelocity(targetVeloUp);
+        shooterDown.setVelocity(targetVeloDown);
     }
 
     private void communication(){
