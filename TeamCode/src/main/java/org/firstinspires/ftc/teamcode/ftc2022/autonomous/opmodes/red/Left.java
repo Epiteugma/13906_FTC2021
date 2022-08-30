@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.autonomous.opmodes.red;
+package org.firstinspires.ftc.teamcode.ftc2022.autonomous.opmodes.red;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.hardware.bosch.BNO055IMU;
@@ -12,8 +12,8 @@ import com.z3db0y.susanalib.Motor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.Configurable;
-import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
+import org.firstinspires.ftc.teamcode.ftc2022.Configurable;
+import org.firstinspires.ftc.teamcode.ftc2022.autonomous.vision.TseDetector;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;

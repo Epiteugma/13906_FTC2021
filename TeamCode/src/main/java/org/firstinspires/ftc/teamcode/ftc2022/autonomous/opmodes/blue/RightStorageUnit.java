@@ -1,9 +1,11 @@
-package org.firstinspires.ftc.teamcode.autonomous.opmodes.blue;
+package org.firstinspires.ftc.teamcode.ftc2022.autonomous.opmodes.blue;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.z3db0y.susanalib.MecanumDriveTrain;
 
 @Autonomous(name = "Blue Right Storage Unit", group = "FTC22Auto_Store")
+@Disabled
 public class RightStorageUnit extends Right {
 
     @Override

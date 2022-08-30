@@ -1,4 +1,5 @@
-package org.firstinspires.ftc.teamcode.testing;
+package org.firstinspires.ftc.teamcode.ftc2022.testing;
+
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -10,8 +11,8 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.z3db0y.susanalib.Logger;
 import com.z3db0y.susanalib.Motor;
 
-import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
-import org.firstinspires.ftc.teamcode.Configurable;
+import org.firstinspires.ftc.teamcode.ftc2022.autonomous.vision.TseDetector;
+import org.firstinspires.ftc.teamcode.ftc2022.Configurable;
 
 @Autonomous(name = "Encoder Logger", group = "SusanaLib")
 @Disabled

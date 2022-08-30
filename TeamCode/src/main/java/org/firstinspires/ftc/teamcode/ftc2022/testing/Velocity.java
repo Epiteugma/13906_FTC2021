@@ -1,6 +1,8 @@
-package org.firstinspires.ftc.teamcode.testing;
+package org.firstinspires.ftc.teamcode.ftc2022.testing;
+
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -9,9 +11,10 @@ import com.z3db0y.susanalib.Logger;
 import com.z3db0y.susanalib.MecanumDriveTrain;
 import com.z3db0y.susanalib.Motor;
 
-import org.firstinspires.ftc.teamcode.Configurable;
+import org.firstinspires.ftc.teamcode.ftc2022.Configurable;
 
 @TeleOp(name = "1Ad-dA0", group = "SusanaLib")
+@Disabled
 public class Velocity extends LinearOpMode {
     double lastVelo = 0;
     double lastTicks = 0;

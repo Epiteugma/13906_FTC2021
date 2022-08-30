@@ -1,8 +1,9 @@
-package org.firstinspires.ftc.teamcode.autonomous.opmodes.blue;
+package org.firstinspires.ftc.teamcode.ftc2022.autonomous.opmodes.blue;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -13,14 +14,15 @@ import com.z3db0y.susanalib.Motor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.Configurable;
-import org.firstinspires.ftc.teamcode.autonomous.vision.TseDetector;
+import org.firstinspires.ftc.teamcode.ftc2022.Configurable;
+import org.firstinspires.ftc.teamcode.ftc2022.autonomous.vision.TseDetector;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
 @Autonomous(name = "Blue Left", group = "FTC22Auto")
+@Disabled
 public class Left extends LinearOpMode {
     TseDetector detector;
     Motor frontLeft;

@@ -1,10 +1,12 @@
-package org.firstinspires.ftc.teamcode.autonomous.opmodes.red;
+package org.firstinspires.ftc.teamcode.ftc2022.autonomous.opmodes.red;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
-import org.firstinspires.ftc.teamcode.Configurable;
+import org.firstinspires.ftc.teamcode.ftc2022.Configurable;
 
 @Autonomous(name = "Red Left Warehouse", group = "FTC22Auto_Ware")
+@Disabled
 public class LeftWarehouse extends Left {
 
     @Override
